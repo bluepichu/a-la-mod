@@ -56,11 +56,11 @@
                     }
 
                     openChat(chats[0]._id);
+
+                    $(".chat-listing").click(function(){
+                        openChat($(this).attr("data-chat-id"));
+                    });
                 };
-                
-                $(".chat-listing").click(function(){
-                    openChat($(this).attr("data-chat-id"));
-                });
 
                 xhr.setRequestHeader("Content-Type", "application/json");
 
@@ -97,7 +97,7 @@
 
                 xhr.onload = function(){
                     var data = JSON.parse(this.responseText);
-                    
+
                     $(".chat-scroller").empty();
 
                     for(var i = 0; i < data.length; i++){
