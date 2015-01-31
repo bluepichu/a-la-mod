@@ -223,7 +223,18 @@ body {
     margin-bottom: 8px;
 }
 
-#chatbox-form input[type="text"] {
-    width: 100%;
-    height: 36px;
+#chatbox-form input[type="text"],textarea {
+  border:none;
+  padding:10px 12px;
+  background:#d3d3d3;
+  width:300px;
+  height: 56px;
+  border-radius:2px;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
 }
