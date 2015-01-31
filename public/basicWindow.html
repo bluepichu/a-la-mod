@@ -12,13 +12,26 @@
                     <form method="get" action="/search" id="search">
                         <input name="q" type="text" size="40" placeholder="Search..." />
                     </form>
+                    This is where all messages are shown.
                 </div>
             </div>
-            <div class="active-chat">
-                <div class="top-bar"></div>
-                <div class="actual-chat"></div>
-                <div class="modules-bar"></div>
-                <div class="modules"></div>
+            <div class="right-bar">
+                <div class="top-bar">Top Bar</div>
+                <div class="active-chat">
+                    <div class="actual-chat">
+                        <div class="message message-left">
+                            <img class="icon" src="http://placehold.it/64x64" />
+                            <div class="chat-bubble">This is the actual content of the message.  Lorem ipsum dolor sit amet, et cetera.</div>
+                        </div>
+                        <div class="message message-right">
+                            <img class="icon" src="http://placehold.it/64x64" />
+                            <div class="chat-bubble">And this is a message from someone else.  Cooontent.</div>
+                            <div class="chat-bubble">Now they sent you another message.  Wonderful.</div>
+                        </div>
+                    </div>
+                    <div class="modules-bar">This is where the module icons are.</div>
+                    <div class="modules">This is where modules are active.</div>
+                </div>
             </div>
         </div>
     </body>
