@@ -8,11 +8,14 @@
     <body>
         <div class="app">
             <div class="messages">
-                <div class="search-chats">
-                    <form method="get" action="/search" id="search">
-                        <input name="search-bar" type="text" size="40" placeholder="Search..." />
-                    </form>
-                    This is where all messages are shown.
+                <form method="get" action="/search" id="search">
+                    <input name="search-bar" type="text" size="40" placeholder="Search..." />
+                </form>
+                <div class="conversation-container">
+                    <div class="conversation">
+                        <img class="icon-convo" src="http://placehold.it/64x64" />
+                        <div class="conversation-bubble">This is a preview of the conversation.</div>
+                    </div>
                 </div>
             </div>
             <div class="right-bar">

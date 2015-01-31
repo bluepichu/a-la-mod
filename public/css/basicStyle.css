@@ -100,6 +100,7 @@ body {
     width: 80%;
     padding: 6px 15px 6px 35px;
     margin: 0 auto;
+    height: 28px;
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     border-radius: 4px;
@@ -121,10 +122,33 @@ body {
     height: calc(100% - 36px);
 }
 
+.conversation-container {
+    height: calc(100% - 28px);
+}
+
 .icon {
     -webkit-clip-path: circle(16px at 32px 32px);
     position: absolute;
     bottom: 0px;
+}
+
+.icon-convo {
+    -webkit-clip-path: circle(16px at 32px 32px);
+    float: left;
+}
+
+.conversation {
+    height: 64px;
+    margin-top: 8px;
+    -webkit-box-shadow: 1px 0px 4px rgba(0, 0, 0, 0.15) inset;
+    -moz-box-shadow: 1px 0px 4px rgba(0, 0, 0, 0.15) inset;
+    box-shadow: 1px 0px 4px rgba(0, 0, 0, 0.15) inset;
+}
+
+.conversation-bubble {
+    width: calc(100% - 64px);
+    float: right;
+    height: 100%;
 }
 
 .message-left .icon {
