@@ -214,6 +214,7 @@ width: 200px;
     z-index: 1;
     padding: 8px;
     color: #FFFFFF;
+    word-wrap: break-word;
 }
 
 .message-left .chat-bubble {
@@ -251,7 +252,7 @@ width: 200px;
 
 
 .chat-bubble:not(:last-child) {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 textarea#chat-input {
@@ -412,4 +413,20 @@ h2 {
 .chat-scroller {
     height: calc(100% - 44px);
     padding-top: 8px;
+}
+
+.toast {
+    color: #FFFFFF;
+    background: rgba(0, 0, 0, .54);
+    height: 20px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    opacity: 0;
+    transition-duration: 500ms;
+    position: absolute;
+    bottom: 24px;
+    display: inline-block;
+    left: calc(50% - 150px);
+    width: 300px;
+    text-align: center;
 }

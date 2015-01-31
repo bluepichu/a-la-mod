@@ -15,7 +15,7 @@ var POST = "POST";
 var GET = "GET";
 
 var HASH_COUNT = 1726;
-var PAGE_SIZE = 20;
+var PAGE_SIZE = 2e9;
 
 var PLAINTEXT_COMM = ObjectId("54cc2db98c8b2e4fc87cbcb1");
 
@@ -264,6 +264,9 @@ app.post("/chat/history", function(req, res){
                 res.send("Request failed: chat not found.");
                 return;
             }
+            for(var i = 0; i < dat[0].messages.length; i++){
+                dat[0].messages[i].you = dat[0].messages[i].sender.toString() == data[0]._id.toString();
+            }
             res.status(200);
             res.send(dat[0].messages);
         });
@@ -352,6 +355,34 @@ io.on("connection", function(socket){
         }
     });
 
+    socket.on("commrequest", function(chatId, comm){
+        db.query("chats", {
+            _id: Objectid(chatId),
+            users: {$in: [ObjectId(socket.userId)]}
+        }, function(data, err){
+            if(err){
+                io.to(socket.id).emit("error", {description: "Request failed: server error."});
+                return;
+            }
+            if(data.length != 1){
+                io.to(socket.id).emit("error", {description: "Request failed: can't find chat."});
+                return;
+            }
+            var found = false;
+            for(var i = 0; i < data[0].comms.length; i++){
+                if(data[0].comms[i] == comm){
+                    found = true;
+                    break;
+                }
+            }
+            if(found){
+                io.to(socket.id).emit("error", {description: "Request failed: comm already in use."});
+            } else {
+                //stuff
+            }
+        });
+    });
+
     socket.on("message", function(chatId, comm, msg){
         if(socket.userId === undefined){
             io.to(socket.id).emit("error", {description: "Request failed: you're not logged in."});
@@ -383,7 +414,8 @@ io.on("connection", function(socket){
                     if(data[0].users[i] in SOCKETS){
                         console.log("doing thing");
                         for(var j = 0; j < SOCKETS[data[0].users[i]].length; j++){
-                            io.to(SOCKETS[data[0].users[i]][j].id).emit("message", chatId, dat[0].screenName, msg); // comm will probably be a part of this later
+                            console.log("safasdfs", data[0].users[i], socket.userId);
+                            io.to(SOCKETS[data[0].users[i]][j].id).emit("message", chatId, socket.userId, dat[0].screenName, data[0].users[i].toString() == socket.userId.toString(), msg); // comm will probably be a part of this later
                         }
                     }
                 }
@@ -401,6 +433,10 @@ io.on("connection", function(socket){
                           function(data, err){});
             });
         });
+    });
+
+    socket.on("commrequest", function(){
+
     });
 });
 
