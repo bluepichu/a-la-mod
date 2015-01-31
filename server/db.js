@@ -1,5 +1,6 @@
 var mjs = require("mongojs");
-var db = mjs.connect("localhost:27017/chat-mod", ["users", "chats"]);
+var dbPath = "mongodb://exchange:modify@ds039431.mongolab.com:39431/heroku_app33623467";
+var db = mjs.connect(dbPath, ["users", "chats", "comms"]);
 var ObjectId = mjs.ObjectId;
 
 console.log("DB connected.");
