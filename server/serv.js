@@ -15,6 +15,7 @@ var POST = "POST";
 var GET = "GET";
 
 var HASH_COUNT = 1726;
+var PAGE_SIZE = 20;
 
 var PLAINTEXT_COMM = ObjectId("54cc2db98c8b2e4fc87cbcb1");
 
@@ -44,6 +45,10 @@ app.get("/css/:file", function(req, res){
 
 app.get("/js/:file", function(req, res){
     res.sendFile("/js/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+app.get("/images/:file", function(req, res){
+    res.sendFile("/images/" + req.params.file, {root: path.join(__dirname, "../public")});
 });
 
 app.post("/user/new", function(req, res){
@@ -140,7 +145,7 @@ app.post("/user/auth", function(req, res){
     });
 });
 
-app.post("/chat/new", function(req, res){
+app.post("/chat/new", function(req, res){ // TODO: This should require auth
     if(!req.body.users){
         res.status(400);
         res.send("Request failed: missing users list.");
@@ -204,6 +209,64 @@ app.post("/user/screen-name", function(req, res){
         }
         res.status(200);
         res.send("Ok.");
+    });
+});
+
+app.post("/chat/history", function(req, res){
+    if(!req.body.email){
+        res.status(400);
+        res.send("Request failed: missing 'email' field.");
+        return;
+    }
+    if(!req.body.authToken){
+        res.status(400);
+        res.send("Request failed: missing 'authToken' field.");
+        return;
+    }
+    if(!req.body.chatId){
+        res.status(400);
+        res.send("Request failed: missing 'chatId' field.");
+        return;
+    }
+    var page = 0;
+    if(req.body.page){
+        page = req.body.page;
+    }
+
+    db.query("users", {
+        email: req.body.email,
+        authTokens: {$in: [req.body.authToken]}
+    }, function(data, err){
+        if(err){
+            res.status(500);
+            res.send("Request failed: server error.");
+            return;
+        }
+        if(data.length != 1){
+            res.status(400);
+            res.send("Request failed: user not found or password incorrect.");
+            return;
+        }
+        db.project("chats", {
+            _id: ObjectId(req.body.chatId),
+            users: {$in: [data[0]._id]}
+        }, {
+            messages: {$slice: [-(page+1)*PAGE_SIZE, PAGE_SIZE]}
+        },
+                   function(dat, er){
+            if(er){
+                res.status(500);
+                res.send("Request failed: server error.");
+                return;
+            }
+            if(dat.length != 1){
+                res.status(400);
+                res.send("Request failed: chat not found.");
+                return;
+            }
+            res.status(200);
+            res.send(dat[0].messages);
+        });
     });
 });
 
@@ -324,7 +387,7 @@ io.on("connection", function(socket){
                         }
                     }
                 }
-                
+
                 db.update("chats", {
                     _id: ObjectId(chatId)
                 },
@@ -335,7 +398,7 @@ io.on("connection", function(socket){
                         message: msg
                     }}
                 },
-                         function(data, err){});
+                          function(data, err){});
             });
         });
     });
