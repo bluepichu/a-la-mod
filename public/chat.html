@@ -12,6 +12,8 @@
         <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 
         <script>
+            var CURRENT_CHAT = null;
+
             $(document).ready(function(){
                 $(".sidebar-scroller").niceScroll();
                 $(".chat-scroller").niceScroll();
@@ -35,20 +37,51 @@
                 $("#chat-submit").click(function(){
                     submit();
                 });
+
+                socket.emit("login", $.cookie("email"), $.cookie("authToken"));
+
+                openChat("54cc7bae97f6d7881c7425c9");
             });
 
             var socket = io();
 
             socket.on('message', function(chatId, from, message){
-                $('.chat-scroller').append($("<div>").addClass("message message-right").text(chatId + ", " + from + ": " + message));
+                appendMessage(message, "right");
                 console.log(message);
             });
 
             var submit = function(){
                 var data = $("#chat-input").val();
                 $("#chat-input").val("");
-                socket.emit('message', "54cc7bae97f6d7881c7425c9", "plaintext", data);
+                socket.emit('message', CURRENT_CHAT, "plaintext", data);
                 return false;
+            }
+
+            var openChat = function(chatId){
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/chat/history", true);
+
+                xhr.onload = function(){
+                    var data = JSON.parse(this.responseText);
+
+                    for(var i = 0; i < data.length; i++){
+                        appendMessage(data[i].message, "left");
+                    }
+                }
+
+                xhr.setRequestHeader("Content-Type", "application/json");
+
+                xhr.send(JSON.stringify({
+                    email: $.cookie("email"),
+                    authToken: $.cookie("authToken"),
+                    chatId: chatId
+                }));
+
+                CURRENT_CHAT = chatId;
+            }
+            
+            var appendMessage = function(msg, dir){
+                $('.chat-scroller').append($("<div>").addClass("message message-" + dir).append($("<div>").addClass("chat-bubble").text(msg)));
             }
         </script>
     </head>
@@ -167,35 +200,7 @@
             <div class="right-bar">
                 <div class="active-chat">
                     <div class="actual-chat">
-                        <div class="chat-scroller">
-                            <div class="message message-left">
-                                <img class="icon" src="http://placehold.it/64x64" />
-                                <div class="chat-bubble">This is the actual content of the message.  Lorem ipsum dolor sit amet, et cetera.</div>
-                            </div>
-                            <div class="message message-right">
-                                <img class="icon" src="http://placehold.it/64x64" />
-                                <div class="chat-bubble">And this is a message from someone else.  Cooontent.</div>
-                                <div class="chat-bubble">Now they sent you another message.  Wonderful.</div>
-                            </div>
-                            <div class="message message-left">
-                                <img class="icon" src="http://placehold.it/64x64" />
-                                <div class="chat-bubble">This is the actual content of the message.  Lorem ipsum dolor sit amet, et cetera.</div>
-                            </div>
-                            <div class="message message-right">
-                                <img class="icon" src="http://placehold.it/64x64" />
-                                <div class="chat-bubble">And this is a message from someone else.  Cooontent.</div>
-                                <div class="chat-bubble">Now they sent you another message.  Wonderful.</div>
-                            </div>
-                            <div class="message message-left">
-                                <img class="icon" src="http://placehold.it/64x64" />
-                                <div class="chat-bubble">This is the actual content of the message.  Lorem ipsum dolor sit amet, et cetera.</div>
-                            </div>
-                            <div class="message message-right">
-                                <img class="icon" src="http://placehold.it/64x64" />
-                                <div class="chat-bubble">And this is a message from someone else.  Cooontent.</div>
-                                <div class="chat-bubble">Now they sent you another message.  Wonderful.</div>
-                            </div>
-                        </div>
+                        <div class="chat-scroller"></div>
                         <textarea id="chat-input" rows="5" cols="40" name="send" placeholder="Message..."></textarea>
                         <button id="chat-submit">Submit</button>
                     </div>
