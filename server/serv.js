@@ -401,7 +401,9 @@ var fetchUserNames = function(data, cb, res){
              function(dat, err){
         if(!err){
             data.pop();
-            res.push(dat[0].screenName);
+            if(dat[0]){
+                res.push(dat[0].screenName)
+            };
             fetchUserNames(data, cb, res);
         }
     });
