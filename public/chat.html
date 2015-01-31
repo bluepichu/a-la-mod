@@ -120,7 +120,7 @@
                 if($(".chat-scroller").children().last().attr("id") == msg.sender){
                     $(".chat-scroller").children().last().append($("<div>").addClass("chat-bubble").text(msg.message));
                 } else {
-                    $('.chat-scroller').append($("<div>").attr("id", msg.sender).addClass("message message-" + (msg.you? "left" : "right")).append($("<div>").addClass("chat-bubble").text(msg.message)));
+                    $('.chat-scroller').append($("<div>").attr("id", msg.sender).addClass("message message-" + (msg.you? "left" : "right")).append($("<div>").addClass("chat-bubble").text(msg.message))).append($("<img>").addClass("icon").attr("src", "/images/" + msg.sender + ".png");
                 }
                 $(".chat-scroller").scrollTop(2e9);
             }
