@@ -379,7 +379,9 @@ var fetchUserIds = function(data, cb, res){
              function(dat, err){
         if(!err){
             data.pop();
-            res.push(ObjectId(dat[0]._id));
+            if(dat[0]){
+                res.push(ObjectId(dat[0]._id));
+            }
             fetchUserIds(data, cb, res);
         }
     });
