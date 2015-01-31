@@ -116,6 +116,11 @@ body {
 /* #search input[type="text"]:focus {
     width: 200px;
 }*/
+
+.messages-container {
+    height: calc(100% - 36px);
+}
+
 .icon {
     -webkit-clip-path: circle(16px at 32px 32px);
     position: absolute;
@@ -192,4 +197,9 @@ body {
 
 .chat-bubble:not(:last-child) {
     margin-bottom: 8px;
+}
+
+#chatbox-form input[type="text"] {
+    width: 100%;
+    height: 36px;
 }
