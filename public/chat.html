@@ -39,8 +39,31 @@
                 });
 
                 socket.emit("login", $.cookie("email"), $.cookie("authToken"));
-
-                openChat("54cc7bae97f6d7881c7425c9");
+                
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/chats", true);
+                
+                xhr.onload = function(){
+                    console.log(this.responseText);
+                    chats = JSON.parse(this.responseText);
+                    
+                    for(var i = 0; i < chats.length; i++){
+                        $(".sidebar-scroller").append($("<div>").addClass("chat-listing chat-listing-group").append(
+                            $("<div>").addClass("color-stripe").css("background", "#2196F3")).append(
+                            $("<div>").addClass("chat-title").text(chats[i]._id.substring(0, 8) + "...")).append(
+                            $("<div>").addClass("members-list").text(chats[i].users.join(", "))).append(
+                            $("<div>").addClass("most-recent").text(chats[i].messages[0]? chats[i].messages[0].sender + ": " + chats[i].messages[0].message : "No messages yet.")));
+                    }
+                    
+                    openChat(chats[0]._id);
+                };
+                
+                xhr.setRequestHeader("Content-Type", "application/json");
+                
+                xhr.send(JSON.stringify({
+                    email: $.cookie("email"),
+                    authToken: $.cookie("authToken")
+                }));
             });
 
             var socket = io();
@@ -120,102 +143,6 @@
                 <div class="sidebar-scroller">
                     <div class="search-chats">
                         <input id="search" type="text" placeholder="Search..." />
-                    </div>
-                    <div class="chat-listing chat-listing-group">
-                        <div class="color-stripe" style="background: #2196F3"></div>
-                        <div class="chat-title">PilotPhilly Planning</div>
-                        <div class="member-list">Danial, Kyle, and Ashley</div>
-                        <div class="most-recent">Kyle: Why you no do thing</div>
-                    </div>
-                    <div class="chat-listing chat-listing-group">
-                        <div class="color-stripe" style="background: #F44336"></div>
-                        <div class="chat-title">TSA Officer Chat</div>
-                        <div class="member-list">Danial, Kyle, Pranay, Pranavi, <span class="extras">(+3)</span></div>
-                        <div class="most-recent">Kyle: Why you no do thing</div>
-                    </div>
-                    <div class="chat-listing chat-listing-single">
-                        <div class="color-stripe" style="background: #4CAF50"></div>
-                        <img class="icon" src="http://placehold.it/64x64" />
-                        <div class="chat-title">Ashley Kim</div>
-                        <div class="most-recent">Ashley: Why Kyle no do thing</div>
-                    </div>
-                    <div class="chat-listing chat-listing-single">
-                        <div class="color-stripe" style="background: #FF9800"></div>
-                        <img class="icon" src="http://placehold.it/64x64" />
-                        <div class="chat-title">Kyle Herndon</div>
-                        <div class="most-recent">Kyle: Why you no do thing</div>
-                    </div>
-                    <div class="chat-listing chat-listing-single">
-                        <div class="color-stripe" style="background: #FFEB3B"></div>
-                        <img class="icon" src="http://placehold.it/64x64" />
-                        <div class="chat-title">Danial Hussain</div>
-                        <div class="most-recent">Danial: LEEEEEEEROY JEEEEEEEEEENKINSSSS</div>
-                    </div>
-                    <div class="chat-listing chat-listing-group">
-                        <div class="color-stripe" style="background: #03A9F4"></div>
-                        <div class="chat-title">Scroll Squad</div>
-                        <div class="member-list">Anonymous</div>
-                        <div class="most-recent">Making this div overflow since 2015</div>
-                    </div>
-                    <div class="chat-listing chat-listing-single">
-                        <div class="color-stripe" style="background: #9C27B0"></div>
-                        <img class="icon" src="http://placehold.it/64x64" />
-                        <div class="chat-title">Pendleton</div>
-                        <div class="most-recent">Pendleton: You look like you need inspiration :)</div>
-                    </div>
-                    <div class="chat-listing chat-listing-group">
-                        <div class="color-stripe" style="background: #009688"></div>
-                        <div class="chat-title">Hello</div>
-                        <div class="member-list">Goodbye</div>
-                        <div class="most-recent">Beatles: I don't know why you say goodbye, I say hello</div>
-                    </div>
-                    <div class="chat-listing chat-listing-group">
-                        <div class="color-stripe" style="background: #2196F3"></div>
-                        <div class="chat-title">PilotPhilly Planning</div>
-                        <div class="member-list">Danial, Kyle, and Ashley</div>
-                        <div class="most-recent">Kyle: Why you no do thing</div>
-                    </div>
-                    <div class="chat-listing chat-listing-group">
-                        <div class="color-stripe" style="background: #F44336"></div>
-                        <div class="chat-title">TSA Officer Chat</div>
-                        <div class="member-list">Danial, Kyle, Pranay, Pranavi, <span class="extras">(+3)</span></div>
-                        <div class="most-recent">Kyle: Why you no do thing</div>
-                    </div>
-                    <div class="chat-listing chat-listing-single">
-                        <div class="color-stripe" style="background: #4CAF50"></div>
-                        <img class="icon" src="http://placehold.it/64x64" />
-                        <div class="chat-title">Ashley Kim</div>
-                        <div class="most-recent">Ashley: Why Kyle no do thing</div>
-                    </div>
-                    <div class="chat-listing chat-listing-single">
-                        <div class="color-stripe" style="background: #FF9800"></div>
-                        <img class="icon" src="http://placehold.it/64x64" />
-                        <div class="chat-title">Kyle Herndon</div>
-                        <div class="most-recent">Kyle: Why you no do thing</div>
-                    </div>
-                    <div class="chat-listing chat-listing-single">
-                        <div class="color-stripe" style="background: #FFEB3B"></div>
-                        <img class="icon" src="http://placehold.it/64x64" />
-                        <div class="chat-title">Danial Hussain</div>
-                        <div class="most-recent">Danial: LEEEEEEEROY JEEEEEEEEEENKINSSSS</div>
-                    </div>
-                    <div class="chat-listing chat-listing-group">
-                        <div class="color-stripe" style="background: #03A9F4"></div>
-                        <div class="chat-title">Scroll Squad</div>
-                        <div class="member-list">Anonymous</div>
-                        <div class="most-recent">Making this div overflow since 2015</div>
-                    </div>
-                    <div class="chat-listing chat-listing-single">
-                        <div class="color-stripe" style="background: #9C27B0"></div>
-                        <img class="icon" src="http://placehold.it/64x64" />
-                        <div class="chat-title">Pendleton</div>
-                        <div class="most-recent">Pendleton: You look like you need inspiration :)</div>
-                    </div>
-                    <div class="chat-listing chat-listing-group">
-                        <div class="color-stripe" style="background: #009688"></div>
-                        <div class="chat-title">Hello</div>
-                        <div class="member-list">Goodbye</div>
-                        <div class="most-recent">Beatles: I don't know why you say goodbye, I say hello</div>
                     </div>
                 </div>
             </div>

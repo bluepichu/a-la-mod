@@ -214,6 +214,80 @@ app.post("/user/screen-name", function(req, res){
     });
 });
 
+app.post("/chats", function(req, res){
+    if(!req.body.email){
+        res.status(400);
+        res.send("Request failed: missing 'email' field.");
+        return;
+    }
+    if(!req.body.authToken){
+        res.status(400);
+        res.send("Request failed: missing 'authToken' field.");
+        return;
+    }
+
+    db.query("users", {
+        email: req.body.email,
+        authTokens: {$in: [req.body.authToken]}
+    }, function(data, err){
+        if(err){
+            res.status(500);
+            res.send("Request failed: server error.");
+            return;
+        }
+        if(data.length != 1){
+            res.status(400);
+            res.send("Request failed: user not found or password incorrect.");
+            return;
+        }
+        db.project("chats", {
+            users: {$in: [data[0]._id]}
+        }, {
+            _id: 1,
+            messages: {$slice: [-1, 1]},
+            users: 1
+        },
+                   function(dat, er){
+            if(er){
+                res.status(500);
+                res.send("Request failed: server error.");
+                return;
+            }
+
+            replaceIdsWithNames = function(lst, single, cb){
+                fetchUserNames(lst, function(resLst){
+                    fetchUserNames([single], function(resSingle){
+                        resSingle = resSingle[0];
+                        cb(resLst, resSingle);
+                    });
+                });
+            };
+
+            replaceAll = function(full, cb, res){
+                if(res === undefined){
+                    res = [];
+                }
+                if(full.length == 0){
+                    cb(res);
+                    return;
+                }
+                replaceIdsWithNames(full[full.length-1].users, full[full.length-1].messages[0].sender, function(lst, sin){
+                    res.push(full[full.length-1]);
+                    res[res.length-1].users = lst;
+                    res[res.length-1].messages[0].sender = sin;
+                    full.pop();
+                    replaceAll(full, cb, res);
+                });
+            };
+
+            replaceAll(dat, function(ret){
+                res.status(200);
+                res.send(ret);
+            });            
+        });
+    });
+});
+
 app.post("/chat/history", function(req, res){
     if(!req.body.email){
         res.status(400);
@@ -305,6 +379,28 @@ var fetchUserIds = function(data, cb, res){
             data.pop();
             res.push(ObjectId(dat[0]._id));
             fetchUserIds(data, cb, res);
+        }
+    });
+}
+
+var fetchUserNames = function(data, cb, res){
+    if(data.length == 0){
+        cb(res);
+        return;
+    }
+
+    if(res === undefined){
+        res = [];
+    }
+
+    db.query("users", {
+        _id: ObjectId(data[data.length-1])
+    },
+             function(dat, err){
+        if(!err){
+            data.pop();
+            res.push(dat[0].screenName);
+            fetchUserNames(data, cb, res);
         }
     });
 }
