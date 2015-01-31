@@ -274,7 +274,9 @@ app.post("/chats", function(req, res){
                 replaceIdsWithNames(full[full.length-1].users, full[full.length-1].messages[0].sender, function(lst, sin){
                     res.push(full[full.length-1]);
                     res[res.length-1].users = lst;
-                    res[res.length-1].messages[0].sender = sin;
+                    if(res[res.length-1].messages[0]){
+                        res[res.length-1].messages[0].sender = sin;
+                    }
                     full.pop();
                     replaceAll(full, cb, res);
                 });
