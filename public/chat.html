@@ -3,37 +3,201 @@
     <head>
         <title>Chat-Log</title>
         <link rel="stylesheet" href="css/basicStyle.css" type="text/css" />
-        <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,700italic,400,600,700' rel='stylesheet' type='text/css'>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script src="js/spin.min.js"></script>
+        <script src="js/jquery.cookie.js"></script>
+        <script src="js/nicescroll.min.js"></script>
+        <script src="js/jquery.elastic.js"></script>
+        <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+
+        <script>
+            $(document).ready(function(){
+                $(".sidebar-scroller").niceScroll();
+                $(".chat-scroller").niceScroll();
+
+                $("#chat-input").elastic();
+
+                $("#chat-input").on("input keyup", function(){
+                    $(".chat-scroller").height($(".actual-chat").height() - $("#chat-input").height() - 32);
+                });
+
+                $("#chat-input").keydown(function(e){
+                    if(e.keyCode == 13 && !e.shiftKey){
+                        submit();
+
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+
+                $("#chat-submit").click(function(){
+                    submit();
+                });
+            });
+
+            var socket = io();
+
+            socket.on('message', function(chatId, from, message){
+                $('.chat-scroller').append($("<div>").addClass("message message-right").text(chatId + ", " + from + ": " + message));
+                console.log(message);
+            });
+
+            var submit = function(){
+                var data = $("#chat-input").val();
+                $("#chat-input").val("");
+                socket.emit('message', "54cc7bae97f6d7881c7425c9", "plaintext", data);
+                return false;
+            }
+        </script>
     </head>
     <body>
         <div class="app">
+            <div class="top-bar">
+                <div class="title-area">
+                    <img src="images/icon.png" class="app-icon" />
+                    <h1>Moduchat</h1>
+                </div>
+                <h2>"Someone Else"</h2>
+            </div>
             <div class="messages">
-                <div class="search-chats">
-                    <form method="get" action="/search" id="search">
-                        <input name="q" type="text" size="40" placeholder="Search..." />
-                    </form>
-                    This is where all messages are shown.
+                <div class="sidebar-scroller">
+                    <div class="search-chats">
+                        <input id="search" type="text" placeholder="Search..." />
+                    </div>
+                    <div class="chat-listing chat-listing-group">
+                        <div class="color-stripe" style="background: #2196F3"></div>
+                        <div class="chat-title">PilotPhilly Planning</div>
+                        <div class="member-list">Danial, Kyle, and Ashley</div>
+                        <div class="most-recent">Kyle: Why you no do thing</div>
+                    </div>
+                    <div class="chat-listing chat-listing-group">
+                        <div class="color-stripe" style="background: #F44336"></div>
+                        <div class="chat-title">TSA Officer Chat</div>
+                        <div class="member-list">Danial, Kyle, Pranay, Pranavi, <span class="extras">(+3)</span></div>
+                        <div class="most-recent">Kyle: Why you no do thing</div>
+                    </div>
+                    <div class="chat-listing chat-listing-single">
+                        <div class="color-stripe" style="background: #4CAF50"></div>
+                        <img class="icon" src="http://placehold.it/64x64" />
+                        <div class="chat-title">Ashley Kim</div>
+                        <div class="most-recent">Ashley: Why Kyle no do thing</div>
+                    </div>
+                    <div class="chat-listing chat-listing-single">
+                        <div class="color-stripe" style="background: #FF9800"></div>
+                        <img class="icon" src="http://placehold.it/64x64" />
+                        <div class="chat-title">Kyle Herndon</div>
+                        <div class="most-recent">Kyle: Why you no do thing</div>
+                    </div>
+                    <div class="chat-listing chat-listing-single">
+                        <div class="color-stripe" style="background: #FFEB3B"></div>
+                        <img class="icon" src="http://placehold.it/64x64" />
+                        <div class="chat-title">Danial Hussain</div>
+                        <div class="most-recent">Danial: LEEEEEEEROY JEEEEEEEEEENKINSSSS</div>
+                    </div>
+                    <div class="chat-listing chat-listing-group">
+                        <div class="color-stripe" style="background: #03A9F4"></div>
+                        <div class="chat-title">Scroll Squad</div>
+                        <div class="member-list">Anonymous</div>
+                        <div class="most-recent">Making this div overflow since 2015</div>
+                    </div>
+                    <div class="chat-listing chat-listing-single">
+                        <div class="color-stripe" style="background: #9C27B0"></div>
+                        <img class="icon" src="http://placehold.it/64x64" />
+                        <div class="chat-title">Pendleton</div>
+                        <div class="most-recent">Pendleton: You look like you need inspiration :)</div>
+                    </div>
+                    <div class="chat-listing chat-listing-group">
+                        <div class="color-stripe" style="background: #009688"></div>
+                        <div class="chat-title">Hello</div>
+                        <div class="member-list">Goodbye</div>
+                        <div class="most-recent">Beatles: I don't know why you say goodbye, I say hello</div>
+                    </div>
+                    <div class="chat-listing chat-listing-group">
+                        <div class="color-stripe" style="background: #2196F3"></div>
+                        <div class="chat-title">PilotPhilly Planning</div>
+                        <div class="member-list">Danial, Kyle, and Ashley</div>
+                        <div class="most-recent">Kyle: Why you no do thing</div>
+                    </div>
+                    <div class="chat-listing chat-listing-group">
+                        <div class="color-stripe" style="background: #F44336"></div>
+                        <div class="chat-title">TSA Officer Chat</div>
+                        <div class="member-list">Danial, Kyle, Pranay, Pranavi, <span class="extras">(+3)</span></div>
+                        <div class="most-recent">Kyle: Why you no do thing</div>
+                    </div>
+                    <div class="chat-listing chat-listing-single">
+                        <div class="color-stripe" style="background: #4CAF50"></div>
+                        <img class="icon" src="http://placehold.it/64x64" />
+                        <div class="chat-title">Ashley Kim</div>
+                        <div class="most-recent">Ashley: Why Kyle no do thing</div>
+                    </div>
+                    <div class="chat-listing chat-listing-single">
+                        <div class="color-stripe" style="background: #FF9800"></div>
+                        <img class="icon" src="http://placehold.it/64x64" />
+                        <div class="chat-title">Kyle Herndon</div>
+                        <div class="most-recent">Kyle: Why you no do thing</div>
+                    </div>
+                    <div class="chat-listing chat-listing-single">
+                        <div class="color-stripe" style="background: #FFEB3B"></div>
+                        <img class="icon" src="http://placehold.it/64x64" />
+                        <div class="chat-title">Danial Hussain</div>
+                        <div class="most-recent">Danial: LEEEEEEEROY JEEEEEEEEEENKINSSSS</div>
+                    </div>
+                    <div class="chat-listing chat-listing-group">
+                        <div class="color-stripe" style="background: #03A9F4"></div>
+                        <div class="chat-title">Scroll Squad</div>
+                        <div class="member-list">Anonymous</div>
+                        <div class="most-recent">Making this div overflow since 2015</div>
+                    </div>
+                    <div class="chat-listing chat-listing-single">
+                        <div class="color-stripe" style="background: #9C27B0"></div>
+                        <img class="icon" src="http://placehold.it/64x64" />
+                        <div class="chat-title">Pendleton</div>
+                        <div class="most-recent">Pendleton: You look like you need inspiration :)</div>
+                    </div>
+                    <div class="chat-listing chat-listing-group">
+                        <div class="color-stripe" style="background: #009688"></div>
+                        <div class="chat-title">Hello</div>
+                        <div class="member-list">Goodbye</div>
+                        <div class="most-recent">Beatles: I don't know why you say goodbye, I say hello</div>
+                    </div>
                 </div>
             </div>
             <div class="right-bar">
-                <div class="top-bar">Top Bar</div>
                 <div class="active-chat">
                     <div class="actual-chat">
-                        <div class="message message-left">
-                            <img class="icon" src="http://placehold.it/64x64" />
-                            <div class="chat-bubble">This is the actual content of the message.  Lorem ipsum dolor sit amet, et cetera.</div>
+                        <div class="chat-scroller">
+                            <div class="message message-left">
+                                <img class="icon" src="http://placehold.it/64x64" />
+                                <div class="chat-bubble">This is the actual content of the message.  Lorem ipsum dolor sit amet, et cetera.</div>
+                            </div>
+                            <div class="message message-right">
+                                <img class="icon" src="http://placehold.it/64x64" />
+                                <div class="chat-bubble">And this is a message from someone else.  Cooontent.</div>
+                                <div class="chat-bubble">Now they sent you another message.  Wonderful.</div>
+                            </div>
+                            <div class="message message-left">
+                                <img class="icon" src="http://placehold.it/64x64" />
+                                <div class="chat-bubble">This is the actual content of the message.  Lorem ipsum dolor sit amet, et cetera.</div>
+                            </div>
+                            <div class="message message-right">
+                                <img class="icon" src="http://placehold.it/64x64" />
+                                <div class="chat-bubble">And this is a message from someone else.  Cooontent.</div>
+                                <div class="chat-bubble">Now they sent you another message.  Wonderful.</div>
+                            </div>
+                            <div class="message message-left">
+                                <img class="icon" src="http://placehold.it/64x64" />
+                                <div class="chat-bubble">This is the actual content of the message.  Lorem ipsum dolor sit amet, et cetera.</div>
+                            </div>
+                            <div class="message message-right">
+                                <img class="icon" src="http://placehold.it/64x64" />
+                                <div class="chat-bubble">And this is a message from someone else.  Cooontent.</div>
+                                <div class="chat-bubble">Now they sent you another message.  Wonderful.</div>
+                            </div>
                         </div>
-                        <div class="message message-right">
-                            <img class="icon" src="http://placehold.it/64x64" />
-                            <div class="chat-bubble">And this is a message from someone else.  Cooontent.</div>
-                            <div class="chat-bubble">Now they sent you another message.  Wonderful.</div>
-                        </div>
-                        <div class="chatbox-form">
-                            <form method="get" action="/sendmessage" id="chatbox-form">
-                                <textarea rows="5" cols="40" name="send"placeholder="Message..."> </textarea>
-                            </form>
-                        
-                        </div>
+                        <textarea id="chat-input" rows="5" cols="40" name="send" placeholder="Message..."></textarea>
+                        <button id="chat-submit">Submit</button>
                     </div>
                     <div class="modules-bar">This is where the module icons are.</div>
                     <div class="modules">This is where modules are active.</div>
