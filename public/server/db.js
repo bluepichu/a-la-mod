@@ -42,5 +42,6 @@ var update = function(table, query, data, cb){
 module.exports = {
     query: query,
     insert: insert,
-    update: update
+    update: update,
+    ObjectId: ObjectId
 }
