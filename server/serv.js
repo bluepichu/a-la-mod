@@ -16,6 +16,8 @@ var HASH_COUNT = 1726;
 
 var PLAINTEXT_COMM = ObjectId("54cc2db98c8b2e4fc87cbcb1");
 
+var SOCKETS = {};
+
 app.get("/", function(req, res){
     console.log("lol");
     res.sendFile("/index.html", {root: path.join(__dirname, "../public")});
@@ -53,7 +55,6 @@ app.post("/user/new", function(req, res){
             password: password,
             salt: salt,
             authTokens: [],
-            chats: [],
             icon: null,
             screenName: req.body.email
         }, function(data, err){
@@ -139,9 +140,46 @@ app.post("/chat/new", function(req, res){
         })});
 });
 
-io.on("connection", function(socket){
-    socket.on("chat message", function(msg){
-        io.emit("chat message", msg);
+app.post("/user/screen-name", function(req, res){
+    if(!req.body.email){
+        res.status(400);
+        res.send("Request failed: missing 'email' field.");
+        return;
+    }
+    if(!req.body.authToken){
+        res.status(400);
+        res.send("Request failed: missing 'authToken' field.");
+        return;
+    }
+    if(!req.body.screenName){
+        res.status(400);
+        res.send("Request failed: missing 'screenName' field.");
+        return;
+    }
+    db.update("users", {
+        email: req.body.email,
+        authTokens: {
+            $in: [req.body.authToken]
+        }
+    },
+              {
+        $set: {
+            screenName: req.body.screenName
+        }
+    },
+              function(data, err){
+        if(err){
+            res.status(500);
+            res.send("Request failed: server error.");
+            return;
+        }
+        if(data.length == 0){
+            res.status(400);
+            res.send("Request failed: user not found or password incorrect.");
+            return;
+        }
+        res.status(200);
+        res.send("Ok.");
     });
 });
 
@@ -162,19 +200,116 @@ var fetchUserIds = function(data, cb, res){
         cb(res);
         return;
     }
-    
+
     if(res === undefined){
         res = [];
     }
-    
+
     db.query("users", {
         email: data[data.length-1]
     },
              function(dat, err){
         if(!err){
             data.pop();
-            res.push(ObjectId(dat._id));
+            res.push(ObjectId(dat[0]._id));
             fetchUserIds(data, cb, res);
         }
     });
 }
+
+io.on("connection", function(socket){
+    socket.on("login", function(user, auth){
+        if(socket.userId){
+            io.to(socket.id).emit("error", {description: "Logon failed: you're alerady logged in!"});
+            return;
+        }
+        db.query("users", {
+            email: user,
+            authTokens: {
+                $in: [auth] 
+            }
+        },
+                 function(data, err){
+            if(err){
+                io.to(socket.id).emit("error", {description: "Login failed: server error."});
+                return;
+            }
+            if(data.length != 1){
+                io.to(socket.id).emit("error", {description: "Login failed: invalid auth token."});
+                return;
+            }
+            io.to(socket.id).emit("success", {description: "Login succeeded."});
+            console.log("Login succeeded.");
+            socket.userId = data[0]._id;
+            socket.email = data[0].email;
+            console.log(socket.userId);
+            if(!(socket.userId in SOCKETS)){
+                SOCKETS[socket.userId] = [];
+            }
+            SOCKETS[socket.userId].push(socket);
+        });
+    });
+
+    socket.on("disconnect", function(){
+        if(socket.userId === undefined){
+            return;
+        }
+
+        arr = SOCKETS[socket.userId];
+
+        for(var i = 0; i < arr.length; i++){
+            if(arr[i] == socket){
+                arr.splice(i, 1);
+                return;
+            }
+        }
+    });
+
+    socket.on("message", function(chatId, comm, msg){
+        if(socket.userId === undefined){
+            io.to(socket.id).emit("error", {description: "Request failed: you're not logged in."});
+        }
+        // do something fun with comms here later
+        db.query("chats", {
+            _id: ObjectId(chatId),
+            users: {
+                $in: [ObjectId(socket.userId)]
+            }
+        },
+                 function(data, err){
+            if(err || data.length == 0){
+                io.to(socket.id).emit("error", {description: "Request failed: you're not a part of that chat."});
+                return;
+            }
+            console.log("sending message...");
+            db.query("users", {
+                email: socket.email
+            },
+                     function(dat, er){
+                if(er || !dat){
+                    // ???
+                    io.to(socket.id).emit("error", {description: "Request failed: server error."});
+                    return;
+                }
+                for(var i = 0; i < data[0].users.length; i++){
+                    console.log(data[0].users[i]);
+                    if(data[0].users[i] in SOCKETS){
+                        console.log("doing thing");
+                        for(var j = 0; j < SOCKETS[data[0].users[i]].length; j++){
+                            io.to(SOCKETS[data[0].users[i]][j].id).emit("message", chatId, dat[0].screenName, msg); // comm will probably be a part of this later
+                        }
+                    }
+                }
+            });
+        });
+    });
+});
+
+
+setInterval(function(){
+    console.log();
+    for(x in SOCKETS){
+        console.log(x + ": " + SOCKETS[x].length);
+    }
+    console.log();
+}, 10000);

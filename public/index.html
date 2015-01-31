@@ -24,13 +24,14 @@
         <script>
             var socket = io();
             $('form').submit(function(){
-                socket.emit('chat message', $('#m').val());
+                socket.emit('message', "54cc7bae97f6d7881c7425c9", "plaintext", $('#m').val());
                 $('#m').val('');
                 return false;
             });
 
-            socket.on('chat message', function(msg){
-                $('#messages').append($('<li>').text(msg));
+            socket.on('message', function(chatId, from, message){
+                console.log("!!!!");
+                $('#messages').append($('<li>').text(chatId + ", " + from + ": " + message));
             });
         </script>
     </body>
