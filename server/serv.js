@@ -21,6 +21,8 @@ var PLAINTEXT_COMM = ObjectId("54cc2db98c8b2e4fc87cbcb1");
 
 var SOCKETS = {};
 
+var PORT = process.env.PORT || 1337;
+
 app.get("/", function(req, res){
     if(req.cookies.email && req.cookies.authToken){
         db.query("users", {
@@ -273,8 +275,8 @@ app.post("/chat/history", function(req, res){
     });
 });
 
-http.listen(1337, function(){
-    console.log("listening on *:1337");
+http.listen(PORT, function(){
+    console.log("listening on *:" + PORT);
 });
 
 var passwordHash = function(password, salt){
