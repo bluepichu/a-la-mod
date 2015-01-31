@@ -271,7 +271,7 @@ app.post("/chats", function(req, res){
                     cb(res);
                     return;
                 }
-                replaceIdsWithNames(full[full.length-1].users, full[full.length-1].messages[0].sender, function(lst, sin){
+                replaceIdsWithNames(full[full.length-1].users, full[full.length-1].messages[0]? full[full.length-1].messages[0].sender : null, function(lst, sin){
                     res.push(full[full.length-1]);
                     res[res.length-1].users = lst;
                     if(res[res.length-1].messages[0]){
