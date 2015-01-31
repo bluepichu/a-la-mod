@@ -48,7 +48,7 @@
                     chats = JSON.parse(this.responseText);
 
                     for(var i = 0; i < chats.length; i++){
-                        $(".sidebar-scroller").append($("<div>").addClass("chat-listing chat-listing-group").append(
+                        $(".sidebar-scroller").append($("<div>").addClass("chat-listing chat-listing-group").attr("data-chat-id", chats[i]._id).append(
                             $("<div>").addClass("color-stripe").css("background", "#2196F3")).append(
                             $("<div>").addClass("chat-title").text(chats[i]._id.substring(0, 8) + "...")).append(
                             $("<div>").addClass("members-list").text(chats[i].users.join(", "))).append(
@@ -57,6 +57,10 @@
 
                     openChat(chats[0]._id);
                 };
+                
+                $(".chat-listing").click(function(){
+                    openChat($(this).attr("data-chat-id"));
+                });
 
                 xhr.setRequestHeader("Content-Type", "application/json");
 
@@ -93,6 +97,8 @@
 
                 xhr.onload = function(){
                     var data = JSON.parse(this.responseText);
+                    
+                    $(".chat-scroller").empty();
 
                     for(var i = 0; i < data.length; i++){
                         appendMessage(data[i]);
