@@ -40,7 +40,7 @@
                         if(this.status == 200){
                             $.cookie("email", $("#email").val(), {expires: 30, path: "/"});
                             $.cookie("authToken", this.responseText, {expires: 30, path: "/"});
-                            location.reload();
+                            location.reload(true);
                         } else {
                             $("#login").css({height: "48px"});
                             $("#spin-area").css({height: "0px"});

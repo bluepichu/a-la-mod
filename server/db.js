@@ -2,7 +2,7 @@ var mjs = require("mongojs");
 var dbPath = "mongodb://exchange:modify@ds039431.mongolab.com:39431/heroku_app33623467";
 if(process.argv[2] == "-l"){
     console.log("RUNNING LOCALLY");
-    dbPath = "mongodb://localhost:27017/chat-mod";
+    dbPath = "mongodb://localhost:27017/a-la-mod";
 }
 var db = mjs.connect(dbPath, ["users", "chats"]);
 var ObjectId = mjs.ObjectId;
