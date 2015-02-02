@@ -342,9 +342,6 @@ app.post("/chat/history", function(req, res){
                 res.send("Request failed: chat not found.");
                 return;
             }
-            for(var i = 0; i < dat[0].messages.length; i++){
-                dat[0].messages[i].you = dat[0].messages[i].sender.toString() == data[0]._id.toString();
-            }
             res.status(200);
             res.send(dat[0].messages);
         });
@@ -414,7 +411,7 @@ var fetchUserNames = function(data, cb, res){
 io.on("connection", function(socket){
     socket.on("login", function(user, auth){
         if(socket.userId){
-            io.to(socket.id).emit("error", {description: "Login failed: you're alerady logged in!"});
+            io.to(socket.id).emit("login error", {description: "Login failed: you're alerady logged in!"});
             return;
         }
         db.query("users", {
@@ -425,14 +422,14 @@ io.on("connection", function(socket){
         },
                  function(data, err){
             if(err){
-                io.to(socket.id).emit("error", {description: "Login failed: server error."});
+                io.to(socket.id).emit("login error", {description: "Login failed: server error."});
                 return;
             }
             if(data.length != 1){
-                io.to(socket.id).emit("error", {description: "Login failed: invalid auth token."});
+                io.to(socket.id).emit("login error", {description: "Login failed: invalid auth token."});
                 return;
             }
-            io.to(socket.id).emit("success", {description: "Login succeeded."});
+            io.to(socket.id).emit("login success", {description: "Login succeeded.", id: data[0]._id});
             console.log("Login succeeded.");
             socket.userId = data[0]._id;
             socket.email = data[0].email;
@@ -524,16 +521,8 @@ io.on("connection", function(socket){
                     io.to(socket.id).emit("error", {description: "Request failed: server error."});
                     return;
                 }
-                for(var i = 0; i < data[0].users.length; i++){
-                    console.log(data[0].users[i]);
-                    if(data[0].users[i] in SOCKETS){
-                        console.log("doing thing");
-                        for(var j = 0; j < SOCKETS[data[0].users[i]].length; j++){
-                            console.log("safasdfs", data[0].users[i], socket.userId);
-                            io.to(SOCKETS[data[0].users[i]][j].id).emit("message", chatId, socket.userId, dat[0].screenName, data[0].users[i].toString() == socket.userId.toString(), msg); // comm will probably be a part of this later
-                        }
-                    }
-                }
+                
+                io.to(chatId).emit("message", chatId, socket.userId, dat[0].screenName, msg); // comm will probably be a part of this later
 
                 db.update("chats", {
                     _id: ObjectId(chatId)

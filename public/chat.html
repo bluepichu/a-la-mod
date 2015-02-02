@@ -13,6 +13,8 @@
 
         <script>
             var CURRENT_CHAT = null;
+            var MY_ID = null;
+            var socket;
 
             $(document).ready(function(){
                 $(".sidebar-scroller").niceScroll();
@@ -38,55 +40,33 @@
                     submit();
                 });
 
-                socket.emit("login", $.cookie("email"), $.cookie("authToken"));
+                socket = io();
 
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", "/chats", true);
-
-                xhr.onload = function(){
-                    console.log(this.responseText);
-                    chats = JSON.parse(this.responseText);
-
-                    for(var i = 0; i < chats.length; i++){
-                        $(".sidebar-scroller").append($("<div>").addClass("chat-listing chat-listing-group").attr("data-chat-id", chats[i]._id).append(
-                            $("<div>").addClass("color-stripe").css("background", "#2196F3")).append(
-                            $("<div>").addClass("chat-title").text(chats[i]._id.substring(0, 8) + "...")).append(
-                            $("<div>").addClass("members-list").text(chats[i].users.join(", "))).append(
-                            $("<div>").addClass("most-recent").text(chats[i].messages[0]? chats[i].messages[0].sender + ": " + chats[i].messages[0].message : "No messages yet.")));
+                socket.on('message', function(chatId, fromId, fromName, message){
+                    if(CURRENT_CHAT == chatId){
+                        appendMessage({message: message, sender: fromId, you: MY_ID == fromId});
+                    } else {
+                        // some notif should occur here
                     }
+                });
 
-                    openChat(chats[0]._id);
+                socket.on("error", function(descr){
+                    toast(descr.description);
+                });
 
-                    $(".chat-listing").click(function(){
-                        openChat($(this).attr("data-chat-id"));
-                    });
-                };
+                socket.on("commrequest", function(source, name){
+                    permissionToast(source + " would like to add the " + name + " comm to this chat.");
+                });
 
-                xhr.setRequestHeader("Content-Type", "application/json");
-
-                xhr.send(JSON.stringify({
-                    email: $.cookie("email"),
-                    authToken: $.cookie("authToken")
-                }));
+                socket.on("login success", function(dat){
+                    MY_ID = dat.id;
+                    init();
+                });
+                
+                socket.emit("login", $.cookie("email"), $.cookie("authToken"));
             });
 
-            var socket = io();
 
-            socket.on('message', function(chatId, fromId, fromName, self, message){
-                if(CURRENT_CHAT == chatId){
-                    appendMessage({message: message, sender: fromId, you: self});
-                } else {
-                    // some notif should occur here
-                }
-            });
-
-            socket.on("error", function(descr){
-                toast(descr.description);
-            });
-
-            socket.on("commrequest", function(source, name){
-                permissionToast(source + " would like to add the " + name + " comm to this chat.");
-            });
 
             var submit = function(){
                 var data = $("#chat-input").val();
@@ -105,6 +85,7 @@
                     $(".chat-scroller").empty();
 
                     for(var i = 0; i < data.length; i++){
+                        data[i].you = data[i].sender == MY_ID;
                         appendMessage(data[i]);
                     }
                 }
@@ -137,6 +118,37 @@
             var permissionToast = function(msg){
                 $(".toast-perm .prompt").text(msg).css({opacity: 1});
                 setTimeout(function(){ $(".toast-perm").css({opacity: 0}); }, 5000);
+            }
+
+            var init = function(){
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/chats", true);
+
+                xhr.onload = function(){
+                    console.log(this.responseText);
+                    chats = JSON.parse(this.responseText);
+
+                    for(var i = 0; i < chats.length; i++){
+                        $(".sidebar-scroller").append($("<div>").addClass("chat-listing chat-listing-group").attr("data-chat-id", chats[i]._id).append(
+                            $("<div>").addClass("color-stripe").css("background", "#2196F3")).append(
+                            $("<div>").addClass("chat-title").text(chats[i]._id.substring(0, 8) + "...")).append(
+                            $("<div>").addClass("members-list").text(chats[i].users.join(", "))).append(
+                            $("<div>").addClass("most-recent").text(chats[i].messages[0]? chats[i].messages[0].sender + ": " + chats[i].messages[0].message : "No messages yet.")));
+                    }
+
+                    openChat(chats[0]._id);
+
+                    $(".chat-listing").click(function(){
+                        openChat($(this).attr("data-chat-id"));
+                    });
+                };
+
+                xhr.setRequestHeader("Content-Type", "application/json");
+
+                xhr.send(JSON.stringify({
+                    email: $.cookie("email"),
+                    authToken: $.cookie("authToken")
+                }));
             }
         </script>
     </head>
