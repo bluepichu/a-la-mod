@@ -414,7 +414,7 @@ var fetchUserNames = function(data, cb, res){
 io.on("connection", function(socket){
     socket.on("login", function(user, auth){
         if(socket.userId){
-            io.to(socket.id).emit("error", {description: "Logon failed: you're alerady logged in!"});
+            io.to(socket.id).emit("error", {description: "Login failed: you're alerady logged in!"});
             return;
         }
         db.query("users", {
@@ -441,6 +441,17 @@ io.on("connection", function(socket){
                 SOCKETS[socket.userId] = [];
             }
             SOCKETS[socket.userId].push(socket);
+            
+            db.query("chats", {
+                
+            },
+                     function(dat, er){
+                if(!er){
+                    for(var i = 0; i < dat.length; i++){
+                        socket.join(dat[i]._id);
+                    }
+                }
+            });
         });
     });
 
