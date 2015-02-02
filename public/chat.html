@@ -73,7 +73,11 @@
             var socket = io();
 
             socket.on('message', function(chatId, fromId, fromName, self, message){
-                appendMessage({message: message, sender: fromId, you: self});
+                if(CURRENT_CHAT == chatId){
+                    appendMessage({message: message, sender: fromId, you: self});
+                } else {
+                    // some notif should occur here
+                }
             });
 
             socket.on("error", function(descr){
