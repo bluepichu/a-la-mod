@@ -442,4 +442,5 @@ h2 {
     color: #FFFFFF;
     padding: 0px 4px;
     border-radius: 4px;
+    visibility: hidden;
 }
