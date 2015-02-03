@@ -44,6 +44,7 @@
                 socket = io();
 
                 socket.on('message', function(chatId, fromId, fromName, message){
+                    CHATS[chatId].listing.find(".most-recent").text(fromName + ": " + message);
                     if(CURRENT_CHAT == chatId){
                         appendMessage({message: message, sender: fromId, you: MY_ID == fromId});
                     } else {
