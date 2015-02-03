@@ -432,3 +432,14 @@ h2 {
     width: 300px;
     text-align: center;
 }
+
+.unread-count {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    font-size: 12px;
+    background: #FF5252;
+    color: #FFFFFF;
+    padding: 0px 4px;
+    border-radius: 4px;
+}

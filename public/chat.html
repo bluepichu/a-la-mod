@@ -62,7 +62,7 @@
                     MY_ID = dat.id;
                     init();
                 });
-                
+
                 socket.emit("login", $.cookie("email"), $.cookie("authToken"));
             });
 
@@ -133,7 +133,8 @@
                             $("<div>").addClass("color-stripe").css("background", "#2196F3")).append(
                             $("<div>").addClass("chat-title").text(chats[i]._id.substring(0, 8) + "...")).append(
                             $("<div>").addClass("members-list").text(chats[i].users.join(", "))).append(
-                            $("<div>").addClass("most-recent").text(chats[i].messages[0]? chats[i].messages[0].sender + ": " + chats[i].messages[0].message : "No messages yet.")));
+                            $("<div>").addClass("most-recent").text(chats[i].messages[0]? chats[i].messages[0].sender + ": " + chats[i].messages[0].message : "No messages yet.")).append(
+                            $("<div>").addClass("unread-count").text("0")));
                     }
 
                     openChat(chats[0]._id);
