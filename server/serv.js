@@ -545,21 +545,6 @@ io.on("connection", function(socket){
                 }
 
                 io.to(chatId).emit("message", chatId, socket.userId, dat[0].screenName, msg); // comm will probably be a part of this later
-                
-                for(var i = 0; i < data[0].users.length; i++){
-                    if(data[0].users[i] in SOCKETS && SOCKETS[data[0].users[i]].length > 0){
-                        var updateObj = {};
-                        
-                        updateObj["lastRead." + data[0].users[i]] = 1;
-                        
-                        db.update("chats",
-                            {
-                            _id: ObjectId(chatId)
-                        }, {
-                            $inc: updateObj
-                        }, function(){});
-                    }
-                }
 
                 db.update("chats", {
                     _id: ObjectId(chatId)
@@ -574,6 +559,24 @@ io.on("connection", function(socket){
                 },
                           function(data, err){});
             });
+        });
+    });
+
+    socket.on("up to date", function(chatId){
+        db.query("chats", {
+            _id: ObjectId(chatId),
+            users: {$in: [ObjectId(socket.userId)]}
+        }, function(data, err){
+            if(err){
+                return;
+            }
+            var setObj = {};
+            setObj["lastRead." + socket.userId] = data[0].messageCount;
+            db.update("chats", {
+                _id: ObjectId(chatId)
+            }, {
+                $set: {}
+            }, function(){});
         });
     });
 

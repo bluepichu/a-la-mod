@@ -43,9 +43,10 @@
 
                 socket = io();
 
-                socket.on('message', function(chatId, fromId, fromName, message){
+                socket.on("message", function(chatId, fromId, fromName, message){
                     if(CURRENT_CHAT == chatId){
                         appendMessage({message: message, sender: fromId, you: MY_ID == fromId});
+                        socket.emit("up to date", chatId);
                     } else {
                         CHATS[chatId].unread++;
                         CHATS[chatId].listing.find(".unread-count").css({visibility: "visible"}).text(CHATS[chatId].unread);
