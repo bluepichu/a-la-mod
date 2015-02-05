@@ -255,7 +255,8 @@ app.post("/chats", function(req, res){
             _id: 1,
             messages: {$slice: [-1, 1]},
             users: 1,
-            lastRead: 1
+            lastRead: 1,
+            messageCount: 1
         },
                    function(dat, er){
             if(er){
