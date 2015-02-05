@@ -153,11 +153,20 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
         res.send("Request failed: missing users list.");
         return;
     }
+
     fetchUserIds(req.body.users, function(ids){
+        var lastRead = {};
+
+        for(var i = 0; i < ids.length; i++){
+            lastRead[ids[i]] = 0;
+        }
+
         db.insert("chats", {
             users: ids,
             comms: [PLAINTEXT_COMM],
-            messages: []
+            messages: [],
+            lastRead: lastRead,
+            messageCount: 0
         },
                   function(data, err){
             if(err){
@@ -245,7 +254,8 @@ app.post("/chats", function(req, res){
         }, {
             _id: 1,
             messages: {$slice: [-1, 1]},
-            users: 1
+            users: 1,
+            lastRead: 1
         },
                    function(dat, er){
             if(er){
@@ -327,7 +337,7 @@ app.post("/chat/history", function(req, res){
         }
         db.project("chats", {
             _id: ObjectId(req.body.chatId),
-            users: {$in: [data[0]._id]}
+            users: {$in: [ObjectId(data[0]._id)]}
         }, {
             messages: {$slice: [-(page+1)*PAGE_SIZE, PAGE_SIZE]}
         },
@@ -335,6 +345,7 @@ app.post("/chat/history", function(req, res){
             if(er){
                 res.status(500);
                 res.send("Request failed: server error.");
+                console.log(er);
                 return;
             }
             if(dat.length != 1){
@@ -344,6 +355,16 @@ app.post("/chat/history", function(req, res){
             }
             res.status(200);
             res.send(dat[0].messages);
+
+            var updateObject = {};
+            updateObject["lastRead." + data[0]._id] = dat[0].messageCount - page*PAGE_SIZE;
+
+            db.update("chats", {
+                _id: ObjectId(req.body.chatId),
+                users: {$in: [data[0]._id]}
+            }, {
+                $max: updateObject
+            }, function(){});
         });
     });
 });
@@ -438,9 +459,9 @@ io.on("connection", function(socket){
                 SOCKETS[socket.userId] = [];
             }
             SOCKETS[socket.userId].push(socket);
-            
+
             db.query("chats", {
-                
+
             },
                      function(dat, er){
                 if(!er){
@@ -521,8 +542,23 @@ io.on("connection", function(socket){
                     io.to(socket.id).emit("error", {description: "Request failed: server error."});
                     return;
                 }
-                
+
                 io.to(chatId).emit("message", chatId, socket.userId, dat[0].screenName, msg); // comm will probably be a part of this later
+                
+                for(var i = 0; i < data[0].users.length; i++){
+                    if(data[0].users[i] in SOCKETS && SOCKETS[data[0].users[i]].length > 0){
+                        var updateObj = {};
+                        
+                        updateObj["lastRead." + data[0].users[i]] = 1;
+                        
+                        db.update("chats",
+                            {
+                            _id: ObjectId(chatId)
+                        }, {
+                            $inc: updateObj
+                        }, function(){});
+                    }
+                }
 
                 db.update("chats", {
                     _id: ObjectId(chatId)
@@ -532,7 +568,8 @@ io.on("connection", function(socket){
                         sender: dat[0]._id,
                         comm: comm,
                         message: msg
-                    }}
+                    }},
+                    $inc: {messageCount: 1}
                 },
                           function(data, err){});
             });
