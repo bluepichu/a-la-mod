@@ -575,7 +575,7 @@ io.on("connection", function(socket){
             db.update("chats", {
                 _id: ObjectId(chatId)
             }, {
-                $set: {}
+                $set: setObj
             }, function(){});
         });
     });
