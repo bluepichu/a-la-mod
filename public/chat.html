@@ -47,6 +47,7 @@
                     CHATS[chatId].listing.find(".most-recent").text(fromName + ": " + message);
                     if(CURRENT_CHAT == chatId){
                         appendMessage({message: message, sender: fromId, you: MY_ID == fromId});
+                        socket.emit("up to date", chatId);
                     } else {
                         CHATS[chatId].unread++;
                         CHATS[chatId].listing.find(".unread-count").css({visibility: "visible"}).text(CHATS[chatId].unread);
@@ -137,7 +138,7 @@
                     for(var i = 0; i < chats.length; i++){
                         CHATS[chats[i]._id] = {
                             users: chats[i].users,
-                            unread: 0,
+                            unread: chats[i].messageCount - chats[i].lastRead[MY_ID],
                             listing: $("<div>").addClass("chat-listing chat-listing-group").attr("data-chat-id", chats[i]._id).append(
                                 $("<div>").addClass("color-stripe").css("background", "#2196F3")).append(
                                 $("<div>").addClass("chat-title").text(chats[i]._id.substring(0, 8) + "...")).append(
@@ -146,6 +147,9 @@
                                 $("<div>").addClass("unread-count").text("0"))
                         }
                         $(".sidebar-scroller").append(CHATS[chats[i]._id].listing);
+                        if(CHATS[chats[i]._id].unread > 0){
+                            CHATS[chats[i]._id].listing.find(".unread-count").css({visibility: "visible"}).text(CHATS[chats[i]._id].unread);
+                        }
                     }
 
                     openChat(chats[0]._id);
