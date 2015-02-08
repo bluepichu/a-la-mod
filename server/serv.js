@@ -91,7 +91,6 @@ app.post("/user/new", function(req, res){
             password: password,
             salt: salt,
             authTokens: [],
-            icon: null,
             screenName: req.body.email
         }, function(data, err){
             if(err){
