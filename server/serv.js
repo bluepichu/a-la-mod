@@ -10,6 +10,7 @@ var path = require("path");
 var crypto = require("crypto");
 var db = require("./db");
 var ObjectId = db.ObjectId;
+var moment = require("moment");
 
 var connect_handlebars = require("connect-handlebars");
 app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/templates", {
@@ -171,7 +172,8 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
             comms: [PLAINTEXT_COMM],
             messages: [],
             lastRead: lastRead,
-            messageCount: 0
+            messageCount: 0,
+            creationTime: moment().unix()
         },
                   function(data, err){
             if(err){
@@ -278,7 +280,8 @@ app.post("/chats", function(req, res){
             messages: {$slice: [-1, 1]},
             users: 1,
             lastRead: 1,
-            messageCount: 1
+            messageCount: 1,
+            creationTime: 1
         },
                    function(dat, er){
             if(er){
@@ -575,7 +578,8 @@ io.on("connection", function(socket){
                     $push: {messages: {
                         sender: dat[0]._id,
                         comm: comm,
-                        message: msg
+                        message: msg,
+                        timestamp: moment().unix()
                     }},
                     $inc: {messageCount: 1}
                 },
