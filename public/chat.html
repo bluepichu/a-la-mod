@@ -73,6 +73,23 @@
                     MY_ID = dat.id;
                     init();
                 });
+                
+                socket.on("new chat", function(dat){
+                    CHATS[dat._id] = {
+                            users: dat.users,
+                            unread: 0,
+                            listing: $(Handlebars.templates["chat-listing"]({
+                                id: dat._id,
+                                title: dat._id.substring(0, 8) + "...",
+                                members: dat.users.join(", "),
+                                mostRecent: undefined
+                            }))
+                        }
+                        $(".sidebar-scroller").append(CHATS[dat._id].listing);
+                        if(CHATS[dat._id].unread > 0){
+                            CHATS[dat._id].listing.find(".unread-count").css({visibility: "visible"}).text(CHATS[dat._id].unread);
+                        }
+                });
 
                 socket.emit("login", $.cookie("email"), $.cookie("authToken"));
             });

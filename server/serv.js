@@ -13,7 +13,7 @@ var ObjectId = db.ObjectId;
 
 var connect_handlebars = require("connect-handlebars");
 app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/templates", {
-  exts: ["hbs"]
+    exts: ["hbs"]
 }));
 
 var POST = "POST";
@@ -179,7 +179,24 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
                 res.send("Request failed: server error.");
                 return;
             }
-            // emit notif to involved sockets here
+
+            for(var i = 0; i < ids.length; i++){
+                if(ids[i] in SOCKETS){
+                    for(var j = 0; j < SOCKETS[ids[i]].length; j++){
+                        SOCKETS[ids[i]][j].join(data._id);
+                    }
+                }
+            }
+            
+            fetchUserNames(data.users, function(res){
+                data.users = res;
+            });
+
+            io.to(data._id).emit("new chat", {
+                _id: data._id,
+                users: data.users
+            });
+
             res.status(200);
             res.send("Ok.");
         })});
