@@ -52,6 +52,7 @@
 
                 socket.on("message", function(chatId, fromId, fromName, message){
                     CHATS[chatId].listing.find(".most-recent").text(fromName + ": " + message);
+                    CHATS[chatId].listing.insertAfter(".search-chats");
                     if(CURRENT_CHAT == chatId){
                         appendMessage({message: message, sender: fromId, you: MY_ID == fromId});
                         socket.emit("up to date", chatId);
