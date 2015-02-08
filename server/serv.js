@@ -187,14 +187,14 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
                     }
                 }
             }
-            
+
             fetchUserNames(data.users, function(res){
                 data.users = res;
-            });
 
-            io.to(data._id).emit("new chat", {
-                _id: data._id,
-                users: data.users
+                io.to(data._id).emit("new chat", {
+                    _id: data._id,
+                    users: data.users
+                });
             });
 
             res.status(200);
