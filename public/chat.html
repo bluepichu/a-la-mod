@@ -13,7 +13,10 @@
         <script src="js/jquery.cookie.js"></script>
         <script src="js/nicescroll.min.js"></script>
         <script src="js/jquery.elastic.js"></script>
+        <script src="js/handlebars-v1.3.0.js"></script>
         <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+        
+        <script src="templates/templates.js"></script>
 
         <script>
             var CURRENT_CHAT = null;
@@ -143,12 +146,9 @@
                         CHATS[chats[i]._id] = {
                             users: chats[i].users,
                             unread: chats[i].messageCount - chats[i].lastRead[MY_ID],
-                            listing: $("<div>").addClass("chat-listing chat-listing-group").attr("data-chat-id", chats[i]._id).append(
-                                $("<div>").addClass("color-stripe").css("background", "#2196F3")).append(
-                                $("<div>").addClass("chat-title").text(chats[i]._id.substring(0, 8) + "...")).append(
-                                $("<div>").addClass("members-list").text(chats[i].users.join(", "))).append(
-                                $("<div>").addClass("most-recent").text(chats[i].messages[0]? chats[i].messages[0].sender + ": " + chats[i].messages[0].message : "No messages yet.")).append(
-                                $("<div>").addClass("unread-count").text("0"))
+                            listing: Handlebars.templates["chat-listing"]({
+                                
+                            })
                         }
                         $(".sidebar-scroller").append(CHATS[chats[i]._id].listing);
                         if(CHATS[chats[i]._id].unread > 0){

@@ -11,6 +11,11 @@ var crypto = require("crypto");
 var db = require("./db");
 var ObjectId = db.ObjectId;
 
+var connect_handlebars = require("connect-handlebars");
+app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/templates", {
+  exts: ["hbs"]
+}));
+
 var POST = "POST";
 var GET = "GET";
 

@@ -1,6 +1,6 @@
 {
-  "name": "chat-mod",
-  "version": "0.0.1",
+  "name": "a-la-mod",
+  "version": "0.0.2",
   "description": "Modular chat system.",
   "dependencies": {
     "body-parser": "^1.10.2",
@@ -8,6 +8,7 @@
       "crypto": "^0.0.3",
       "express": "^4.11.1",
       "mongojs": "^0.18.1",
-      "socket.io": "^1.3.2"
+      "socket.io": "^1.3.2",
+      "connect-handlebars": "^0.1.0"
   }
 }
