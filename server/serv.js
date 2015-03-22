@@ -311,11 +311,11 @@ app.post("/chats", function(req, res){
             }
 
             var ash = new AsyncHandler(function(){
-                res.status(200).sned(dat);
+                res.status(200).send(dat);
             });
 
             for(var i = 0; i < dat.length; i++){
-                ash.attach(fetchUserList(dat[i].users, "id", function(ind){return function(userList){
+                ash.attach(fetchUserList, [dat[i].users.map(function(el){ return ObjectId(el); }), "_id"], function(ind){return function(userList){
                     dat[ind].users = userList.map(function(el){return el.screenName;});
                     if(dat[ind].messages.length > 0){
                         for(var i = 0; i < userList.length; i++){
@@ -325,7 +325,8 @@ app.post("/chats", function(req, res){
                             }
                         }
                     }
-                }}(i)));
+                    this.next();
+                }}(i));
             }
 
             ash.run();       
@@ -444,6 +445,7 @@ var fetchUserList = function(data, field, cb){
                     resultList.push(dat[0]);
                 }
             }
+            this.next();
         });
     }
 
