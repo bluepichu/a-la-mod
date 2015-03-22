@@ -178,15 +178,15 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
         return;
     }
 
-    fetchUserIds(req.body.users, function(ids){
+    fetchUserList(req.body.users, "email", function(users){
         var lastRead = {};
 
-        for(var i = 0; i < ids.length; i++){
-            lastRead[ids[i]] = 0;
+        for(var i = 0; i < users.length; i++){
+            lastRead[users[i]._id] = 0;
         }
 
         db.insert("chats", {
-            users: ids,
+            users: users.map(function(el){ return el._id }),
             comms: [PLAINTEXT_COMM],
             messages: [],
             lastRead: lastRead,
@@ -200,21 +200,17 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
                 return;
             }
 
-            for(var i = 0; i < ids.length; i++){
-                if(ids[i] in SOCKETS){
-                    for(var j = 0; j < SOCKETS[ids[i]].length; j++){
-                        SOCKETS[ids[i]][j].join(data._id);
+            for(var i = 0; i < users.length; i++){
+                if(users[i]._id in SOCKETS){
+                    for(var j = 0; j < SOCKETS[users[i]._id].length; j++){
+                        SOCKETS[users[i]._id][j].join(data._id);
                     }
                 }
             }
 
-            fetchUserNames(data.users, function(res){
-                data.users = res;
-
-                io.to(data._id).emit("new chat", {
-                    _id: data._id,
-                    users: data.users
-                });
+            io.to(data._id).emit("new chat", {
+                _id: data._id,
+                users: users.map(function(el){ return el.screenName; })
             });
 
             res.status(200);
@@ -314,38 +310,25 @@ app.post("/chats", function(req, res){
                 return;
             }
 
-            replaceIdsWithNames = function(lst, single, cb){
-                fetchUserNames(lst, function(resLst){
-                    fetchUserNames([single], function(resSingle){
-                        resSingle = resSingle[0];
-                        cb(resLst, resSingle);
-                    });
-                });
-            };
+            var ash = new AsyncHandler(function(){
+                res.status(200).sned(dat);
+            });
 
-            replaceAll = function(full, cb, res){
-                if(res === undefined){
-                    res = [];
-                }
-                if(full.length == 0){
-                    cb(res);
-                    return;
-                }
-                replaceIdsWithNames(full[full.length-1].users, full[full.length-1].messages[0]? full[full.length-1].messages[0].sender : null, function(lst, sin){
-                    res.push(full[full.length-1]);
-                    res[res.length-1].users = lst;
-                    if(res[res.length-1].messages[0]){
-                        res[res.length-1].messages[0].sender = sin;
+            for(var i = 0; i < dat.length; i++){
+                ash.attach(fetchUserList(dat[i].users, "id", function(ind){return function(userList){
+                    dat[ind].users = userList.map(function(el){return el.screenName;});
+                    if(dat[ind].messages.length > 0){
+                        for(var i = 0; i < userList.length; i++){
+                            if(userList[i]._id == dat[ind].messages[0].sender){
+                                dat[ind].messages[0].sender = userList[i].screenName;
+                                break;
+                            }
+                        }
                     }
-                    full.pop();
-                    replaceAll(full, cb, res);
-                });
-            };
+                }}(i)));
+            }
 
-            replaceAll(dat, function(ret){
-                res.status(200);
-                res.send(ret);
-            });            
+            ash.run();       
         });
     });
 });
@@ -443,64 +426,28 @@ var passwordHash = function(password, salt){
 
 
 /**
- * Returns a list of user IDs given a list of user emails.
- * @param {array} data The list of user emails 
- * @param {function} cb Callback function taking a single parameter, the list of user IDs
- * @param {array} res The current user ID list; don't specify anything for this field, as it is only used for recursive calls
+ * Returns a list of user objects from a list of users given by some unique field (usually emails or IDs).
+ * @param {array} data The list of user parameters
+ * @param {string} field The field for each user specified in {@code data }
+ * @param {function} cb Callback function taking a single parameter, the resulting user list
  */
-var fetchUserIds = function(data, cb, res){ // TODO: redo this mess with closures and asynchandler
-    if(data.length == 0){
-        cb(res);
-        return;
-    }
+var fetchUserList = function(data, field, cb){
+    var resultList = [];
+    var ash = new AsyncHandler(function(ret){return function(){cb(ret)}}(resultList));
 
-    if(res === undefined){
-        res = [];
-    }
-
-    db.query("users", {
-        email: data[data.length-1]
-    },
-             function(dat, err){
-        if(!err){
-            data.pop();
-            if(dat[0]){
-                res.push(ObjectId(dat[0]._id));
+    for(var i = 0; i < data.length; i++){
+        var obj = {};
+        obj[field] = data[i];
+        ash.attach(db.query, ["users", obj], function(dat, err){
+            if(!err){
+                if(dat[0]){
+                    resultList.push(dat[0]);
+                }
             }
-            fetchUserIds(data, cb, res);
-        }
-    });
-}
-
-
-/**
- * Returns a list of usernames given a list of user IDs.
- * @param {array} data The list of user IDs
- * @param {function} cb Callback function taking a single parameter, the list of usernames
- * @param {array} res The current username; don't specify anything for this field, as it is only used for recursive calls
- */
-var fetchUserNames = function(data, cb, res){ // TODO: redo this mess with closures and asynchandler
-    if(data.length == 0){
-        cb(res);
-        return;
+        });
     }
 
-    if(res === undefined){
-        res = [];
-    }
-
-    db.query("users", {
-        _id: ObjectId(data[data.length-1])
-    },
-             function(dat, err){
-        if(!err){
-            data.pop();
-            if(dat[0]){
-                res.push(dat[0].screenName)
-            };
-            fetchUserNames(data, cb, res);
-        }
-    });
+    ash.run();
 }
 
 io.on("connection", function(socket){
@@ -567,7 +514,7 @@ io.on("connection", function(socket){
             }
         }
     });
-    
+
     /**
      * Emits a request to add a comm to a given chat
      */
@@ -647,7 +594,7 @@ io.on("connection", function(socket){
             });
         });
     });
-    
+
     /**
      * Marks a user as "up to date" in a given chat
      */
