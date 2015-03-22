@@ -9,9 +9,15 @@ var ObjectId = mjs.ObjectId;
 
 console.log("DB connected @ " + dbPath);
 
-var query = function(table, query, cb){
+/**
+ * Returns the result of a database query.
+ * @param {string} collection The collection on which to run the query
+ * @param {object} query The query to run on the collection (formatted mongo-style)
+ * @param {function} cb Callback function for completion, taking two arguments - the data on a succesful request and the error on an unsuccesful one
+ */
+var query = function(collection, query, cb){
     console.log("QUERY: " + JSON.stringify(query));
-    db[table].find(query, function(err, data){
+    db[collection].find(query, function(err, data){
         if(err){
             cb(null, err);
         } else {
@@ -20,11 +26,18 @@ var query = function(table, query, cb){
     });
 };
 
-var project = function(table, query, projection, cb){
+/**
+ * Returns the result of a database query projected onto the projection object.
+ * @param {string} collection The collection on which to run the query
+ * @param {object} query The query to run on the collection (formatted mongo-style)
+ * @param {object} query The object on which to project the query (formatted mongo-style)
+ * @param {function} cb Callback function for completion, taking two arguments - the data on a succesful request and the error on an unsuccesful one
+ */
+var project = function(collection, query, projection, cb){
     console.log("PROJECT:");
     console.log(JSON.stringify(query));
     console.log(JSON.stringify(projection));
-    db[table].find(query, projection, function(err, data){
+    db[collection].find(query, projection, function(err, data){
         if(err){
             cb(null, err);
         } else {
@@ -33,20 +46,16 @@ var project = function(table, query, projection, cb){
     });
 };
 
-var query = function(table, query, cb){
-    console.log("QUERY: " + JSON.stringify(query));
-    db[table].find(query, function(err, data){
-        if(err){
-            cb(null, err);
-        } else {
-            cb(data, null);
-        }
-    });
-};
 
-var insert = function(table, data, cb){
+/**
+ * Inserts an item into a collection.
+ * @param {string} collection The collection into which to insert the data
+ * @param {object} data The data to insert into the collection
+ * @param {function} cb Callback function for completion, taking two arguments - the data on a succesful request and the error on an unsuccesful one
+ */
+var insert = function(collection, data, cb){
     console.log("INSERT: " + JSON.stringify(data));
-    db[table].save(data, function(err, data){
+    db[collection].save(data, function(err, data){
         if(err){
             cb(null, err);
         } else {
@@ -55,15 +64,23 @@ var insert = function(table, data, cb){
     });
 };
 
-var update = function(table, query, data, cb){
+
+/**
+ * Updates a set of items in a collection.
+ * @param {string} collection The collection in which to update records
+ * @param {object} query The query to run on the collection to select items to update (formatted mongo-style)
+ * @param {object} data The updates to perform on the selected records (formatted mongo-style)
+ * @param {function} cb Callback function for completion, taking two arguments - the data on a succesful request and the error on an unsuccesful one
+ */
+var update = function(collection, query, data, cb){
     console.log("UPDATE:");
     console.log(JSON.stringify(query));
     console.log(JSON.stringify(data));
-    db[table].update(query, data, function(err, data){
+    db[collection].update(query, data, function(err, data){
         if(err){
-            return cb(null, err);
+            cb(null, err);
         } else {
-            return cb(data, null);
+            cb(data, null);
         }
     });
 };

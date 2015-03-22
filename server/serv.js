@@ -1,3 +1,4 @@
+// Node imports
 var express = require("express");
 var app = express();
 var bodyparser = require("body-parser");
@@ -17,18 +18,18 @@ app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/te
     exts: ["hbs"]
 }));
 
-var POST = "POST";
-var GET = "GET";
-
-var HASH_COUNT = 1726;
-var PAGE_SIZE = 2e9;
+var HASH_COUNT = 1726;  // Number of times passwords are hashed.  DO NOT CHANGE, AS IT WILL BREAK OLD ACCOUNTS.
+var PAGE_SIZE = 2e9;  // Number of chat results to return in a single request.
 
 var PLAINTEXT_COMM = ObjectId("54cc2db98c8b2e4fc87cbcb1");
 
-var SOCKETS = {};
+var SOCKETS = {}; // Stores currently authorized sockets, as {<user id>: [<list of connected sockets authorized with user id>]}
 
-var PORT = process.env.PORT || 1337;
+var PORT = process.env.PORT || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
 
+/**
+ * Serves either the chat page or the login page depending on whether or not the user is logged in.
+ */
 app.get("/", function(req, res){
     if(req.cookies.email && req.cookies.authToken){
         db.query("users", {
@@ -47,18 +48,30 @@ app.get("/", function(req, res){
     }
 });
 
+/**
+ * Serves the requested CSS file.
+ */
 app.get("/css/:file", function(req, res){
     res.sendFile("/css/" + req.params.file, {root: path.join(__dirname, "../public")});
 });
 
+/**
+ * Serves the requested JS file.
+ */
 app.get("/js/:file", function(req, res){
     res.sendFile("/js/" + req.params.file, {root: path.join(__dirname, "../public")});
 });
 
+/**
+ * Serves the requested image file.
+ */
 app.get("/images/:file", function(req, res){
     res.sendFile("/images/" + req.params.file, {root: path.join(__dirname, "../public")});
 });
 
+/**
+ * Creates a new user.  Parameters are provided in the POST request as a JSON object.
+ */
 app.post("/user/new", function(req, res){
     if(!req.body.email){
         res.status(400);
@@ -105,6 +118,9 @@ app.post("/user/new", function(req, res){
     });
 });
 
+/**
+ * Authorizes a user and provides them with an auth token.  Parameters are provided in the POST request as a JSON object.
+ */
 app.post("/user/auth", function(req, res){
     console.log(JSON.stringify(req.body));
     if(!req.body.email){
@@ -152,6 +168,9 @@ app.post("/user/auth", function(req, res){
     });
 });
 
+/**
+ * Creates a new chat.  Parameters are provided in the POST request as a JSON object.
+ */
 app.post("/chat/new", function(req, res){ // TODO: This should require auth
     if(!req.body.users){
         res.status(400);
@@ -203,6 +222,9 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
         })});
 });
 
+/**
+ * Changes a user's screen name.  Parameters are provided in the POST request as a JSON object.
+ */
 app.post("/user/screen-name", function(req, res){
     if(!req.body.email){
         res.status(400);
@@ -246,6 +268,9 @@ app.post("/user/screen-name", function(req, res){
     });
 });
 
+/**
+ * Returns a list of chats for the current user.  Parameters are provided in the POST request as a JSON object.
+ */
 app.post("/chats", function(req, res){
     if(!req.body.email){
         res.status(400);
@@ -325,6 +350,9 @@ app.post("/chats", function(req, res){
     });
 });
 
+/**
+ * Returns a list of previous messages for a given chat.  Parameters are provided in the POST request as a JSON object.
+ */
 app.post("/chat/history", function(req, res){
     if(!req.body.email){
         res.status(400);
@@ -398,6 +426,13 @@ http.listen(PORT, function(){
     console.log("listening on *:" + PORT);
 });
 
+
+/**
+ * Hashes a given password with a given salt by performing HASH_COUNT iterations of {@code pw = sha512(pw + salt)}.
+ * @param {string} password The password to hash
+ * @param {string} salt The salt for the hash
+ * @returns {string} The hashed password
+ */
 var passwordHash = function(password, salt){
     for(var i = 0; i < HASH_COUNT; i++){
         var hash = crypto.createHash("sha512");
@@ -406,7 +441,14 @@ var passwordHash = function(password, salt){
     return password;
 }
 
-var fetchUserIds = function(data, cb, res){
+
+/**
+ * Returns a list of user IDs given a list of user emails.
+ * @param {array} data The list of user emails 
+ * @param {function} cb Callback function taking a single parameter, the list of user IDs
+ * @param {array} res The current user ID list; don't specify anything for this field, as it is only used for recursive calls
+ */
+var fetchUserIds = function(data, cb, res){ // TODO: redo this mess with closures and asynchandler
     if(data.length == 0){
         cb(res);
         return;
@@ -430,7 +472,14 @@ var fetchUserIds = function(data, cb, res){
     });
 }
 
-var fetchUserNames = function(data, cb, res){
+
+/**
+ * Returns a list of usernames given a list of user IDs.
+ * @param {array} data The list of user IDs
+ * @param {function} cb Callback function taking a single parameter, the list of usernames
+ * @param {array} res The current username; don't specify anything for this field, as it is only used for recursive calls
+ */
+var fetchUserNames = function(data, cb, res){ // TODO: redo this mess with closures and asynchandler
     if(data.length == 0){
         cb(res);
         return;
@@ -455,6 +504,9 @@ var fetchUserNames = function(data, cb, res){
 }
 
 io.on("connection", function(socket){
+    /**
+     * Authorizes a client socket and stores it for future use
+     */
     socket.on("login", function(user, auth){
         if(socket.userId){
             io.to(socket.id).emit("login error", {description: "Login failed: you're alerady logged in!"});
@@ -498,6 +550,9 @@ io.on("connection", function(socket){
         });
     });
 
+    /**
+     * Disconnects a socket
+     */
     socket.on("disconnect", function(){
         if(socket.userId === undefined){
             return;
@@ -512,7 +567,10 @@ io.on("connection", function(socket){
             }
         }
     });
-
+    
+    /**
+     * Emits a request to add a comm to a given chat
+     */
     socket.on("commrequest", function(chatId, comm){
         db.query("chats", {
             _id: Objectid(chatId),
@@ -541,6 +599,9 @@ io.on("connection", function(socket){
         });
     });
 
+    /**
+     * Emits a message sent by a user
+     */
     socket.on("message", function(chatId, comm, msg){
         if(socket.userId === undefined){
             io.to(socket.id).emit("error", {description: "Request failed: you're not logged in."});
@@ -586,7 +647,10 @@ io.on("connection", function(socket){
             });
         });
     });
-
+    
+    /**
+     * Marks a user as "up to date" in a given chat
+     */
     socket.on("up to date", function(chatId){
         db.query("chats", {
             _id: ObjectId(chatId),
@@ -604,13 +668,9 @@ io.on("connection", function(socket){
             }, function(){});
         });
     });
-
-    socket.on("commrequest", function(){
-
-    });
 });
 
-
+// DEBUG: prints out the SOCKETS object every 20 seconds
 setInterval(function(){
     console.log();
     for(x in SOCKETS){
