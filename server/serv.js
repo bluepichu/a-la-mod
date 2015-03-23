@@ -40,11 +40,11 @@ app.get("/", function(req, res){
             if(data.length == 1){
                 res.sendFile("/chat.html", {root: path.join(__dirname, "../public")});
             } else {
-                res.sendFile("/login.html", {root: path.join(__dirname, "../public")});
+                res.sendFile("/enter.html", {root: path.join(__dirname, "../public")});
             }
         });
     } else {
-        res.sendFile("/login.html", {root: path.join(__dirname, "../public")});
+        res.sendFile("/enter.html", {root: path.join(__dirname, "../public")});
     }
 });
 
@@ -83,7 +83,7 @@ app.post("/user/new", function(req, res){
         res.send("Request failed: missing 'password' field.");
         return;
     }
-    if(! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/.test(req.body.email)){
+    if(! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}$/.test(req.body.email)){ // TODO
         res.status(400);
         res.send("Request failed: 'email' value does not follow the proper format.");
         return;
@@ -419,7 +419,7 @@ http.listen(PORT, function(){
  */
 var passwordHash = function(password, salt){
     for(var i = 0; i < HASH_COUNT; i++){
-        var hash = crypto.createHash("sha512");
+        var hash = crypto.createHash("sha512"); // TODO: This might not work because the salt is greater length than the password/resulting hash.
         password = hash.update(password).update(salt).digest("base64");
     }
     return password;
