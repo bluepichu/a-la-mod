@@ -12,6 +12,7 @@ var crypto = require("crypto");
 var db = require("./db");
 var ObjectId = db.ObjectId;
 var moment = require("moment");
+var emailValidator = require("email-validator");
 
 var connect_handlebars = require("connect-handlebars");
 app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/templates", {
@@ -84,7 +85,7 @@ app.post("/user/new", function(req, res){
         return;
     }
     
-    if(! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}$/.test(req.body.email)){ // TODO
+    if(!emailValidator.validate(req.body.email)){ // TODO
         res.status(400);
         res.send("Request failed: 'email' value does not follow the proper format.");
         return;
