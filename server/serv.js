@@ -13,6 +13,22 @@ var db = require("./db");
 var ObjectId = db.ObjectId;
 var moment = require("moment");
 
+var nmail = require("nodemailer");
+var PASS = null
+var gmail = null
+if (process.env.GMAILPASS) {
+	PASS = process.env.GMAILPASS;
+	gmail = nmail.createTransport({
+		service: "Gmail",
+		auth: {
+			username: "alamodchat@gmail.com",
+			pass: PASS,
+		}
+	})
+} else {
+	console.log("Missing GMAILPASS environment variable. Please set it to send mail.");
+}
+
 var connect_handlebars = require("connect-handlebars");
 app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/templates", {
     exts: ["hbs"]
