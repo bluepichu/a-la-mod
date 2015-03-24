@@ -31,6 +31,7 @@ var PORT = process.env.PORT || 1337; // Sets the socket to whatever the evironme
  * Serves either the chat page or the login page depending on whether or not the user is logged in.
  */
 app.get("/", function(req, res){
+    /*
     if(req.cookies.email && req.cookies.authToken){
         db.query("users", {
             email: req.cookies.email,
@@ -40,12 +41,13 @@ app.get("/", function(req, res){
             if(data.length == 1){
                 res.sendFile("/chat.html", {root: path.join(__dirname, "../public")});
             } else {
-                res.sendFile("/login.html", {root: path.join(__dirname, "../public")});
+                res.sendFile("/enter.html", {root: path.join(__dirname, "../public")});
             }
         });
     } else {
-        res.sendFile("/login.html", {root: path.join(__dirname, "../public")});
-    }
+        res.sendFile("/enter.html", {root: path.join(__dirname, "../public")});
+    }*/
+    res.sendFile("/index.html", {root: path.join(__dirname, "../public")});
 });
 
 /**
@@ -82,7 +84,7 @@ app.post("/user/new", function(req, res){
         return;
     }
     
-    if(! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/.test(req.body.email)){
+    if(! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}$/.test(req.body.email)){ // TODO
         res.status(400);
         res.send("Request failed: 'email' value does not follow the proper format.");
         return;
@@ -303,7 +305,7 @@ app.post("/chats", function(req, res){
                     dat[ind].users = userList.map(function(el){return el.screenName;});
                     if(dat[ind].messages.length > 0){
                         for(var i = 0; i < userList.length; i++){
-                            if(userList[i]._id == dat[ind].messages[0].sender){
+                            if(userList[i]._id.toString() == dat[ind].messages[0].sender.toString()){
                                 dat[ind].messages[0].sender = userList[i].screenName;
                                 break;
                             }
@@ -412,7 +414,7 @@ http.listen(PORT, function(){
  */
 var passwordHash = function(password, salt){
     for(var i = 0; i < HASH_COUNT; i++){
-        var hash = crypto.createHash("sha512");
+        var hash = crypto.createHash("sha512"); // TODO: This might not work because the salt is greater length than the password/resulting hash.
         password = hash.update(password).update(salt).digest("base64");
     }
     return password;

@@ -1,0 +1,483 @@
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+body {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    font-family: "Basic";
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+}
+
+ala-entrance {
+    background: #7B1FA2;
+    display: block;
+    height: 100vh;
+    width: 100vw;
+    position: absolute;
+    z-index: 10;
+    top: 0vh;
+    -webkit-transition-duration: 500ms;
+    transition-duration: 500ms;
+}
+
+ala-entrance.authorized {
+    top: -100vh;
+}
+
+@-webkit-keyframes fade-in {from {opacity: 0;} to {opacity: 1;}}
+
+@keyframes fade-in {from {opacity: 0;} to {opacity: 1;}}
+@-webkit-keyframes fade-out {from {opacity: 1;} to {opacity: 0;}}
+@keyframes fade-out {from {opacity: 1;} to {opacity: 0;}}
+@-webkit-keyframes slide-up {from {top: 24px;} to {top: 0px;}}
+@keyframes slide-up {from {top: 24px;} to {top: 0px;}}
+@-webkit-keyframes slide-down {from {top: 0px;} to {top: 24px;}}
+@keyframes slide-down {from {top: 0px;} to {top: 24px;}}
+
+.fade-in {
+    opacity: 0;
+    -webkit-animation: fade-in ease-out;
+    animation: fade-in ease-out;
+    -webkit-animation-fill-mode: forwards;
+    animation-fill-mode: forwards;
+    -webkit-animation-duration: 1000ms;
+    animation-duration: 1000ms;
+}
+
+.fade-out {
+    opacity: 1;
+    -webkit-animation: fade-out ease-out;
+    animation: fade-out ease-out;
+    -webkit-animation-fill-mode: forwards;
+    animation-fill-mode: forwards;
+    -webkit-animation-duration: 1000ms;
+    animation-duration: 1000ms;
+}
+
+.fade-in.slide-up {
+    -webkit-animation: fade-in ease-out, slide-up ease-out;
+    animation: fade-in ease-out, slide-up ease-out;
+    -webkit-animation-fill-mode: forwards, forwards;
+    animation-fill-mode: forwards, forwards;
+    -webkit-animation-duration: 1000ms, 1000ms;
+    animation-duration: 1000ms, 1000ms;
+}
+
+.fade-in.slide-down {
+    -webkit-animation: fade-in ease-out, slide-down ease-out;
+    animation: fade-in ease-out, slide-down ease-out;
+    -webkit-animation-fill-mode: forwards, forwards;
+    animation-fill-mode: forwards, forwards;
+    -webkit-animation-duration: 1000ms, 1000ms;
+    animation-duration: 1000ms, 1000ms;
+}
+
+.fade-out.slide-up {
+    -webkit-animation: fade-out ease-out, slide-up ease-out;
+    animation: fade-out ease-out, slide-up ease-out;
+    -webkit-animation-fill-mode: forwards, forwards;
+    animation-fill-mode: forwards, forwards;
+    -webkit-animation-duration: 1000ms, 1000ms;
+    animation-duration: 1000ms, 1000ms;
+}
+
+.fade-out.slide-down {
+    -webkit-animation: fade-out ease-out, slide-down ease-out;
+    animation: fade-out ease-out, slide-down ease-out;
+    -webkit-animation-fill-mode: forwards, forwards;
+    animation-fill-mode: forwards, forwards;
+    -webkit-animation-duration: 1000ms, 1000ms;
+    animation-duration: 1000ms, 1000ms;
+}
+
+h1 {
+    font-size: 86px;
+    text-align: center;
+    color: #FFFFFF;
+    margin-bottom: 24px;
+    -webkit-animation-delay: 0ms !important;
+    animation-delay: 0ms !important;
+    position: relative;
+    top: 0px;
+    margin-top: 0px;
+    padding-top: 60px;
+}
+
+h2 {
+    font-size: 48px;
+    text-align: center;
+    color: #FFFFFF;
+    margin-top: 16px;
+    margin-bottom: 120px;
+    -webkit-animation-delay: 400ms !important;
+    animation-delay: 400ms !important;
+    position: relative;
+    top: 0px;
+}
+
+button.flat {
+    background: transparent;
+    border: 0px;
+    font-size: 32px;
+    color: #FFFFFF;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 120px;
+}
+
+button.raised {
+    width: 64px;
+    margin: 4px;
+    border: none;
+    background: #FF5252;
+    color: #FFFFFF;
+    padding: 4px;
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    -webkit-box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
+    cursor: pointer;
+}
+
+#log-in {
+    position: absolute;
+    left: 25%;
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+#register {
+    position: absolute;
+    left: 75%;
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.anim-delay {
+    -webkit-animation-delay: 1200ms !important;
+    animation-delay: 1200ms !important;
+}
+
+#spin-area {
+    position: relative;
+    height: 0px;
+}
+
+.hidden {
+    display: none;
+}
+
+.relative-anchor {
+    position: relative;
+}
+
+form {
+    width: 240px;
+    position: absolute;
+    left: calc(50% - 120px);
+}
+
+input,
+textarea,
+button {
+    font-family: "Basic";
+}
+
+input:focus,
+textarea:focus,
+button:focus {
+    outline: none;
+}
+
+input[type=text],
+input[type=password] {
+    border: 0px;
+    border-bottom: 1px solid #FFFFFF;
+    color: #FFFFFF;
+    font-size: 18px;
+    background: 0px;
+    padding: 4px 4px 0px;
+    width: 100%;
+}
+
+label {
+    position: absolute;
+    left: 4px;
+    bottom: 2px;
+    font-size: 18px;
+    -webkit-transition-duration: 200ms;
+    transition-duration: 200ms;
+    color: rgba(255, 255, 255, .54);
+    pointer-events: none;
+}
+
+input[type=text]:invalid + label,
+input[type=password]:invalid + label {
+}
+
+input[type=text]:valid + label,
+input[type=text]:focus + label,
+input[type=password]:valid + label,
+input[type=password]:focus + label {
+    font-size: 12px;
+    bottom: 24px;
+}
+
+ala-input {
+    display: block;
+    position: relative;
+    margin: 20px 0px 0px;
+}
+
+input[type=submit] {
+    background: #FFFFFF;
+    -webkit-box-shadow: 0px 0px 2px rgba(0, 0, 0, .1), 0px 3px 5px rgba(0, 0, 0, .2);
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, .1), 0px 3px 5px rgba(0, 0, 0, .2);
+    border-radius: 2px;
+    padding: 4px 16px;
+    border: 0px;
+    font-family: "Basic";
+    font-size: 16px;
+    text-align: center;
+    margin: 0px auto;
+}
+
+ala-input.large-margin {
+    margin: 32px 0px 0px;
+}
+
+.centering {
+    text-align: center;
+}
+
+ala-app {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100vw;
+    height: 100vh;
+}
+
+header {
+    background: #7B1FA2;
+    color: #FFFFFF;
+    font-size: 32px;
+    padding: 16px 48px;
+    -webkit-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    height: 64px;
+    z-index: 4;
+    position: relative;
+}
+
+ala-snack-bar {
+    display: block;
+    position: fixed;
+    bottom: -48px;
+    font-size: 20px;
+    color: #FFFFFF;
+    background: rgba(0, 0, 0, .87);
+    left: 50%;
+    -webkit-transform: translate(-50%, 0);
+    -ms-transform: translate(-50%, 0);
+    transform: translate(-50%, 0);
+    padding: 8px 16px;
+    text-align: center;
+    z-index: 100;
+}
+
+ala-snack-bar.active {
+    bottom: 10px;
+    -webkit-transition: bottom 200ms ease-out, opacity 1000ms linear;
+    transition: bottom 200ms ease-out, opacity 1000ms linear;
+}
+
+ala-snack-bar.gone {
+    opacity: 0;
+    pointer-events: none;
+}
+
+ala-flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    height: calc(100% - 64px);
+    width: 100vw;
+}
+
+ala-sidebar {
+    height: 100%;
+    width: 240px;
+    background: #F8F8F8;
+    padding: 8px;
+    border-right: 1px solid rgba(0, 0, 0, .12);
+}
+
+ala-chat-area {
+    height: 100%;
+    -webkit-box-flex: 1;
+    -webkit-flex-grow: 1;
+    -ms-flex-positive: 1;
+    flex-grow: 1;
+    background: #F8F8F8;
+    padding: 16px;
+    position: relative;
+}
+
+textarea#chat-input {
+    border: rgba(0, 0, 0, .12);
+    padding: 10px 12px;
+    background: #FFFFFF;
+    border-radius: 2px;
+    resize: none;
+    -webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, .2);
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, .2);
+    font-family: "Basic";
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    width: calc(100% - 24px);
+    min-height: 40px;
+    height: 40px;
+}
+
+ala-chat-listing {
+    background: #FFFFFF;
+    padding: 8px;
+    overflow: hidden;
+    position: relative;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    display: block;
+    -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    border-radius: 2px;
+}
+
+ala-chat-listing:not(:last-child) {
+    margin-bottom: 4px;
+}
+
+ala-chat-title {
+    display: block;
+    font-size: 24px;
+    color: rgba(0, 0, 0, .87);
+}
+
+ala-members-list {
+    display: block;
+    color: rgba(0, 0, 0, .87);
+    font-size: 16px;
+    padding-bottom: 4px;
+}
+
+ala-most-recent {
+    display: block;
+    color: rgba(0, 0, 0, .54);
+    font-style: italic;
+    font-size: 14px;
+}
+
+ala-unread-count {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    font-size: 12px;
+    background: #FF5252;
+    color: #FFFFFF;
+    padding: 0px 4px;
+    border-radius: 4px;
+    visibility: hidden;
+}
+
+ala-message-group .icon {
+    position: absolute;
+    bottom: 0px;
+}
+
+ala-message-group[direction=left] .icon {
+    left: 0px;
+}
+
+ala-message-group[direction=right] .icon {
+    right: 0px;
+}
+
+
+ala-message-group {
+    position: relative;
+    padding-bottom: 52px;
+    width: 88%;
+    display: block;
+}
+
+ala-message-group[direction=left] {
+    padding-left: 40px;
+    margin-right: 12%;
+}
+
+ala-message-group[direction=right] {
+    padding-right: 40px;
+    margin-left: 12%;
+}
+
+ala-chat-message {
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+    padding: 8px;
+    color: #FFFFFF;
+    word-wrap: break-word;
+    display: block;
+    font-size: 14px;
+}
+
+ala-message-group[direction=left] ala-chat-message {
+    background: #536DFE;
+}
+
+ala-message-group[direction=right] ala-chat-message {
+    background: #FF5252;
+}
+
+ala-chat-message:last-child:before {
+    width: 0px;
+    height: 0px;
+    content: "";
+    position: absolute;
+    bottom: -18px;
+    z-index: -1;
+}
+
+ala-message-group[direction=left] ala-chat-message:before {
+    border-bottom: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 12px solid #536DFE;
+    border-left: 12px solid #536DFE;
+    left: 12px;
+}
+
+ala-message-group[direction=right] ala-chat-message:before {
+    border-bottom: 12px solid transparent;
+    border-right: 12px solid #FF5252;
+    border-top: 12px solid #FF5252;
+    border-left: 12px solid transparent;
+    right: 12px;
+}
+
+ala-chat-message:not(:last-child) {
+    margin-bottom: 4px;
+}
