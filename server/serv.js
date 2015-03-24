@@ -21,8 +21,20 @@ if (process.env.GMAILPASS) {
 	gmail = nmail.createTransport({
 		service: "Gmail",
 		auth: {
-			username: "alamodchat@gmail.com",
+			user: "alamodchat@gmail.com",
 			pass: PASS,
+		}
+	})
+	gmail.sendMail({
+		from: "A La Mod <alamodchat@gmail.com>",
+		to: "zacharywade@gmail.com",
+		subject: "send test",
+		html: "<h1>It worked</h1><br>Hopefully...."
+	}, function(err, res) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log("Success");
 		}
 	})
 } else {
