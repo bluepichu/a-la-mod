@@ -1,7 +1,7 @@
-<div class="chat-listing chat-listing-group" data-chat-id="{{id}}">
-    <div class="color-stripe" style="background: #2196F3"></div>
-    <div class="chat-title">{{title}}</div>
-    <div class="members-list">{{members}}</div>
-    <div class="most-recent">{{#if mostRecent}}{{mostRecent.sender}}: {{mostRecent.message}}{{else}}No messages yet.{{/if}}</div>
-    <div class="unread-count">0</div>
-</div>
+<ala-chat-listing chat-id="{{id}}">
+    <ala-color-stripe style="background: #2196F3"></ala-color-stripe>
+    <ala-chat-title>{{title}}</ala-chat-title>
+    <ala-members-list>{{members}}</ala-members-list>
+    <ala-most-recent>{{#if mostRecent}}{{mostRecent.sender}}: {{mostRecent.message}}{{else}}No messages yet.{{/if}}</ala-most-recent>
+    <ala-unread-count>0</ala-unread-count>
+</ala-chat-listing>
