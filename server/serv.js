@@ -90,7 +90,7 @@ app.post("/user/new", function(req, res){
         return;
     }
 
-    db.query("users", {email: req.body.email}, function(data, err){
+    db.query("users", {email: req.body.email}, function(err, data){
         if(err || data.length > 0){
             res.status(400);
             res.send("Request failed: this email is associated with another account.");
@@ -106,7 +106,7 @@ app.post("/user/new", function(req, res){
             salt: salt,
             authTokens: [],
             screenName: req.body.email
-        }, function(data, err){
+        }, function(err, data){
             if(err){
                 res.status(500);
                 res.send("Request failed: server error.");
@@ -133,7 +133,7 @@ app.post("/user/auth", function(req, res){
     db.query("users", {
         email: req.body.email
     },
-             function(data, err){
+             function(err, data){
         if(err){
             res.status(500);
             res.send("Requst faild: server error.");
@@ -161,7 +161,7 @@ app.post("/user/auth", function(req, res){
                   {
             $push: {authTokens: token}
         },
-                  function(data, err){});
+                  function(err, data){});
     });
 });
 
@@ -190,7 +190,7 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
             messageCount: 0,
             creationTime: moment().unix()
         },
-                  function(data, err){
+                  function(err, data){
             if(err){
                 res.status(500);
                 res.send("Request failed: server error.");
@@ -237,7 +237,7 @@ app.post("/user/screen-name", function(req, res){
             screenName: req.body.screenName
         }
     },
-              function(data, err){
+              function(err, data){
         if(err){
             res.status(500);
             res.send("Request failed: server error.");
@@ -268,7 +268,7 @@ app.post("/chats", function(req, res){
     db.query("users", {
         email: req.body.email,
         authTokens: {$in: [req.body.authToken]}
-    }, function(data, err){
+    }, function(err, data){
         if(err){
             res.status(500);
             res.send("Request failed: server error.");
@@ -356,7 +356,7 @@ app.post("/chat/history", function(req, res){
     db.query("users", {
         email: req.body.email,
         authTokens: {$in: [req.body.authToken]}
-    }, function(data, err){
+    }, function(err, data){
         if(err){
             res.status(500);
             res.send("Request failed: server error.");
@@ -462,7 +462,7 @@ io.on("connection", function(socket){
                 $in: [auth] 
             }
         },
-                 function(data, err){
+                 function(err, data){
             if(err){
                 io.to(socket.id).emit("login error", {description: "Login failed: server error."});
                 return;
@@ -519,7 +519,7 @@ io.on("connection", function(socket){
         db.query("chats", {
             _id: Objectid(chatId),
             users: {$in: [ObjectId(socket.userId)]}
-        }, function(data, err){
+        }, function(err, data){
             if(err){
                 io.to(socket.id).emit("error", {description: "Request failed: server error."});
                 return;
@@ -557,7 +557,7 @@ io.on("connection", function(socket){
                 $in: [ObjectId(socket.userId)]
             }
         },
-                 function(data, err){
+                 function(err, data){
             if(err || data.length == 0){
                 io.to(socket.id).emit("error", {description: "Request failed: you're not a part of that chat."});
                 return;
@@ -587,7 +587,7 @@ io.on("connection", function(socket){
                     }},
                     $inc: {messageCount: 1}
                 },
-                          function(data, err){});
+                          function(err, data){});
             });
         });
     });
@@ -599,7 +599,7 @@ io.on("connection", function(socket){
         db.query("chats", {
             _id: ObjectId(chatId),
             users: {$in: [ObjectId(socket.userId)]}
-        }, function(data, err){
+        }, function(err, data){
             if(err){
                 return;
             }

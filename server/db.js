@@ -19,9 +19,9 @@ var query = function(collection, query, cb){
     console.log("QUERY: " + JSON.stringify(query));
     db[collection].find(query, function(err, data){
         if(err){
-            cb(null, err);
+            cb(err, null);
         } else {
-            cb(data, null);
+            cb(null, data);
         }
     });
 };
@@ -39,9 +39,9 @@ var project = function(collection, query, projection, cb){
     console.log(JSON.stringify(projection));
     db[collection].find(query, projection, function(err, data){
         if(err){
-            cb(null, err);
+            cb(err, null);
         } else {
-            cb(data, null);
+            cb(null, data);
         }
     });
 };
@@ -57,9 +57,9 @@ var insert = function(collection, data, cb){
     console.log("INSERT: " + JSON.stringify(data));
     db[collection].save(data, function(err, data){
         if(err){
-            cb(null, err);
+            cb(err, null);
         } else {
-            cb(data, null);
+            cb(null, data);
         }
     });
 };
@@ -78,9 +78,9 @@ var update = function(collection, query, data, cb){
     console.log(JSON.stringify(data));
     db[collection].update(query, data, function(err, data){
         if(err){
-            cb(null, err);
+            cb(err, null);
         } else {
-            cb(data, null);
+            cb(null, data);
         }
     });
 };
