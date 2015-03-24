@@ -5,13 +5,12 @@
 
         <link rel="stylesheet" href="css/style.css" type="text/css" />
         <link href='http://fonts.googleapis.com/css?family=Basic' rel='stylesheet' type='text/css'>
-        <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
         <script src="js/spin.min.js"></script>
         <script src="js/jquery.cookie.js"></script>
         <script src="js/nicescroll.min.js"></script>
-        <script src="js/jquery.elastic.js"></script>
+        <script src="js/autosize.js"></script>
         <script src="js/handlebars-v1.3.0.js"></script>
         <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 
@@ -28,10 +27,17 @@
                         chatInit();
                     }, 100);
                 }
+
                 $("#log-in").click(function(){
                     $("#log-in, #register").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
                     $("#form-login").removeClass("hidden").addClass("fade-in slide-up anim-delay");
                 });
+
+                $("#register").click(function(){
+                    $("#log-in, #register").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
+                    $("#form-register").removeClass("hidden").addClass("fade-in slide-up anim-delay");
+                });
+
                 $("form").submit(function(e){
                     var opts = {
                         lines: 9,
@@ -50,40 +56,101 @@
                         top: "35%"
                     };
 
-                    $("#login").addClass("hidden");
-                    $("#spin-area").removeClass("hidden");
-                    var spinner = new Spinner(opts).spin($("#spin-area")[0]);
+                    if($(this).attr("id") == "form-login"){
+                        $("#form-login #login-submit").addClass("hidden");
+                        $("#form-login #spin-area").removeClass("hidden");
+                        var spinner = new Spinner(opts).spin($("#spin-area")[0]);
 
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("POST", "/user/auth", true);
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST", "/user/auth", true);
 
-                    xhr.onload = function(){
-                        if(this.status == 200){
-                            $.cookie("email", $("#email").val(), {expires: 30, path: "/"});
-                            $.cookie("authToken", this.responseText, {expires: 30, path: "/"});
-                            $("ala-entrance").addClass("authorized");
-                            ala.clearSnack();
-                            chatInit();
-                            setTimeout(function(){
-                                ala.snack("Welcome back!");
-                            }, 1000);
-                        } else {
-                            $("#login").removeClass("hidden");
-                            $("#spin-area").addClass("hidden");
-                            $("#spin-area").empty();
-                            ala.snack(this.responseText);
+                        xhr.onload = function(){
+                            if(this.status == 200){
+                                $.cookie("email", $("#form-login #email").val(), {expires: 30, path: "/"});
+                                $.cookie("authToken", this.responseText, {expires: 30, path: "/"});
+                                $("ala-entrance").addClass("authorized");
+                                ala.clearSnack();
+                                chatInit();
+                                setTimeout(function(){
+                                    ala.snack("Welcome back!");
+                                }, 1000);
+                            } else {
+                                $("#form-login #login-submit").removeClass("hidden");
+                                $("#form-login #spin-area").addClass("hidden");
+                                $("#form-login #spin-area").empty();
+                                ala.snack(this.responseText);
+                            }
                         }
+
+                        xhr.setRequestHeader("Content-Type", "application/json");
+
+                        xhr.send(JSON.stringify({
+                            email: $("#form-login #email").val(),
+                            password: $("#form-login #password").val()
+                        }));
+
+                        e.stopPropagation();
+                        e.preventDefault();
+                    } else if($(this).attr("id") == "form-register"){
+                        if($("#form-register #password").val() == ""){
+                            ala.snack("Please enter a password.");
+                        } else if($("#form-register #password").val() != $("#form-register #confirm-password").val()){
+                            ala.snack("\"Password\" and \"Confirm Password\" fields don't match.");
+                        }
+
+                        $("#form-register #register-submit").addClass("hidden");
+                        $("#form-register #spin-area").removeClass("hidden");
+                        var spinner = new Spinner(opts).spin($("#spin-area")[0]);
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST", "/user/new", true);
+
+                        xhr.onload = function(){
+                            if(this.status == 200){
+                                var xhr = new XMLHttpRequest();
+                                xhr.open("POST", "/user/auth", true);
+
+                                xhr.onload = function(){
+                                    if(this.status == 200){
+                                        $.cookie("email", $("#form-register #email").val(), {expires: 30, path: "/"});
+                                        $.cookie("authToken", this.responseText, {expires: 30, path: "/"});
+                                        $("ala-entrance").addClass("authorized");
+                                        ala.clearSnack();
+                                        chatInit();
+                                        setTimeout(function(){
+                                            ala.snack("Welcome to &Agrave; la Mod!");
+                                        }, 1000);
+                                    } else {
+                                        $("#form-register #register-submit").removeClass("hidden");
+                                        $("#form-register #spin-area").addClass("hidden");
+                                        $("#form-register #spin-area").empty();
+                                        ala.snack(this.responseText);
+                                    }
+                                }
+
+                                xhr.send(JSON.stringify({
+                                    email: $("#form-register #email").val(),
+                                    password: $("#form-register #password").val()
+                                }));
+                            } else {
+                                $("#form-register #register-submit").removeClass("hidden");
+                                $("#form-register #spin-area").addClass("hidden");
+                                $("#form-register #spin-area").empty();
+                                ala.snack(this.responseText);
+                            }
+                        }
+
+                        xhr.setRequestHeader("Content-Type", "application/json");
+
+                        xhr.send(JSON.stringify({
+                            email: $("#form-register #email").val(),
+                            password: $("#form-register #password").val()
+                        }));
+
+                        e.stopPropagation();
+                        e.preventDefault();
                     }
 
-                    xhr.setRequestHeader("Content-Type", "application/json");
-
-                    xhr.send(JSON.stringify({
-                        email: $("#email").val(),
-                        password: $("#password").val()
-                    }));
-
-                    e.stopPropagation();
-                    e.preventDefault();
                     return false;
                 });
             });
@@ -96,17 +163,18 @@
             }
 
             ala.snack = function(text){
+                ala.clearSnack();
                 ala.currentSnackTimeout = setTimeout(function(){
-                    $("ala-snack-bar").text(text);
+                    $("ala-snack-bar").html(text);
                     $("ala-snack-bar").addClass("active");
                     ala.currentSnackTimeout = setTimeout(function(){
                         $("ala-snack-bar").addClass("gone");
                     }, 5000);
                 }, 10);
             }
-            
+
             // FIX THE FOLLOWING
-            
+
             var CURRENT_CHAT = null;
             var MY_ID = null;
             var CHATS = {};
@@ -116,7 +184,7 @@
                 $("ala-chats-list").niceScroll();
                 $("ala-message-list").niceScroll();
 
-                $("#chat-input").elastic();
+                autosize($("#chat-input"));
 
                 $("#chat-input").on("input keyup", function(){
                     //$("ala-message-list").height($(".actual-chat").height() - $("#chat-input").height() - 32);
@@ -288,7 +356,7 @@
                 <button id="register" class="flat fade-in slide-up anim-delay">Register</button>
                 <form id="form-login" class="hidden">
                     <ala-input>
-                        <input type="text" id="email" name="user" required>
+                        <input type="text" id="email" name="email" required>
                         <label>Email</label>
                     </ala-input>
                     <ala-input>
@@ -296,7 +364,25 @@
                         <label>Password</label>
                     </ala-input>
                     <ala-input class="large-margin centering">
-                        <input type="submit" id="login" name="login" class="login login-submit flat" value="Log In">
+                        <input type="submit" id="login-submit" name="login" class="flat" value="Log In">
+                    </ala-input>
+                    <div id="spin-area" class="hidden"></div>
+                </form>
+                <form id="form-register" class="hidden">
+                    <ala-input>
+                        <input type="text" id="email" name="email" required>
+                        <label>Email</label>
+                    </ala-input>
+                    <ala-input>
+                        <input type="password" id="password" name="pass" required>
+                        <label>Password</label>
+                    </ala-input>
+                    <ala-input>
+                        <input type="password" id="confirm-password" name="pass" required>
+                        <label>Confirm Password</label>
+                    </ala-input>
+                    <ala-input class="large-margin centering">
+                        <input type="submit" id="register-submit" name="register" class="flat" value="Register">
                     </ala-input>
                     <div id="spin-area" class="hidden"></div>
                 </form>
@@ -310,7 +396,7 @@
                 </ala-sidebar>
                 <ala-chat-area>
                     <ala-message-list></ala-message-list>
-                    <textarea id="chat-input" rows="5" cols="40" name="send" placeholder="Message..."></textarea>
+                    <textarea id="chat-input" name="send" placeholder="Message..."></textarea>
                     <button class="raised">Submit</button>
                 </ala-chat-area>
             </ala-flex>

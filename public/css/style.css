@@ -120,7 +120,7 @@ h2 {
     top: 0px;
 }
 
-button.flat {
+button.flat {d
     background: transparent;
     border: 0px;
     font-size: 32px;
@@ -283,14 +283,11 @@ ala-snack-bar {
     display: block;
     position: fixed;
     bottom: -48px;
-    font-size: 20px;
+    font-size: 16px;
     color: #FFFFFF;
     background: rgba(0, 0, 0, .87);
-    left: 50%;
-    -webkit-transform: translate(-50%, 0);
-    -ms-transform: translate(-50%, 0);
-    transform: translate(-50%, 0);
-    padding: 8px 16px;
+    left: 24px;
+    padding: 12px 24px;
     text-align: center;
     z-index: 100;
 }
@@ -346,7 +343,7 @@ ala-chat-area {
 }
 
 textarea#chat-input {
-    border: rgba(0, 0, 0, .12);
+    /*border: rgba(0, 0, 0, .12);
     padding: 10px 12px;
     background: #FFFFFF;
     border-radius: 2px;
@@ -354,13 +351,10 @@ textarea#chat-input {
     -webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, .2);
     box-shadow: 0px 2px 2px rgba(0, 0, 0, .2);
     font-family: "Basic";
-    position: absolute;
-    bottom: 16px;
-    left: 12px;
-    right: 12px;
-    width: calc(100% - 24px);
-    min-height: 40px;
-    height: 40px;
+    max-height: 400px;
+    box-sizing: content-box;
+    */
+    resize: none;
 }
 
 ala-chat-listing {
@@ -504,4 +498,5 @@ ala-message-list {
     -webkit-flex-grow: 1;
     -ms-flex-positive: 1;
     flex-grow: 1;
+    margin-bottom: 12px;
 }
