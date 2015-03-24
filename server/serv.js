@@ -18,7 +18,7 @@ app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/te
     exts: ["hbs"]
 }));
 
-var HASH_COUNT = 1726;  // Number of times passwords are hashed.  DO NOT CHANGE, AS IT WILL BREAK OLD ACCOUNTS.
+var HASH_COUNT = 2;  // Number of times passwords are hashed.  DO NOT CHANGE, AS IT WILL BREAK OLD ACCOUNTS.
 var PAGE_SIZE = 2e9;  // Number of chat results to return in a single request.
 
 var PLAINTEXT_COMM = ObjectId("54cc2db98c8b2e4fc87cbcb1");
@@ -73,16 +73,15 @@ app.get("/images/:file", function(req, res){
  * Creates a new user.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/user/new", function(req, res){
-    if(!req.body.email){
+    console.log(req.body);
+    var chk = argCheck(req.body, {email: "string", password: "string"})
+    console.log (chk);
+    if (!chk.valid) {
         res.status(400);
-        res.send("Request failed: missing 'email' field.");
+        res.send("Request failed: "+JSON.stringify(chk));
         return;
     }
-    if(!req.body.password){
-        res.status(400);
-        res.send("Request failed: missing 'password' field.");
-        return;
-    }
+    
     if(! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/.test(req.body.email)){
         res.status(400);
         res.send("Request failed: 'email' value does not follow the proper format.");
@@ -122,15 +121,11 @@ app.post("/user/new", function(req, res){
  * Authorizes a user and provides them with an auth token.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/user/auth", function(req, res){
-    console.log(JSON.stringify(req.body));
-    if(!req.body.email){
+    var chk = argCheck(req.body, {email: "string", password: "string"})
+    console.log (chk);
+    if (!chk.valid) {
         res.status(400);
-        res.send("Request failed: missing 'email' field.");
-        return;
-    }
-    if(!req.body.password){
-        res.status(400);
-        res.send("Request failed: missing 'password' field.");
+        res.send("Request failed: "+JSON.stringify(chk));
         return;
     }
     db.query("users", {
@@ -172,7 +167,7 @@ app.post("/user/auth", function(req, res){
  * Creates a new chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chat/new", function(req, res){ // TODO: This should require auth
-    if(!req.body.users){
+    if(!argCheck(req.body,{users:"object"}).valid) {
         res.status(400);
         res.send("Request failed: missing users list.");
         return;
@@ -222,19 +217,11 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
  * Changes a user's screen name.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/user/screen-name", function(req, res){
-    if(!req.body.email){
+    var chk = argCheck(req.body, {email: "string", authToken: "string", screenName: "string"})
+    console.log (chk);
+    if (!chk.valid) {
         res.status(400);
-        res.send("Request failed: missing 'email' field.");
-        return;
-    }
-    if(!req.body.authToken){
-        res.status(400);
-        res.send("Request failed: missing 'authToken' field.");
-        return;
-    }
-    if(!req.body.screenName){
-        res.status(400);
-        res.send("Request failed: missing 'screenName' field.");
+        res.send("Request failed: "+JSON.stringify(chk));
         return;
     }
     db.update("users", {
@@ -268,14 +255,11 @@ app.post("/user/screen-name", function(req, res){
  * Returns a list of chats for the current user.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chats", function(req, res){
-    if(!req.body.email){
+    var chk = argCheck(req.body, {email: "string", authToken: "string" })
+    console.log (chk);
+    if (!chk.valid) {
         res.status(400);
-        res.send("Request failed: missing 'email' field.");
-        return;
-    }
-    if(!req.body.authToken){
-        res.status(400);
-        res.send("Request failed: missing 'authToken' field.");
+        res.send("Request failed: "+JSON.stringify(chk));
         return;
     }
 
@@ -338,6 +322,14 @@ app.post("/chats", function(req, res){
  * Returns a list of previous messages for a given chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chat/history", function(req, res){
+    var chk = argCheck(req.body, {chatId: "string", email: "string", authToken: "string" })
+    console.log (chk);
+    if (!chk.valid) {
+        res.status(400);
+        res.send("Request failed: "+JSON.stringify(chk));
+        return;
+    }
+    /**
     if(!req.body.email){
         res.status(400);
         res.send("Request failed: missing 'email' field.");
@@ -353,6 +345,7 @@ app.post("/chat/history", function(req, res){
         res.send("Request failed: missing 'chatId' field.");
         return;
     }
+    **/
     var page = 0;
     if(req.body.page){
         page = req.body.page;
@@ -644,6 +637,30 @@ var AsyncHandler = function(done){
             done();
         }
     }
+}
+
+
+/**
+ * Ensures that the given argument object matches the given schema.
+ * @param {object} args The provided argument object
+ * @param {object} type The schema to check against
+ * @returns {object} An object describing whether or not the provided object is valid and what errors exist if any
+ */
+var argCheck = function(args, type) {
+	for (kA in args) {
+		if (! type[kA]) {
+			return {valid: false, extra: kA};
+		}
+		if (typeof args[kA] != type[kA]) {
+			return {valid: false, badType: kA};
+		}
+	}
+	for (kT in type) {
+		if (! args[kT]) {
+			return {valid: false, missing: kT};
+		}
+	}
+	return {valid: true}
 }
 
 // DEBUG: prints out the SOCKETS object every 20 seconds
