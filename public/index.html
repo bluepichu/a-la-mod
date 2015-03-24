@@ -139,14 +139,14 @@
                 socket = io();
 
                 socket.on("message", function(chatId, fromId, fromName, message){
-                    CHATS[chatId].listing.find(".most-recent").text(fromName + ": " + message);
-                    CHATS[chatId].listing.insertAfter(".search-chats");
+                    CHATS[chatId].listing.find("ala-most-recent").text(fromName + ": " + message);
+                    CHATS[chatId].listing.insertAfter("ala-search-chats");
                     if(CURRENT_CHAT == chatId){
                         appendMessage({message: message, sender: fromId, you: MY_ID == fromId});
                         socket.emit("up to date", chatId);
                     } else {
                         CHATS[chatId].unread++;
-                        CHATS[chatId].listing.find(".unread-count").css({visibility: "visible"}).text(CHATS[chatId].unread);
+                        CHATS[chatId].listing.find("ala-unread-count").css({visibility: "visible"}).text(CHATS[chatId].unread);
                     }
                 });
 
@@ -176,7 +176,7 @@
                     }
                     $("ala-chats-list").append(CHATS[dat._id].listing);
                     if(CHATS[dat._id].unread > 0){
-                        CHATS[dat._id].listing.find(".unread-count").css({visibility: "visible"}).text(CHATS[dat._id].unread);
+                        CHATS[dat._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(CHATS[dat._id].unread);
                     }
                 });
 
@@ -206,7 +206,7 @@
                         appendMessage(data[i]);
                     }
 
-                    CHATS[chatId].listing.find(".unread-count").css({visibility: "hidden"});
+                    CHATS[chatId].listing.find("ala-unread-count").css({visibility: "hidden"});
                     CHATS[chatId].unread = 0;
                 }
 
@@ -259,7 +259,7 @@
                         }
                         $("ala-chats-list").append(CHATS[chats[i]._id].listing);
                         if(CHATS[chats[i]._id].unread > 0){
-                            CHATS[chats[i]._id].listing.find(".unread-count").css({visibility: "visible"}).text(CHATS[chats[i]._id].unread);
+                            CHATS[chats[i]._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(CHATS[chats[i]._id].unread);
                         }
                     }
 
@@ -296,7 +296,7 @@
                         <label>Password</label>
                     </ala-input>
                     <ala-input class="large-margin centering">
-                        <input type="submit" id="login" name="login" class="login login-submit flat" value="Login">
+                        <input type="submit" id="login" name="login" class="login login-submit flat" value="Log In">
                     </ala-input>
                     <div id="spin-area" class="hidden"></div>
                 </form>

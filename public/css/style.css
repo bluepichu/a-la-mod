@@ -14,7 +14,7 @@ body {
 }
 
 ala-entrance {
-    background: #7B1FA2;
+    background: #1565C0;
     display: block;
     height: 100vh;
     width: 100vw;
@@ -128,6 +128,7 @@ button.flat {
     cursor: pointer;
     text-align: center;
     margin-top: 120px;
+    text-transform: uppercase;
 }
 
 button.raised {
@@ -267,7 +268,7 @@ ala-app {
 }
 
 header {
-    background: #7B1FA2;
+    background: #1565C0;
     color: #FFFFFF;
     font-size: 32px;
     padding: 16px 48px;
