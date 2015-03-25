@@ -127,6 +127,8 @@
                                         ala.snack(this.responseText);
                                     }
                                 }
+                                
+                                xhr.setRequestHeader("Content-Type", "application/json");
 
                                 xhr.send(JSON.stringify({
                                     email: $("#form-register #email").val(),
