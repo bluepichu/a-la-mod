@@ -196,8 +196,22 @@
                         e.stopPropagation();
                         e.preventDefault();
                     } else if($(this).attr("id") == "form-recover"){
-                        // do something here
-                        ala.snack("An email has been sent containing a temporary password.");
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST", "/user/recovery", true);
+
+                        xhr.onload = function(){
+                            if(this.status == 200){
+                                ala.snack("An email has been sent containing a temporary password.");
+                            } else {
+                                ala.snack(this.responseText);
+                            }
+                        }
+
+                        xhr.setRequestHeader("Content-Type", "application/json");
+
+                        xhr.send(JSON.stringify({
+                            email: $("#form-recover #email").val()
+                        }));
                     }
 
                     return false;

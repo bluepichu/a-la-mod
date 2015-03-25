@@ -217,6 +217,28 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
 });
 
 /**
+ * Sends a password-recovery email to the specified address.
+ */
+app.post("/user/new", function(req, res){
+    if(!argCheck(req.body, {email: "string"})) {
+        res.status(400);
+        res.send("Request failed: "+JSON.stringify(chk));
+        return;
+    }
+    
+    db.query("users", {email: req.body.email}, function(data, err){
+        if(data.length != 1){
+            res.status(403);
+            res.send("Request failed: there's no user associated with that email.");
+            return;
+        }
+        // TODO: send email
+        res.status(200);
+        res.send();
+    });
+});
+
+/**
  * Changes a user's screen name.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/user/screen-name", function(req, res){
