@@ -409,6 +409,10 @@ ala-most-recent {
     color: rgba(0, 0, 0, .54);
     font-style: italic;
     font-size: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 100%;
+    overflow: hidden;
 }
 
 ala-unread-count {
