@@ -61,6 +61,26 @@
                     e.stopPropagation();
                     return false;
                 });
+                
+                $("#recover-back").click(function(e){
+                    $("#form-recover").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
+                    $("#form-login").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    setTimeout(function(){
+                        $("#form-recover").addClass("hidden");
+                    }, 800);
+                    e.stopPropagation();
+                    return false;
+                });
+                
+                $("#open-recover").click(function(e){
+                    $("#form-login").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
+                    $("#form-recover").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    setTimeout(function(){
+                        $("#form-login").addClass("hidden");
+                    }, 800);
+                    e.stopPropagation();
+                    return false;
+                });
 
                 $("form").submit(function(e){
                     var opts = {
@@ -175,6 +195,9 @@
 
                         e.stopPropagation();
                         e.preventDefault();
+                    } else if($(this).attr("id") == "form-recover"){
+                        // do something here
+                        ala.snack("An email has been sent containing a temporary password.");
                     }
 
                     return false;
@@ -395,7 +418,7 @@
                         <label>Password</label>
                     </ala-input>
                     <ala-input class="large-margin">
-                        <button id="forgot-password" class="flat">Forgot Password</button>
+                        <button id="open-recover" class="flat">Forgot Password</button>
                         <button type="submit" id="login-submit" class="raised ok" tabindex="0">Log In</button>
                         <div id="spin-area" class="hidden"></div>
                     </ala-input>
@@ -418,6 +441,19 @@
                     </ala-input>
                     <ala-input class="large-margin centering">
                         <button type="submit" id="register-submit" class="raised ok">Register</button>
+                        <div id="spin-area" class="hidden"></div>
+                    </ala-input>
+                </form>
+                <form id="form-recover" class="hidden" novalidate>
+                    <ala-input>
+                        <button id="recover-back" class="flat">Go Back</button>
+                    </ala-input>
+                    <ala-input>
+                        <input type="text" id="email" name="email" required>
+                        <label>Email</label>
+                    </ala-input>
+                    <ala-input class="large-margin centering">
+                        <button type="submit" id="recover-submit" class="raised ok">Send Recovery Email</button>
                         <div id="spin-area" class="hidden"></div>
                     </ala-input>
                 </form>
