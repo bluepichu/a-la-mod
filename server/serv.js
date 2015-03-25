@@ -13,6 +13,7 @@ var db = require("./db");
 var ObjectId = db.ObjectId;
 var moment = require("moment");
 var emailValidator = require("email-validator");
+var cryptoString = require("random-crypto-string");
 
 var connect_handlebars = require("connect-handlebars");
 app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/templates", {
@@ -285,9 +286,15 @@ app.post("/user/reset-password", function(req, res){
             return;
         }
         
-        // TODO: send password reset email
-        res.status(200);
-        res.send();
+        cryptoString(12, function(err, password){
+            console.log(password); // REMOVE THIS LINE IN PRODUCTION
+            var hash = passwordHash(password, data[0].salt);
+            db.update("users", {email: req.body.email}, {$set: {password: hash}}, function(err, data){
+                // TODO: send data containing password
+                res.status(200);
+                res.send();
+            });
+        });
     });
 });
 
