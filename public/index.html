@@ -18,13 +18,17 @@
 
         <script>
             var ala = {};
+            ala.currentChat = null;
+            ala.myId = null;
+            ala.chats = {};
+            ala.socket;
 
             $(document).ready(function(){
                 if($.cookie("email") && $.cookie("authToken")){
                     $("ala-entrance").addClass("authorized");
                     setTimeout(function(){
                         ala.snack("Welcome back!");
-                        chatInit();
+                        ala.chatInit();
                     }, 100);
                 }
                 
@@ -114,7 +118,7 @@
                                 $.cookie("authToken", this.responseText, {expires: 30, path: "/"});
                                 $("ala-entrance").addClass("authorized");
                                 ala.clearSnack();
-                                chatInit();
+                                ala.chatInit();
                                 setTimeout(function(){
                                     ala.snack("Welcome back!");
                                 }, 1000);
@@ -160,7 +164,7 @@
                                         $.cookie("authToken", this.responseText, {expires: 30, path: "/"});
                                         $("ala-entrance").addClass("authorized");
                                         ala.clearSnack();
-                                        chatInit();
+                                        ala.chatInit();
                                         setTimeout(function(){
                                             ala.snack("Welcome to &Agrave; la Mod!");
                                         }, 1000);
@@ -236,27 +240,15 @@
                 }, 10);
             }
 
-            // FIX THE FOLLOWING
-
-            var CURRENT_CHAT = null;
-            var MY_ID = null;
-            var CHATS = {};
-            var socket;
-
-            var chatInit = function(){
+            ala.chatInit = function(){
                 $("ala-chats-list").niceScroll();
                 $("ala-message-list").niceScroll();
 
                 autosize($("#chat-input"));
 
-                $("#chat-input").on("input keyup", function(){
-                    //$("ala-message-list").height($(".actual-chat").height() - $("#chat-input").height() - 32);
-                });
-
                 $("#chat-input").keydown(function(e){
                     if(e.keyCode == 13 && !e.shiftKey){
-                        submit();
-
+                        ala.submit();
                         e.stopPropagation();
                         e.preventDefault();
                         return false;
@@ -264,38 +256,38 @@
                 });
 
                 $("#chat-submit").click(function(){
-                    submit();
+                    ala.submit();
                 });
 
-                socket = io();
+                ala.socket = io();
 
-                socket.on("message", function(chatId, fromId, fromName, message){
-                    CHATS[chatId].listing.find("ala-most-recent").text(fromName + ": " + message);
-                    CHATS[chatId].listing.insertAfter("ala-search-chats");
-                    if(CURRENT_CHAT == chatId){
-                        appendMessage({message: message, sender: fromId, you: MY_ID == fromId});
-                        socket.emit("up to date", chatId);
+                ala.socket.on("message", function(chatId, fromId, fromName, message){
+                    ala.chats[chatId].listing.find("ala-most-recent").text(fromName + ": " + message);
+                    ala.chats[chatId].listing.insertAfter("ala-search-chats");
+                    if(ala.currentChat == chatId){
+                        ala.appendMessage({message: message, sender: fromId, you: ala.myId == fromId});
+                        ala.socket.emit("up to date", chatId);
                     } else {
-                        CHATS[chatId].unread++;
-                        CHATS[chatId].listing.find("ala-unread-count").css({visibility: "visible"}).text(CHATS[chatId].unread);
+                        ala.chats[chatId].unread++;
+                        ala.chats[chatId].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[chatId].unread);
                     }
                 });
 
-                socket.on("error", function(descr){
+                ala.socket.on("error", function(descr){
                     toast(descr.description);
                 });
 
-                socket.on("commrequest", function(source, name){
+                ala.socket.on("commrequest", function(source, name){
                     permissionToast(source + " would like to add the " + name + " comm to this chat.");
                 });
 
-                socket.on("login success", function(dat){
-                    MY_ID = dat.id;
-                    init();
+                ala.socket.on("login success", function(dat){
+                    ala.myId = dat.id;
+                    ala.loadChats();
                 });
 
-                socket.on("new chat", function(dat){
-                    CHATS[dat._id] = {
+                ala.socket.on("new chat", function(dat){
+                    ala.chats[dat._id] = {
                         users: dat.users,
                         unread: 0,
                         listing: $(Handlebars.templates["chat-listing"]({
@@ -305,25 +297,23 @@
                             mostRecent: undefined
                         }))
                     }
-                    $("ala-chats-list").append(CHATS[dat._id].listing);
-                    if(CHATS[dat._id].unread > 0){
-                        CHATS[dat._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(CHATS[dat._id].unread);
+                    $("ala-chats-list").append(ala.chats[dat._id].listing);
+                    if(ala.chats[dat._id].unread > 0){
+                        ala.chats[dat._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[dat._id].unread);
                     }
                 });
 
-                socket.emit("login", $.cookie("email"), $.cookie("authToken"));
+                ala.socket.emit("login", $.cookie("email"), $.cookie("authToken"));
             }
-
-
-
-            var submit = function(){
+            
+            ala.submit = function(){
                 var data = $("#chat-input").val();
                 $("#chat-input").val("");
-                socket.emit("message", CURRENT_CHAT, "plaintext", data);
+                ala.socket.emit("message", ala.currentChat, "plaintext", data);
                 return false;
             }
 
-            var openChat = function(chatId){
+            ala.openChat = function(chatId){
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", "/chat/history", true);
 
@@ -333,12 +323,12 @@
                     $("ala-message-list").empty();
 
                     for(var i = 0; i < data.length; i++){
-                        data[i].you = data[i].sender == MY_ID;
-                        appendMessage(data[i]);
+                        data[i].you = data[i].sender == ala.myId;
+                        ala.appendMessage(data[i]);
                     }
 
-                    CHATS[chatId].listing.find("ala-unread-count").css({visibility: "hidden"});
-                    CHATS[chatId].unread = 0;
+                    ala.chats[chatId].listing.find("ala-unread-count").css({visibility: "hidden"});
+                    ala.chats[chatId].unread = 0;
                 }
 
                 xhr.setRequestHeader("Content-Type", "application/json");
@@ -349,14 +339,14 @@
                     chatId: chatId
                 }));
 
-                CURRENT_CHAT = chatId;
+                ala.currentChat = chatId;
             }
 
-            var appendMessage = function(msg){
+            ala.appendMessage = function(msg){
                 if(!($("ala-message-list").children().last().attr("id") == msg.sender)){
                     $("ala-message-list").append(Handlebars.templates["chat-group"]({
                         sender: msg.sender,
-                        you: msg.sender == MY_ID
+                        you: msg.sender == ala.myId
                     }));
                 }
                 $("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
@@ -365,7 +355,7 @@
                 $("ala-message-list").scrollTop(2e9);
             }
 
-            var init = function(){
+            ala.loadChats = function(){
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", "/chats", true);
 
@@ -378,9 +368,9 @@
                     });
 
                     for(var i = 0; i < chats.length; i++){
-                        CHATS[chats[i]._id] = {
+                        ala.chats[chats[i]._id] = {
                             users: chats[i].users,
-                            unread: chats[i].messageCount - chats[i].lastRead[MY_ID],
+                            unread: chats[i].messageCount - chats[i].lastRead[ala.myId],
                             listing: $(Handlebars.templates["chat-listing"]({
                                 id: chats[i]._id,
                                 title: chats[i]._id.substring(0, 8) + "...",
@@ -388,16 +378,16 @@
                                 mostRecent: chats[i].messages[0]
                             }))
                         }
-                        $("ala-chats-list").append(CHATS[chats[i]._id].listing);
-                        if(CHATS[chats[i]._id].unread > 0){
-                            CHATS[chats[i]._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(CHATS[chats[i]._id].unread);
+                        $("ala-chats-list").append(ala.chats[chats[i]._id].listing);
+                        if(ala.chats[chats[i]._id].unread > 0){
+                            ala.chats[chats[i]._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[chats[i]._id].unread);
                         }
                     }
 
-                    openChat(chats[0]._id);
+                    ala.openChat(chats[0]._id);
 
                     $("ala-chat-listing").click(function(){
-                        openChat($(this).attr("chat-id"));
+                        ala.openChat($(this).attr("chat-id"));
                     });
                 };
 
