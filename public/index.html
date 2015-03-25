@@ -29,12 +29,12 @@
                 }
 
                 $("#log-in").click(function(){
-                    $("#log-in, #register").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
+                    $("#button-bar").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
                     $("#form-login").removeClass("hidden").addClass("fade-in slide-up anim-delay");
                 });
 
                 $("#register").click(function(){
-                    $("#log-in, #register").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
+                    $("#button-bar").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
                     $("#form-register").removeClass("hidden").addClass("fade-in slide-up anim-delay");
                 });
 
@@ -352,8 +352,10 @@
             <h1 class="fade-in slide-down">Welcome to &Agrave; la Mod.</h1>
             <h2 class="fade-in slide-up">Your chat, your way.</h2>
             <div class="relative-anchor">
-                <button id="log-in" class="flat fade-in slide-up anim-delay">Log In</button>
-                <button id="register" class="flat fade-in slide-up anim-delay">Register</button>
+                <ala-flex id="button-bar" class="fade-in slide-up anim-delay">
+                    <button id="log-in" class="flat">Log In</button>
+                    <button id="register" class="flat">Register</button>
+                </ala-flex>
                 <form id="form-login" class="hidden">
                     <ala-input>
                         <input type="text" id="email" name="email" required>
@@ -364,7 +366,8 @@
                         <label>Password</label>
                     </ala-input>
                     <ala-input class="large-margin centering">
-                        <input type="submit" id="login-submit" name="login" class="flat" value="Log In">
+                        <button id="forgot-password" class="raised">Forgot Password</button>
+                        <button id="login-submit" class="raised">Log In</button>
                     </ala-input>
                     <div id="spin-area" class="hidden"></div>
                 </form>
@@ -390,14 +393,14 @@
         </ala-entrance>
         <ala-app>
             <header>&Agrave; la Mod</header>
-            <ala-flex>
+            <ala-flex id="app-container">
                 <ala-sidebar>
                     <ala-chats-list></ala-chats-list>
                 </ala-sidebar>
                 <ala-chat-area>
                     <ala-message-list></ala-message-list>
                     <textarea id="chat-input" name="send" placeholder="Message..."></textarea>
-                    <button class="raised">Submit</button>
+                    <button id="chat-submit-button" class="raised">Submit</button>
                 </ala-chat-area>
             </ala-flex>
         </ala-app>

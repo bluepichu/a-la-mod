@@ -21,8 +21,10 @@ ala-entrance {
     position: absolute;
     z-index: 10;
     top: 0vh;
-    -webkit-transition-duration: 500ms;
-    transition-duration: 500ms;
+    -webkit-transition-duration: 800ms;
+    transition-duration: 800ms;
+    -webkit-transition-timing-function: ease-in;
+    transition-timing-function: ease-in;
 }
 
 ala-entrance.authorized {
@@ -45,8 +47,8 @@ ala-entrance.authorized {
     animation: fade-in ease-out;
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
-    -webkit-animation-duration: 1000ms;
-    animation-duration: 1000ms;
+    -webkit-animation-duration: 800ms;
+    animation-duration: 800ms;
 }
 
 .fade-out {
@@ -55,8 +57,8 @@ ala-entrance.authorized {
     animation: fade-out ease-out;
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
-    -webkit-animation-duration: 1000ms;
-    animation-duration: 1000ms;
+    -webkit-animation-duration: 800ms;
+    animation-duration: 800ms;
 }
 
 .fade-in.slide-up {
@@ -64,8 +66,8 @@ ala-entrance.authorized {
     animation: fade-in ease-out, slide-up ease-out;
     -webkit-animation-fill-mode: forwards, forwards;
     animation-fill-mode: forwards, forwards;
-    -webkit-animation-duration: 1000ms, 1000ms;
-    animation-duration: 1000ms, 1000ms;
+    -webkit-animation-duration: 800ms, 800ms;
+    animation-duration: 800ms, 800ms;
 }
 
 .fade-in.slide-down {
@@ -73,8 +75,8 @@ ala-entrance.authorized {
     animation: fade-in ease-out, slide-down ease-out;
     -webkit-animation-fill-mode: forwards, forwards;
     animation-fill-mode: forwards, forwards;
-    -webkit-animation-duration: 1000ms, 1000ms;
-    animation-duration: 1000ms, 1000ms;
+    -webkit-animation-duration: 800ms, 800ms;
+    animation-duration: 800ms, 800ms;
 }
 
 .fade-out.slide-up {
@@ -82,8 +84,8 @@ ala-entrance.authorized {
     animation: fade-out ease-out, slide-up ease-out;
     -webkit-animation-fill-mode: forwards, forwards;
     animation-fill-mode: forwards, forwards;
-    -webkit-animation-duration: 1000ms, 1000ms;
-    animation-duration: 1000ms, 1000ms;
+    -webkit-animation-duration: 800ms, 800ms;
+    animation-duration: 800ms, 800ms;
 }
 
 .fade-out.slide-down {
@@ -91,8 +93,8 @@ ala-entrance.authorized {
     animation: fade-out ease-out, slide-down ease-out;
     -webkit-animation-fill-mode: forwards, forwards;
     animation-fill-mode: forwards, forwards;
-    -webkit-animation-duration: 1000ms, 1000ms;
-    animation-duration: 1000ms, 1000ms;
+    -webkit-animation-duration: 800ms, 800ms;
+    animation-duration: 800ms, 800ms;
 }
 
 h1 {
@@ -120,7 +122,7 @@ h2 {
     top: 0px;
 }
 
-button.flat {d
+button.flat {
     background: transparent;
     border: 0px;
     font-size: 32px;
@@ -132,39 +134,27 @@ button.flat {d
 }
 
 button.raised {
-    width: 64px;
+    min-width: 64px;
     margin: 4px;
     border: none;
     background: #FF5252;
     color: #FFFFFF;
-    padding: 4px;
-    position: absolute;
-    right: 16px;
-    bottom: 20px;
+    padding: 6px 12px;
     -webkit-box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
     box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
     cursor: pointer;
+    border-radius: 2px;
 }
 
-#log-in {
+#chat-submit-button {
     position: absolute;
-    left: 25%;
-    -webkit-transform: translate(-50%, -50%);
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-}
-
-#register {
-    position: absolute;
-    left: 75%;
-    -webkit-transform: translate(-50%, -50%);
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
+    right: 16px;
+    bottom: 20px;
 }
 
 .anim-delay {
-    -webkit-animation-delay: 1200ms !important;
-    animation-delay: 1200ms !important;
+    -webkit-animation-delay: 600ms !important;
+    animation-delay: 600ms !important;
 }
 
 #spin-area {
@@ -308,6 +298,9 @@ ala-flex {
     display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
+}
+
+ala-flex#app-container {
     height: calc(100% - 64px);
     width: 100vw;
     position: relative;
@@ -499,4 +492,13 @@ ala-message-list {
     -ms-flex-positive: 1;
     flex-grow: 1;
     margin-bottom: 12px;
+}
+
+ala-flex#button-bar {
+    justify-content: space-around;
+    position: relative;
+}
+
+#log-in {
+    
 }
