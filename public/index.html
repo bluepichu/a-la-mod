@@ -197,7 +197,7 @@
                         e.preventDefault();
                     } else if($(this).attr("id") == "form-recover"){
                         var xhr = new XMLHttpRequest();
-                        xhr.open("POST", "/user/recovery", true);
+                        xhr.open("POST", "/user/reset-password", true);
 
                         xhr.onload = function(){
                             if(this.status == 200){

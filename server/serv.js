@@ -29,25 +29,9 @@ var SOCKETS = {}; // Stores currently authorized sockets, as {<user id>: [<list 
 var PORT = process.env.PORT || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
 
 /**
- * Serves either the chat page or the login page depending on whether or not the user is logged in.
+ * Serves the À la Mod page.
  */
 app.get("/", function(req, res){
-    /*
-    if(req.cookies.email && req.cookies.authToken){
-        db.query("users", {
-            email: req.cookies.email,
-            authTokens: {$in: [req.cookies.authToken]}
-        },
-                 function(data, err){
-            if(data.length == 1){
-                res.sendFile("/chat.html", {root: path.join(__dirname, "../public")});
-            } else {
-                res.sendFile("/enter.html", {root: path.join(__dirname, "../public")});
-            }
-        });
-    } else {
-        res.sendFile("/enter.html", {root: path.join(__dirname, "../public")});
-    }*/
     res.sendFile("/index.html", {root: path.join(__dirname, "../public")});
 });
 
@@ -77,7 +61,7 @@ app.get("/images/:file", function(req, res){
  */
 app.post("/user/new", function(req, res){
     console.log(req.body);
-    var chk = argCheck(req.body, {email: "string", password: "string"})
+    var chk = argCheck(req.body, {email: "string", password: "string"});
     console.log (chk);
     if (!chk.valid) {
         res.status(400);
@@ -124,7 +108,7 @@ app.post("/user/new", function(req, res){
  * Authorizes a user and provides them with an auth token.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/user/auth", function(req, res){
-    var chk = argCheck(req.body, {email: "string", password: "string"})
+    var chk = argCheck(req.body, {email: "string", password: "string"});
     console.log (chk);
     if (!chk.valid) {
         res.status(400);
@@ -226,7 +210,7 @@ app.post("/user/new", function(req, res){
         return;
     }
     
-    db.query("users", {email: req.body.email}, function(data, err){
+    db.query("users", {email: req.body.email}, function(err, data){
         if(data.length != 1){
             res.status(403);
             res.send("Request failed: there's no user associated with that email.");
@@ -242,9 +226,9 @@ app.post("/user/new", function(req, res){
  * Changes a user's screen name.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/user/screen-name", function(req, res){
-    var chk = argCheck(req.body, {email: "string", authToken: "string", screenName: "string"})
+    var chk = argCheck(req.body, {email: "string", authToken: "string", screenName: "string"});
     console.log (chk);
-    if (!chk.valid) {
+    if(!chk.valid) {
         res.status(400);
         res.send("Request failed: "+JSON.stringify(chk));
         return;
@@ -273,6 +257,37 @@ app.post("/user/screen-name", function(req, res){
         }
         res.status(200);
         res.send("Ok.");
+    });
+});
+
+/**
+ * Sends a password recovery email to the specified address.
+ */
+app.post("/user/reset-password", function(req, res){
+    var chk = argCheck(req.body, {email: "string"});
+    if(!chk.valid) {
+        res.status(400);
+        res.send("Request failed: " + JSON.stringify(chk));
+        return;
+    }
+    db.query("users", {email: req.body.email}, function(err, data){
+        console.log(data, err);
+        
+        if(err){
+            res.status(500);
+            res.send("Request failed: server error.");
+            return;
+        }
+        
+        if(!data || data.length != 1){
+            res.status(400);
+            res.send("Request failed: no user exists with that email.");
+            return;
+        }
+        
+        // TODO: send password reset email
+        res.status(200);
+        res.send();
     });
 });
 
@@ -312,7 +327,7 @@ app.post("/chats", function(req, res){
             messageCount: 1,
             creationTime: 1
         },
-                   function(dat, er){
+                   function(er, dat){
             if(er){
                 res.status(500);
                 res.send("Request failed: server error.");
@@ -354,23 +369,6 @@ app.post("/chat/history", function(req, res){
         res.send("Request failed: "+JSON.stringify(chk));
         return;
     }
-    /**
-    if(!req.body.email){
-        res.status(400);
-        res.send("Request failed: missing 'email' field.");
-        return;
-    }
-    if(!req.body.authToken){
-        res.status(400);
-        res.send("Request failed: missing 'authToken' field.");
-        return;
-    }
-    if(!req.body.chatId){
-        res.status(400);
-        res.send("Request failed: missing 'chatId' field.");
-        return;
-    }
-    **/
     var page = 0;
     if(req.body.page){
         page = req.body.page;
@@ -396,7 +394,7 @@ app.post("/chat/history", function(req, res){
         }, {
             messages: {$slice: [-(page+1)*PAGE_SIZE, PAGE_SIZE]}
         },
-                   function(dat, er){
+                   function(er, dat){
             if(er){
                 res.status(500);
                 res.send("Request failed: server error.");
@@ -457,7 +455,7 @@ var fetchUserList = function(data, field, cb){
     for(var i = 0; i < data.length; i++){
         var obj = {};
         obj[field] = data[i];
-        ash.attach(db.query, ["users", obj], function(dat, err){
+        ash.attach(db.query, ["users", obj], function(err, dat){
             if(!err){
                 if(dat[0]){
                     resultList.push(dat[0]);
@@ -507,7 +505,7 @@ io.on("connection", function(socket){
             db.query("chats", {
 
             },
-                     function(dat, er){
+                     function(er, dat){
                 if(!er){
                     for(var i = 0; i < dat.length; i++){
                         socket.join(dat[i]._id);
@@ -589,7 +587,7 @@ io.on("connection", function(socket){
             db.query("users", {
                 email: socket.email
             },
-                     function(dat, er){
+                     function(er, dat){
                 if(er || !dat){
                     // ???
                     io.to(socket.id).emit("error", {description: "Request failed: server error."});
