@@ -115,35 +115,51 @@ h2 {
     text-align: center;
     color: #FFFFFF;
     margin-top: 16px;
-    margin-bottom: 120px;
+    margin-bottom: 64px;
     -webkit-animation-delay: 400ms !important;
     animation-delay: 400ms !important;
     position: relative;
     top: 0px;
 }
 
+button {
+    text-align: center;
+    text-transform: uppercase;
+    padding: 6px 12px;
+}
+
 button.flat {
     background: transparent;
     border: 0px;
-    font-size: 32px;
     color: #FFFFFF;
     cursor: pointer;
-    text-align: center;
+}
+
+button.flat.large {
+    font-size: 32px;
     margin-top: 120px;
-    text-transform: uppercase;
 }
 
 button.raised {
     min-width: 64px;
     margin: 4px;
     border: none;
-    background: #FF5252;
-    color: #FFFFFF;
-    padding: 6px 12px;
     -webkit-box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
     box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
     cursor: pointer;
     border-radius: 2px;
+    background: #FFFFFF;
+    color: rgba(0, 0, 0, .87);
+}
+
+button.raised.warning {
+    background: #FF5252;
+    color: #FFFFFF;
+}
+
+button.raised.ok {
+    background: #4CAF50;
+    color: #FFFFFF;
 }
 
 #chat-submit-button {

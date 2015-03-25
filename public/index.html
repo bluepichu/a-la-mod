@@ -27,15 +27,39 @@
                         chatInit();
                     }, 100);
                 }
+                
+                $("input[type=text], input[type=password]").keydown(function(e){
+                    if(e.keyCode == 13){
+                        $(this).parent().submit();
+                        e.stopPropagation();
+                        return false;
+                    }
+                });
 
                 $("#log-in").click(function(){
-                    $("#button-bar").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
-                    $("#form-login").removeClass("hidden").addClass("fade-in slide-up anim-delay");
+                    $("#button-bar").removeClass("hidden fade-in slide-up anim-delay").addClass("fade-out slide-down");
+                    $("#form-login").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    setTimeout(function(){
+                        $("#button-bar").addClass("hidden");
+                    }, 800);
                 });
 
                 $("#register").click(function(){
-                    $("#button-bar").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
-                    $("#form-register").removeClass("hidden").addClass("fade-in slide-up anim-delay");
+                    $("#button-bar").removeClass("hidden fade-in slide-up anim-delay").addClass("fade-out slide-down");
+                    $("#form-register").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    setTimeout(function(){
+                        $("#button-bar").addClass("hidden");
+                    }, 800);
+                });
+                
+                $("#login-back, #register-back").click(function(e){
+                    $("form").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
+                    $("#button-bar").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    setTimeout(function(){
+                        $("form").addClass("hidden");
+                    }, 800);
+                    e.stopPropagation();
+                    return false;
                 });
 
                 $("form").submit(function(e){
@@ -355,10 +379,13 @@
             <h2 class="fade-in slide-up">Your chat, your way.</h2>
             <div class="relative-anchor">
                 <ala-flex id="button-bar" class="fade-in slide-up anim-delay">
-                    <button id="log-in" class="flat">Log In</button>
-                    <button id="register" class="flat">Register</button>
+                    <button id="log-in" class="flat large">Log In</button>
+                    <button id="register" class="flat large">Register</button>
                 </ala-flex>
-                <form id="form-login" class="hidden">
+                <form id="form-login" class="hidden" novalidate>
+                    <ala-input>
+                        <button id="login-back" class="flat">Go Back</button>
+                    </ala-input>
                     <ala-input>
                         <input type="text" id="email" name="email" required>
                         <label>Email</label>
@@ -367,13 +394,16 @@
                         <input type="password" id="password" name="pass" required>
                         <label>Password</label>
                     </ala-input>
-                    <ala-input class="large-margin centering">
-                        <button id="forgot-password" class="raised">Forgot Password</button>
-                        <button id="login-submit" class="raised">Log In</button>
+                    <ala-input class="large-margin">
+                        <button id="forgot-password" class="flat">Forgot Password</button>
+                        <button type="submit" id="login-submit" class="raised ok" tabindex="0">Log In</button>
+                        <div id="spin-area" class="hidden"></div>
                     </ala-input>
-                    <div id="spin-area" class="hidden"></div>
                 </form>
-                <form id="form-register" class="hidden">
+                <form id="form-register" class="hidden" novalidate>
+                    <ala-input>
+                        <button id="register-back" class="flat">Go Back</button>
+                    </ala-input>
                     <ala-input>
                         <input type="text" id="email" name="email" required>
                         <label>Email</label>
@@ -387,9 +417,9 @@
                         <label>Confirm Password</label>
                     </ala-input>
                     <ala-input class="large-margin centering">
-                        <input type="submit" id="register-submit" name="register" class="flat" value="Register">
+                        <button type="submit" id="register-submit" class="raised ok">Register</button>
+                        <div id="spin-area" class="hidden"></div>
                     </ala-input>
-                    <div id="spin-area" class="hidden"></div>
                 </form>
             </div>
         </ala-entrance>
