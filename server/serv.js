@@ -29,6 +29,21 @@ var SOCKETS = {}; // Stores currently authorized sockets, as {<user id>: [<list 
 
 var PORT = process.env.PORT || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
 
+var sendgridlogin = require("sendgrid");
+var sendgrid = undefined;
+
+var local = false;
+if (process.argv[2] == "-l") {
+    local = true;
+}
+
+if (process.env.SGPASS) {
+    sendgrid = sendgridlogin("a-la-mod",process.env.SGPASS);
+    
+} else {
+    console.log("Missing SGPASS environment variable. Will not be able to verify email addresses");
+}
+
 /**
  * Serves the À la Mod page.
  */
@@ -83,15 +98,20 @@ app.post("/user/new", function(req, res){
             return;
         }
 
-        var salt = crypto.randomBytes(256).toString("base64");
+        var salt = crypto.randomBytes(32).toString("base64");
         var password = passwordHash(req.body.password, salt);
 
+        var verID = crypto.randomBytes(32).toString("hex");
+        var email = req.body.email;
+        var user = req.body.email;
         db.insert("users", {
             email: req.body.email,
             password: password,
             salt: salt,
             authTokens: [],
-            screenName: req.body.email
+            screenName: req.body.email,
+            verificationID: verID,
+            verified: false || local,
         }, function(err, data){
             if(err){
                 res.status(500);
@@ -99,7 +119,10 @@ app.post("/user/new", function(req, res){
             } else {
                 console.log("user inserted.");
                 res.status(200);
-                res.send("Ok.");
+                res.send("Ok. Verification ID is "+verID);
+                if (!local) {
+                    sendVerEmail(verID, email, user); //change the third param to username when we get one
+                }
             }
         });
     });
@@ -691,6 +714,25 @@ var argCheck = function(args, type) {
 		}
 	}
 	return {valid: true}
+}
+
+var sendVerEmail = function(verID, emailaddr, username) {
+    if (!sendgrid) {
+        console.log("Error, cannot send verification email");
+        return
+    }
+    var email = new sendgrid.Email({fromname: "A-la-mod"})
+    email.addTo(emailaddr);
+    email.setFrom("donotreply@a-la-mod.herokuapp.com");
+    email.setSubject("Verify Your Email");
+    email.setHtml("<h1 style='font-family:basic;font-size:60px;color:rgb(21,101,192);text-align:center;width:100%'>Welcome to A la Mod</h1><br><p style='margin-left: 30px; margin-right: 30px'>Before you can start using A la Mod, we ask that you verify your email. Click <a href='http://a-la-mod.herokuapp.com/user/verify/"+verID+"'>here</a> to verify.</p>");
+    sendgrid.send(email, function(err, data) {
+        if (err) {
+            console.log (err);
+        } else {
+            console.log(data);
+        }
+    });
 }
 
 // DEBUG: prints out the SOCKETS object every 20 seconds
