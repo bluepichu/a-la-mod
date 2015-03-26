@@ -91,7 +91,8 @@ app.post("/user/new", function(req, res){
             password: password,
             salt: salt,
             authTokens: [],
-            screenName: req.body.email
+            screenName: req.body.email,
+            contacts: [req.body.email]
         }, function(err, data){
             if(err){
                 res.status(500);
@@ -122,7 +123,7 @@ app.post("/user/auth", function(req, res){
              function(err, data){
         if(err){
             res.status(500);
-            res.send("Requst faild: server error.");
+            res.send("Requst failed: server error.");
             return;
         }
         if(data.length != 1){
@@ -184,6 +185,7 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
             }
 
             for(var i = 0; i < users.length; i++){
+                db.update("users", {_id: ObjectId(users[i]._id)}, {$addToSet: {contacts: {$each: req.body.users}}}, function(){});
                 if(users[i]._id in SOCKETS){
                     for(var j = 0; j < SOCKETS[users[i]._id].length; j++){
                         SOCKETS[users[i]._id][j].join(data._id);
