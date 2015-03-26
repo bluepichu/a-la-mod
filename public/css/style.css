@@ -1,13 +1,11 @@
 * {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
 
 body {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
-    font-family: "Basic";
+    font-family: "Basic", sans-serif;
     margin: 0px;
     padding: 0px;
     overflow: hidden;
@@ -21,8 +19,8 @@ ala-entrance {
     position: absolute;
     z-index: 10;
     top: 0vh;
-    -webkit-transition-duration: 800ms;
-    transition-duration: 800ms;
+    -webkit-transition-duration: 600ms;
+    transition-duration: 600ms;
     -webkit-transition-timing-function: ease-in;
     transition-timing-function: ease-in;
 }
@@ -47,8 +45,8 @@ ala-entrance.authorized {
     animation: fade-in ease-out;
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
-    -webkit-animation-duration: 800ms;
-    animation-duration: 800ms;
+    -webkit-animation-duration: 600ms;
+    animation-duration: 600ms;
 }
 
 .fade-out {
@@ -57,8 +55,8 @@ ala-entrance.authorized {
     animation: fade-out ease-out;
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
-    -webkit-animation-duration: 800ms;
-    animation-duration: 800ms;
+    -webkit-animation-duration: 600ms;
+    animation-duration: 600ms;
 }
 
 .fade-in.slide-up {
@@ -66,8 +64,8 @@ ala-entrance.authorized {
     animation: fade-in ease-out, slide-up ease-out;
     -webkit-animation-fill-mode: forwards, forwards;
     animation-fill-mode: forwards, forwards;
-    -webkit-animation-duration: 800ms, 800ms;
-    animation-duration: 800ms, 800ms;
+    -webkit-animation-duration: 600ms, 600ms;
+    animation-duration: 600ms, 600ms;
 }
 
 .fade-in.slide-down {
@@ -75,8 +73,8 @@ ala-entrance.authorized {
     animation: fade-in ease-out, slide-down ease-out;
     -webkit-animation-fill-mode: forwards, forwards;
     animation-fill-mode: forwards, forwards;
-    -webkit-animation-duration: 800ms, 800ms;
-    animation-duration: 800ms, 800ms;
+    -webkit-animation-duration: 600ms, 600ms;
+    animation-duration: 600ms, 600ms;
 }
 
 .fade-out.slide-up {
@@ -84,8 +82,8 @@ ala-entrance.authorized {
     animation: fade-out ease-out, slide-up ease-out;
     -webkit-animation-fill-mode: forwards, forwards;
     animation-fill-mode: forwards, forwards;
-    -webkit-animation-duration: 800ms, 800ms;
-    animation-duration: 800ms, 800ms;
+    -webkit-animation-duration: 600ms, 600ms;
+    animation-duration: 600ms, 600ms;
 }
 
 .fade-out.slide-down {
@@ -93,8 +91,22 @@ ala-entrance.authorized {
     animation: fade-out ease-out, slide-down ease-out;
     -webkit-animation-fill-mode: forwards, forwards;
     animation-fill-mode: forwards, forwards;
-    -webkit-animation-duration: 800ms, 800ms;
-    animation-duration: 800ms, 800ms;
+    -webkit-animation-duration: 600ms, 600ms;
+    animation-duration: 600ms, 600ms;
+}
+
+.skip-animation-out {
+    -webkit-animation: none !important;
+    animation: none !important;
+    opacity: 0;
+    top: 0px;
+}
+
+.skip-animation-in {
+    -webkit-animation: none !important;
+    animation: none !important;
+    opacity: 1;
+    top: 0px;
 }
 
 h1 {
@@ -116,8 +128,8 @@ h2 {
     color: #FFFFFF;
     margin-top: 16px;
     margin-bottom: 64px;
-    -webkit-animation-delay: 400ms !important;
-    animation-delay: 400ms !important;
+    -webkit-animation-delay: 200ms !important;
+    animation-delay: 200ms !important;
     position: relative;
     top: 0px;
 }
@@ -144,7 +156,6 @@ button.raised {
     min-width: 64px;
     margin: 4px;
     border: none;
-    -webkit-box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
     box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
     cursor: pointer;
     border-radius: 2px;
@@ -169,8 +180,8 @@ button.raised.ok {
 }
 
 .anim-delay {
-    -webkit-animation-delay: 600ms !important;
-    animation-delay: 600ms !important;
+    -webkit-animation-delay: 400ms !important;
+    animation-delay: 400ms !important;
 }
 
 #spin-area {
@@ -195,7 +206,7 @@ form {
 input,
 textarea,
 button {
-    font-family: "Basic";
+    font-family: "Basic", sans-serif;
 }
 
 input:focus,
@@ -246,12 +257,11 @@ ala-input {
 
 input[type=submit] {
     background: #FFFFFF;
-    -webkit-box-shadow: 0px 0px 2px rgba(0, 0, 0, .1), 0px 3px 5px rgba(0, 0, 0, .2);
     box-shadow: 0px 0px 2px rgba(0, 0, 0, .1), 0px 3px 5px rgba(0, 0, 0, .2);
     border-radius: 2px;
     padding: 4px 16px;
     border: 0px;
-    font-family: "Basic";
+    font-family: "Basic", sans-serif;
     font-size: 16px;
     text-align: center;
     margin: 0px auto;
@@ -278,7 +288,6 @@ header {
     color: #FFFFFF;
     font-size: 32px;
     padding: 16px 48px;
-    -webkit-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
     height: 64px;
     z-index: 4;
@@ -359,7 +368,7 @@ textarea#chat-input {
     resize: none;
     -webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, .2);
     box-shadow: 0px 2px 2px rgba(0, 0, 0, .2);
-    font-family: "Basic";
+    font-family: "Basic", sans-serif;
     max-height: 400px;
     box-sizing: content-box;
     */
@@ -376,7 +385,6 @@ ala-chat-listing {
     user-select: none;
     cursor: pointer;
     display: block;
-    -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
     border-radius: 2px;
     margin-bottom: 4px;
@@ -515,6 +523,8 @@ ala-message-list {
 }
 
 ala-flex#button-bar {
+    -webkit-justify-content: space-around;
+    -ms-flex-pack: distribute;
     justify-content: space-around;
     position: relative;
 }

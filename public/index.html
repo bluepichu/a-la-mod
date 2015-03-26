@@ -24,14 +24,6 @@
             ala.socket;
 
             $(document).ready(function(){
-                if($.cookie("email") && $.cookie("authToken")){
-                    $("ala-entrance").addClass("authorized");
-                    setTimeout(function(){
-                        ala.snack("Welcome back!");
-                        ala.chatInit();
-                    }, 100);
-                }
-                
                 $("input[type=text], input[type=password]").keydown(function(e){
                     if(e.keyCode == 13){
                         $(this).parent().submit();
@@ -41,44 +33,44 @@
                 });
 
                 $("#log-in").click(function(){
-                    $("#button-bar").removeClass("hidden fade-in slide-up anim-delay").addClass("fade-out slide-down");
-                    $("#form-login").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    $("#button-bar").removeClass("hidden fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
+                    $("#form-login").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
                     setTimeout(function(){
                         $("#button-bar").addClass("hidden");
                     }, 800);
                 });
 
                 $("#register").click(function(){
-                    $("#button-bar").removeClass("hidden fade-in slide-up anim-delay").addClass("fade-out slide-down");
-                    $("#form-register").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    $("#button-bar").removeClass("hidden fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
+                    $("#form-register").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
                     setTimeout(function(){
                         $("#button-bar").addClass("hidden");
                     }, 800);
                 });
-                
+
                 $("#login-back, #register-back").click(function(e){
-                    $("form").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
-                    $("#button-bar").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    $("form").removeClass("fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
+                    $("#button-bar").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
                     setTimeout(function(){
                         $("form").addClass("hidden");
                     }, 800);
                     e.stopPropagation();
                     return false;
                 });
-                
+
                 $("#recover-back").click(function(e){
-                    $("#form-recover").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
-                    $("#form-login").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    $("#form-recover").removeClass("fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
+                    $("#form-login").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
                     setTimeout(function(){
                         $("#form-recover").addClass("hidden");
                     }, 800);
                     e.stopPropagation();
                     return false;
                 });
-                
+
                 $("#open-recover").click(function(e){
-                    $("#form-login").removeClass("fade-in slide-up anim-delay").addClass("fade-out slide-down");
-                    $("#form-recover").removeClass("hidden fade-out slide-down").addClass("fade-in slide-up anim-delay");
+                    $("#form-login").removeClass("fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
+                    $("#form-recover").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
                     setTimeout(function(){
                         $("#form-login").addClass("hidden");
                     }, 800);
@@ -116,12 +108,7 @@
                             if(this.status == 200){
                                 $.cookie("email", $("#form-login #email").val(), {expires: 30, path: "/"});
                                 $.cookie("authToken", this.responseText, {expires: 30, path: "/"});
-                                $("ala-entrance").addClass("authorized");
-                                ala.clearSnack();
                                 ala.chatInit();
-                                setTimeout(function(){
-                                    ala.snack("Welcome back!");
-                                }, 1000);
                             } else {
                                 $("#form-login #login-submit").removeClass("hidden");
                                 $("#form-login #spin-area").addClass("hidden");
@@ -175,7 +162,7 @@
                                         ala.snack(this.responseText);
                                     }
                                 }
-                                
+
                                 xhr.setRequestHeader("Content-Type", "application/json");
 
                                 xhr.send(JSON.stringify({
@@ -220,6 +207,14 @@
 
                     return false;
                 });
+
+                if($.cookie("email") && $.cookie("authToken")){
+                    $("#form-login #email").val($.cookie("email"));
+                    $("#log-in").trigger("click");
+                    $("h1, h2, #form-login").addClass("skip-animation-in");
+                    $("#button-bar").addClass("skip-animation-out");
+                    ala.chatInit();
+                }
             });
 
             ala.clearSnack = function(){
@@ -238,6 +233,19 @@
                         $("ala-snack-bar").addClass("gone");
                     }, 5000);
                 }, 10);
+            }
+
+            ala.onLogin = function(err){
+                if(err){
+                    ala.snack(err);
+                    $.cookie("authToken", "");
+                } else {
+                    $("ala-entrance").addClass("authorized");
+                    ala.clearSnack();
+                    setTimeout(function(){
+                        ala.snack("Welcome back!");
+                    }, 1000);
+                }
             }
 
             ala.chatInit = function(){
@@ -284,6 +292,11 @@
                 ala.socket.on("login success", function(dat){
                     ala.myId = dat.id;
                     ala.loadChats();
+                    ala.onLogin(null);
+                });
+
+                ala.socket.on("login error", function(dat){
+                    ala.onLogin(dat.description);
                 });
 
                 ala.socket.on("new chat", function(dat){
@@ -305,7 +318,7 @@
 
                 ala.socket.emit("login", $.cookie("email"), $.cookie("authToken"));
             }
-            
+
             ala.submit = function(){
                 var data = $("#chat-input").val();
                 $("#chat-input").val("");
