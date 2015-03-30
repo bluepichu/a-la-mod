@@ -25,7 +25,7 @@
             ala.socket;
 
             $(document).ready(function(){
-                $("input[type=text], input[type=password]").keydown(function(e){
+                $("form:not(.disable-enter-submission) input[type=text], form:not(.disable-enter-submission) input[type=password]").keydown(function(e){
                     if(e.keyCode == 13){
                         $(this).parent().submit();
                         e.stopPropagation();
@@ -84,6 +84,7 @@
                         if($("#form-new-chat ala-user[email='" + $("#form-new-chat #email-entry").val().trim() + "']").size() > 0){
                             $("#form-new-chat #email-entry").val("");
                             e.stopPropagation();
+                            e.preventDefault();
                             return false;
                         }
                         var xhr = new XMLHttpRequest();
@@ -97,8 +98,6 @@
                                 data.removable = true;
                                 $("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"](data));
                                 $("#form-new-chat #email-entry").val("").focus();
-                                e.stopPropagation();
-                                return false;
                             } else {
                                 ala.snack(this.responseText);
                             }
@@ -603,7 +602,7 @@
             <header>&Agrave; la Mod</header>
             <ala-lightbox-container>
                 <ala-lightbox>
-                    <form id="form-new-chat">
+                    <form id="form-new-chat" class="disable-enter-submission">
                         <h3>New Chat</h3>
                         <ala-input>
                             <input type="text" class="dark" id="title" name="title" required />
