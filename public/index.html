@@ -311,13 +311,13 @@
                         }
 
                         xhr.setRequestHeader("Content-Type", "application/json");
-                        
+
                         var users = [];
 
                         $("#form-new-chat ala-user-list ala-user").each(function(el, obj){
                             users.push($(obj).attr("email"));
                         });
-                        
+
                         xhr.send(JSON.stringify({
                             email: $.cookie("email"),
                             authToken: $.cookie("authToken"),
@@ -388,6 +388,13 @@
                         return false;
                     }
                 });
+                
+                $("#chat-input").on("autosize.resized", function(e){
+                    console.log($("ala-message-list").scrollTop(), $(e.target).height(), $(e.target).parent().innerHeight());
+                    $("ala-message-list").scrollTop($("ala-message-list").scrollTop() + $(e.target).height() - $(e.target).parent().innerHeight());
+                    $(e.target).parent().css("height", $(e.target).height());
+                    
+                });
 
                 $("#chat-submit-button").click(function(){
                     ala.submit();
@@ -404,8 +411,8 @@
                     } else {
                         ala.chats[chatId].unread++;
                         ala.chats[chatId].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[chatId].unread);
+                        ala.moveChatListingToTop(ala.chats[chatId].listing);
                     }
-                    ala.moveChatListingToTop(ala.chats[chatId].listing);
                 });
 
                 ala.socket.on("error", function(descr){
@@ -466,6 +473,13 @@
 
                     ala.chats[chatId].listing.find("ala-unread-count").css({visibility: "hidden"});
                     ala.chats[chatId].unread = 0;
+
+                    ala.moveChatListingToTop($("ala-chat-listing.active").removeClass("active").attr("order", ala.chatCount));
+
+                    for(var i = ala.chats[chatId].listing.attr("order"); i < ala.chatCount; i++){
+                        $("ala-chat-listing[order=" + i +"]").attr("order", i-1).css("top", 120 * i - 104);
+                    }
+                    ala.chats[chatId].listing.addClass("active").removeAttr("order").css("top", "");
                 }
 
                 xhr.setRequestHeader("Content-Type", "application/json");
@@ -503,7 +517,7 @@
                     chats.sort(function(a, b){
                         return (b.messages[0] ? b.messages[0].timestamp : b.creationTime) - (a.messages[0] ? a.messages[0].timestamp : b.creationTime);
                     });
-                    
+
                     ala.chatCount = 0;
 
                     for(var i = 0; i < chats.length; i++){
@@ -525,7 +539,7 @@
                         ala.chatCount++;
                     }
 
-                    ala.openChat(chats[0]._id);
+                    //ala.openChat(chats[0]._id);
 
                     $("ala-chats-list").on("click", "ala-chat-listing", function(){
                         ala.openChat($(this).attr("chat-id"));
@@ -539,14 +553,14 @@
                     authToken: $.cookie("authToken")
                 }));
             }
-            
+
             ala.moveChatListingToTop = function(listing){
                 for(var i = listing.attr("order")-1; i >= 0; i--){
                     $("ala-chat-listing[order=" + i +"]").attr("order", i+1).css("top", 120 * i + 136);
                 }
                 listing.attr("order", 0).css("top", 16);
             }
-            
+
             Handlebars.registerHelper("gravatar", function(email, size){
                 console.log(email, size);
                 return new Handlebars.SafeString("<img class='icon icon-" + size + "' src='http://www.gravatar.com/avatar/" + (email && typeof(email) == "string" ? md5(email.trim().toLowerCase()) : "") + "?s=" + size + "&d=identicon' />");
@@ -657,11 +671,16 @@
                         <button class="raised ok" id="new-chat">Create new chat</button>
                     </ala-chats-list>
                 </ala-sidebar>
-                <ala-chat-area>
-                    <ala-message-list></ala-message-list>
-                    <textarea id="chat-input" name="send" placeholder="Message..."></textarea>
-                    <button id="chat-submit-button" class="raised ok">Submit</button>
-                </ala-chat-area>
+                <ala-chat-area-container>
+                    <ala-chat-area>
+                        <ala-fade-gradient></ala-fade-gradient>
+                        <ala-message-list></ala-message-list>
+                        <ala-input-area>
+                            <textarea id="chat-input" name="send" placeholder="Message..."></textarea>
+                            <button id="chat-submit-button" class="raised ok">Submit</button>
+                        </ala-input-area>
+                    </ala-chat-area>
+                </ala-chat-area-container>
             </ala-flex>
         </ala-app>
         <ala-snack-bar></ala-snack-bar>
