@@ -95,6 +95,35 @@ app.get("/user/:email", function(req, res){
     });
 });
 
+app.get("/user/verify/:verID", function(req, res) {
+    db.query("users", {verificationID: req.params.verID}, function(err, data) {
+        if (err) {
+            res.status(500);
+            res.send("Request failed: server error.");
+            return;
+        }
+        if (data.length != 1) {
+            res.status(400);
+            res.send("<h1>No user with this verification ID found</h1>"); //TODO: make prettier
+            return;
+        }
+        if (data[0].verified) {
+            res.status(200);
+            res.send("<h1>User already verified!</h1>");
+            return;
+        }
+        db.update("users", {verificationID: req.params.verID}, {"$set": {verified: true}}, function(err, data) {
+            if (err) {
+                res.status(500);
+                res.send("Unable to verify user");
+                return;
+            }
+            res.status(201);
+            res.send("<h1>User verified!</h1>");
+        })
+    })
+})
+
 /**
  * Creates a new user.  Parameters are provided in the POST request as a JSON object.
  */
@@ -124,7 +153,7 @@ app.post("/user/new", function(req, res){
         var salt = crypto.randomBytes(32).toString("base64");
         var password = passwordHash(req.body.password, salt);
 
-        var verID = crypto.randomBytes(32).toString("hex");
+        var verID = crypto.randomBytes(16).toString("hex");
         var email = req.body.email;
         var user = req.body.email;
         db.insert("users", {
@@ -143,7 +172,7 @@ app.post("/user/new", function(req, res){
             } else {
                 console.log("user inserted.");
                 res.status(200);
-                res.send("Ok. Verification ID is "+verID);
+                res.send("Ok.");
                 if (!local) {
                     sendVerEmail(verID, email, user); //change the third param to username when we get one
                 }
