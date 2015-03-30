@@ -1,6 +1,6 @@
 <ala-user email="{{email}}">
     <ala-remove-button {{#if removable}}enabled{{/if}}>X</ala-remove-button>
-    <img class="icon icon-32" src="http://www.gravatar.com/avatar/{{grav}}?s=32" />
+    {{gravatar email 32}}
     <ala-user-info>
         <ala-screen-name>{{screenName}}</ala-screen-name>
         <ala-email>{{email}}</ala-email>

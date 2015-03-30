@@ -425,7 +425,7 @@ app.post("/chats", function(req, res){
 
             for(var i = 0; i < dat.length; i++){
                 ash.attach(fetchUserList, [dat[i].users.map(function(el){ return ObjectId(el); }), "_id"], function(ind){return function(userList){
-                    dat[ind].users = userList.map(function(el){return el.screenName;});
+                    dat[ind].users = userList.map(function(el){return {_id: el._id, email: el.email, screenName: el.screenName}; });
                     if(dat[ind].messages.length > 0){
                         for(var i = 0; i < userList.length; i++){
                             if(userList[i]._id.toString() == dat[ind].messages[0].sender.toString()){

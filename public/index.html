@@ -94,7 +94,6 @@
                             $("#form-new-chat #email-entry").prop("disabled", false);
                             if(this.status == 200){
                                 var data = JSON.parse(this.responseText);
-                                data.grav = ala.grav(data.email);
                                 data.removable = true;
                                 $("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"](data));
                                 $("#form-new-chat #email-entry").val("").focus();
@@ -418,7 +417,7 @@
 
                 ala.socket.on("login", function(err, dat){
                     ala.user = dat;
-                    $("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, grav: ala.grav(ala.user.email), removable: false}));
+                    $("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, removable: false}));
                     ala.loadChats();
                     ala.onLogin(err);
                 });
@@ -482,10 +481,7 @@
             ala.appendMessage = function(msg){
                 if($("ala-message-list").children().last().attr("id") != msg.sender._id){
                     $("ala-message-list").append(Handlebars.templates["chat-group"]({
-                        sender: {
-                            _id: msg.sender._id,
-                            grav: ala.grav(msg.sender.email)
-                        },
+                        sender: msg.sender,
                         you: msg.sender._id == ala.user.id
                     }));
                 }
@@ -514,7 +510,7 @@
                             listing: $(Handlebars.templates["chat-listing"]({
                                 id: chats[i]._id,
                                 title: chats[i].title,
-                                members: chats[i].users.join(", "),
+                                members: chats[i].users,
                                 mostRecent: chats[i].messages[0]
                             }))
                         }
@@ -538,10 +534,11 @@
                     authToken: $.cookie("authToken")
                 }));
             }
-
-            ala.grav = function(email){
-                return md5(email.trim().toLowerCase());
-            }
+            
+            Handlebars.registerHelper("gravatar", function(email, size){
+                console.log(email, size);
+                return new Handlebars.SafeString("<img class='icon icon-" + size + "' src='http://www.gravatar.com/avatar/" + (email && typeof(email) == "string" ? md5(email.trim().toLowerCase()) : "") + "?s=" + size + "&d=identicon' />");
+            });
         </script>
     </head>
     <body>
