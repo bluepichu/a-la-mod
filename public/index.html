@@ -405,6 +405,7 @@
                         ala.chats[chatId].unread++;
                         ala.chats[chatId].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[chatId].unread);
                     }
+                    ala.moveChatListingToTop(ala.chats[chatId].listing);
                 });
 
                 ala.socket.on("error", function(descr){
@@ -502,6 +503,8 @@
                     chats.sort(function(a, b){
                         return (b.messages[0] ? b.messages[0].timestamp : b.creationTime) - (a.messages[0] ? a.messages[0].timestamp : b.creationTime);
                     });
+                    
+                    ala.chatCount = 0;
 
                     for(var i = 0; i < chats.length; i++){
                         ala.chats[chats[i]._id] = {
@@ -518,6 +521,8 @@
                         if(ala.chats[chats[i]._id].unread > 0){
                             ala.chats[chats[i]._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[chats[i]._id].unread);
                         }
+                        ala.chats[chats[i]._id].listing.attr("order", ala.chatCount).css("top", 120 * ala.chatCount + 16);
+                        ala.chatCount++;
                     }
 
                     ala.openChat(chats[0]._id);
@@ -533,6 +538,13 @@
                     email: $.cookie("email"),
                     authToken: $.cookie("authToken")
                 }));
+            }
+            
+            ala.moveChatListingToTop = function(listing){
+                for(var i = listing.attr("order")-1; i >= 0; i--){
+                    $("ala-chat-listing[order=" + i +"]").attr("order", i+1).css("top", 120 * i + 136);
+                }
+                listing.attr("order", 0).css("top", 16);
             }
             
             Handlebars.registerHelper("gravatar", function(email, size){

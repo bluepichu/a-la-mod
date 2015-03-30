@@ -404,6 +404,11 @@ ala-chat-listing {
     -webkit-flex-direction: column;
     -ms-flex-direction: column;
     flex-direction: column;
+    position: absolute;
+    left: 8px;
+    width: 226px;
+    -webkit-transition: 400ms top ease;
+    transition: 400ms top ease;
 }
 
 ala-chat-listing.active {
