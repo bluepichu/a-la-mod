@@ -86,6 +86,13 @@ app.get("/images/:file", function(req, res){
 });
 
 /**
+ * Serves the requested static file.
+ */
+app.get("/static/:file", function(req, res){
+    res.sendFile("/static/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+/**
  * Returns the public data about a user.
  */
 app.get("/user/:email", function(req, res){
