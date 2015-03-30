@@ -420,7 +420,7 @@
                         unread: 0,
                         listing: $(Handlebars.templates["chat-listing"]({
                             id: dat._id,
-                            title: dat._id.substring(0, 8) + "...",
+                            title: dat.title,
                             members: dat.users.join(", "),
                             mostRecent: undefined
                         }))
@@ -504,7 +504,7 @@
                             unread: chats[i].messageCount - chats[i].lastRead[ala.user.id],
                             listing: $(Handlebars.templates["chat-listing"]({
                                 id: chats[i]._id,
-                                title: chats[i]._id.substring(0, 8) + "...",
+                                title: chats[i].title,
                                 members: chats[i].users.join(", "),
                                 mostRecent: chats[i].messages[0]
                             }))

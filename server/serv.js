@@ -194,6 +194,7 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
 
         db.insert("chats", {
             users: users.map(function(el){ return el._id }),
+            title: req.body.title,
             comms: [PLAINTEXT_COMM],
             messages: [],
             lastRead: lastRead,
@@ -218,6 +219,7 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
 
             io.to(data._id).emit("new chat", {
                 _id: data._id,
+                title: data.title,
                 users: users.map(function(el){ return el.screenName; })
             });
 
@@ -335,7 +337,8 @@ app.post("/chats", function(req, res){
             users: 1,
             lastRead: 1,
             messageCount: 1,
-            creationTime: 1
+            creationTime: 1,
+            title: 1
         },
                    function(er, dat){
             if(er){
@@ -422,7 +425,7 @@ app.post("/chat/history", function(req, res){
             dat = dat[0];
 
             var ash = new AsyncHandler(function(){
-                res.status(200).send(dat.messages);
+                res.status(200).send({title: dat.title, messages: dat.messages});
             });
 
             for(var i = 0; i < dat.messages.length; i++){
