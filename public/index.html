@@ -450,9 +450,9 @@
 
                     $("ala-message-list").empty();
 
-                    for(var i = 0; i < data.length; i++){
-                        data[i].you = data[i].sender == ala.user.id;
-                        ala.appendMessage(data[i]);
+                    for(var i = 0; i < data.messages.length; i++){
+                        data.messages[i].you = data.messages[i].sender == ala.user.id;
+                        ala.appendMessage(data.messages[i]);
                     }
 
                     ala.chats[chatId].listing.find("ala-unread-count").css({visibility: "hidden"});
