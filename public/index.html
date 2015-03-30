@@ -13,13 +13,14 @@
         <script src="js/autosize.js"></script>
         <script src="js/handlebars-v1.3.0.js"></script>
         <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+        <script src="js/textext.core.js"></script>
+        <script src="js/textext.plugin.autocomplete.js"></script>
+        <script src="js/md5.min.js"></script>
 
         <script src="templates/templates.js"></script>
 
         <script>
             var ala = {};
-            ala.currentChat = null;
-            ala.myId = null;
             ala.chats = {};
             ala.socket;
 
@@ -75,6 +76,81 @@
                         $("#form-login").addClass("hidden");
                     }, 800);
                     e.stopPropagation();
+                    return false;
+                });
+
+                $("#form-new-chat #email-entry").keydown(function(e){
+                    if(e.keyCode == 13){
+                        if($("#form-new-chat ala-user[email='" + $("#form-new-chat #email-entry").val().trim() + "']").size() > 0){
+                            $("#form-new-chat #email-entry").val("");
+                            e.stopPropagation();
+                            return false;
+                        }
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("GET", "/user/" + encodeURI($("#form-new-chat #email-entry").val().trim()), true);
+
+                        xhr.onload = function(){
+                            $("#form-new-chat #email-entry").prop("disabled", false);
+                            if(this.status == 200){
+                                var data = JSON.parse(this.responseText);
+                                data.grav = ala.grav(data.email);
+                                data.removable = true;
+                                $("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"](data));
+                                $("#form-new-chat #email-entry").val("").focus();
+                                e.stopPropagation();
+                                return false;
+                            } else {
+                                ala.snack(this.responseText);
+                            }
+                        };
+
+                        xhr.send();
+
+                        $("#form-new-chat #email-entry").prop("disabled", true);
+
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+
+                $("ala-user-list").on("click", "ala-remove-button", function(e){
+                    $(e.target).parent().remove();
+                });
+
+                var renderFunc = function(suggestion){
+                    return "<ala-email-suggestion>" + suggestion + "</ala-email-suggestion>"
+                }
+
+                $("#email-entry").textext({
+                    plugins: "autocomplete",
+                    autoComplete: {
+                        dropdownMaxHeight: "200px",
+                        render: renderFunc
+                    },
+                    html: {
+                        dropdown: "<ala-suggestion-dropdown class='text-dropdown'><ala-suggestion-list class='text-list'/></ala-suggestion-dropdown>",
+                        suggestion: "<ala-suggestion class='text-suggestion'><ala-suggestion-text class='text-label'/></ala-suggestion>"
+                    }
+                }).bind("getSuggestions", function(e, data){
+                    var list = ala.user.contacts;
+                    var te = $(e.target).textext()[0];
+                    var query = (data ? data.query : "") || "";
+
+                    $(this).trigger("setSuggestions", {result: te.itemManager().filter(list, query)});
+                });
+
+                $("#form-new-chat #cancel").click(function(e){
+                    $("ala-lightbox-container").removeClass("active");
+                    e.stopPropagation();
+                    e.preventDefault();
+                    return false;
+                });
+
+                $("#new-chat").click(function(e){
+                    $("ala-lightbox-container").addClass("active");
+                    e.stopPropagation();
+                    e.preventDefault();
                     return false;
                 });
 
@@ -203,6 +279,47 @@
                         xhr.send(JSON.stringify({
                             email: $("#form-recover #email").val()
                         }));
+
+                        e.stopPropagation();
+                        e.preventDefault();
+                    } else if($(this).attr("id") == "form-new-chat"){
+                        if($("#form-new-chat #title").val() == ""){
+                            $("#form-new-chat #title").focus();
+                            ala.snack("Enter a title for the new chat.");
+
+                            e.stopPropagation();
+                            e.preventDefault();
+                            return false;
+                        }
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST", "/chat/new", true);
+
+                        xhr.onload = function(){
+                            if(this.status == 200){
+                                ala.snack("Chat created.");
+                                $("ala-lightbox-container").removeClass("active");
+                            } else {
+                                ala.snack(this.responseText);
+                            }
+                        }
+
+                        xhr.setRequestHeader("Content-Type", "application/json");
+                        
+                        var users = [];
+
+                        $("#form-new-chat ala-user-list ala-user").each(function(el, obj){
+                            users.push($(obj).attr("email"));
+                        });
+                        
+                        xhr.send(JSON.stringify({
+                            title: $("#form-new-chat #title").val(),
+                            users: users
+                        }));
+
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
                     }
 
                     return false;
@@ -251,6 +368,7 @@
             ala.chatInit = function(){
                 $("ala-chats-list").niceScroll();
                 $("ala-message-list").niceScroll();
+                $("ala-user-list").niceScroll();
 
                 autosize($("#chat-input"));
 
@@ -269,11 +387,11 @@
 
                 ala.socket = io();
 
-                ala.socket.on("message", function(chatId, fromId, fromName, message){
-                    ala.chats[chatId].listing.find("ala-most-recent").text(fromName + ": " + message);
+                ala.socket.on("message", function(chatId, message){
+                    ala.chats[chatId].listing.find("ala-most-recent").text(message.sender.screenName + ": " + message.message);
                     ala.chats[chatId].listing.insertAfter("ala-search-chats");
                     if(ala.currentChat == chatId){
-                        ala.appendMessage({message: message, sender: fromId, you: ala.myId == fromId});
+                        ala.appendMessage(message);
                         ala.socket.emit("up to date", chatId);
                     } else {
                         ala.chats[chatId].unread++;
@@ -282,21 +400,18 @@
                 });
 
                 ala.socket.on("error", function(descr){
-                    toast(descr.description);
+                    ala.snack(descr.description);
                 });
 
                 ala.socket.on("commrequest", function(source, name){
-                    permissionToast(source + " would like to add the " + name + " comm to this chat.");
+                    //permissionToast(source + " would like to add the " + name + " comm to this chat."); // FIX ME
                 });
 
-                ala.socket.on("login success", function(dat){
-                    ala.myId = dat.id;
+                ala.socket.on("login", function(err, dat){
+                    ala.user = dat;
+                    $("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, grav: ala.grav(ala.user.email), removable: false}));
                     ala.loadChats();
-                    ala.onLogin(null);
-                });
-
-                ala.socket.on("login error", function(dat){
-                    ala.onLogin(dat.description);
+                    ala.onLogin(err);
                 });
 
                 ala.socket.on("new chat", function(dat){
@@ -336,7 +451,7 @@
                     $("ala-message-list").empty();
 
                     for(var i = 0; i < data.length; i++){
-                        data[i].you = data[i].sender == ala.myId;
+                        data[i].you = data[i].sender == ala.user.id;
                         ala.appendMessage(data[i]);
                     }
 
@@ -356,10 +471,13 @@
             }
 
             ala.appendMessage = function(msg){
-                if(!($("ala-message-list").children().last().attr("id") == msg.sender)){
+                if($("ala-message-list").children().last().attr("id") != msg.sender._id){
                     $("ala-message-list").append(Handlebars.templates["chat-group"]({
-                        sender: msg.sender,
-                        you: msg.sender == ala.myId
+                        sender: {
+                            _id: msg.sender._id,
+                            grav: ala.grav(msg.sender.email)
+                        },
+                        you: msg.sender._id == ala.user.id
                     }));
                 }
                 $("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
@@ -383,7 +501,7 @@
                     for(var i = 0; i < chats.length; i++){
                         ala.chats[chats[i]._id] = {
                             users: chats[i].users,
-                            unread: chats[i].messageCount - chats[i].lastRead[ala.myId],
+                            unread: chats[i].messageCount - chats[i].lastRead[ala.user.id],
                             listing: $(Handlebars.templates["chat-listing"]({
                                 id: chats[i]._id,
                                 title: chats[i]._id.substring(0, 8) + "...",
@@ -399,7 +517,7 @@
 
                     ala.openChat(chats[0]._id);
 
-                    $("ala-chat-listing").click(function(){
+                    $("ala-chats-list").on("click", "ala-chat-listing", function(){
                         ala.openChat($(this).attr("chat-id"));
                     });
                 };
@@ -410,6 +528,10 @@
                     email: $.cookie("email"),
                     authToken: $.cookie("authToken")
                 }));
+            }
+
+            ala.grav = function(email){
+                return md5(email.trim().toLowerCase());
             }
         </script>
     </head>
@@ -427,11 +549,11 @@
                         <button id="login-back" class="flat">Go Back</button>
                     </ala-input>
                     <ala-input>
-                        <input type="text" id="email" name="email" required>
+                        <input type="text" id="email" name="email" required />
                         <label>Email</label>
                     </ala-input>
                     <ala-input>
-                        <input type="password" id="password" name="pass" required>
+                        <input type="password" id="password" name="pass" required />
                         <label>Password</label>
                     </ala-input>
                     <ala-input class="large-margin">
@@ -445,15 +567,15 @@
                         <button id="register-back" class="flat">Go Back</button>
                     </ala-input>
                     <ala-input>
-                        <input type="text" id="email" name="email" required>
+                        <input type="text" id="email" name="email" required />
                         <label>Email</label>
                     </ala-input>
                     <ala-input>
-                        <input type="password" id="password" name="pass" required>
+                        <input type="password" id="password" name="pass" required />
                         <label>Password</label>
                     </ala-input>
                     <ala-input>
-                        <input type="password" id="confirm-password" name="pass" required>
+                        <input type="password" id="confirm-password" name="pass" required />
                         <label>Confirm Password</label>
                     </ala-input>
                     <ala-input class="large-margin centering">
@@ -466,7 +588,7 @@
                         <button id="recover-back" class="flat">Go Back</button>
                     </ala-input>
                     <ala-input>
-                        <input type="text" id="email" name="email" required>
+                        <input type="text" id="email" name="email" required />
                         <label>Email</label>
                     </ala-input>
                     <ala-input class="large-margin centering">
@@ -478,17 +600,40 @@
         </ala-entrance>
         <ala-app>
             <header>&Agrave; la Mod</header>
+            <ala-lightbox-container>
+                <ala-lightbox>
+                    <form id="form-new-chat">
+                        <h3>New Chat</h3>
+                        <ala-input>
+                            <input type="text" class="dark" id="title" name="title" required />
+                            <label>Title</label>
+                        </ala-input>
+                        <ala-input>
+                            <input type="text" class="dark" id="email-entry" name="email-entry" placeholder="Enter emails to join chat..." />
+                        </ala-input>
+                        <ala-input>
+                            <ala-user-list></ala-user-list>
+                        </ala-input>
+                        <ala-input class="align-right">
+                            <button id="cancel" class="raised">Cancel</button>
+                            <button type="submit" id="new-chat-submit" class="raised ok">Create Chat</button>
+                        </ala-input>
+                    </form>
+                </ala-lightbox>
+            </ala-lightbox-container>
             <ala-flex id="app-container">
                 <ala-sidebar>
-                    <ala-chats-list></ala-chats-list>
+                    <ala-chats-list>
+                        <button class="raised ok" id="new-chat">Create new chat</button>
+                    </ala-chats-list>
                 </ala-sidebar>
                 <ala-chat-area>
                     <ala-message-list></ala-message-list>
                     <textarea id="chat-input" name="send" placeholder="Message..."></textarea>
-                    <button id="chat-submit-button" class="raised">Submit</button>
+                    <button id="chat-submit-button" class="raised ok">Submit</button>
                 </ala-chat-area>
             </ala-flex>
         </ala-app>
-        <ala-snack-bar>This is the ala-snack-bar.</ala-snack-bar>
+        <ala-snack-bar></ala-snack-bar>
     </body>
 </html>

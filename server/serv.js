@@ -58,6 +58,29 @@ app.get("/images/:file", function(req, res){
 });
 
 /**
+ * Returns the public data about a user.
+ */
+app.get("/user/:email", function(req, res){
+    db.query("users", {email: req.params.email}, function(err, data){
+        if(err){
+            res.status(500);
+            res.send("Request failed: server error.");
+            return;
+        }
+        if(data.length != 1){
+            res.status(400);
+            res.send("Request failed: user not found.");
+            return;
+        }
+        res.send(JSON.stringify({
+            email: data[0].email,
+            _id: data[0]._id,
+            screenName: data[0].screenName
+        }));
+    });
+});
+
+/**
  * Creates a new user.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/user/new", function(req, res){
@@ -69,8 +92,8 @@ app.post("/user/new", function(req, res){
         res.send("Request failed: "+JSON.stringify(chk));
         return;
     }
-    
-    if(!emailValidator.validate(req.body.email)){ // TODO
+
+    if(!emailValidator.validate(req.body.email)){
         res.status(400);
         res.send("Request failed: 'email' value does not follow the proper format.");
         return;
@@ -156,7 +179,7 @@ app.post("/user/auth", function(req, res){
  * Creates a new chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chat/new", function(req, res){ // TODO: This should require auth
-    if(!argCheck(req.body,{users:"object"}).valid) {
+    if(!argCheck(req.body,{title: "string", users: "object"}).valid) {
         res.status(400);
         res.send("Request failed: missing users list.");
         return;
@@ -253,19 +276,19 @@ app.post("/user/reset-password", function(req, res){
     }
     db.query("users", {email: req.body.email}, function(err, data){
         console.log(data, err);
-        
+
         if(err){
             res.status(500);
             res.send("Request failed: server error.");
             return;
         }
-        
+
         if(!data || data.length != 1){
             res.status(400);
             res.send("Request failed: no user exists with that email.");
             return;
         }
-        
+
         cryptoString(12, function(err, password){
             console.log(password); // REMOVE THIS LINE IN PRODUCTION
             var hash = passwordHash(password, data[0].salt);
@@ -394,14 +417,34 @@ app.post("/chat/history", function(req, res){
                 return;
             }
             res.status(200);
-            res.send(dat[0].messages);
+
+            data = data[0];
+            dat = dat[0];
+
+            var ash = new AsyncHandler(function(){
+                res.status(200).send(dat.messages);
+            });
+
+            for(var i = 0; i < dat.messages.length; i++){
+                ash.attach(db.query, ["users", {_id: ObjectId(dat.messages[i].sender)}], function(ind){ return function(e, da){
+                    da = da[0];
+                    dat.messages[ind].sender = {
+                        _id: da._id,
+                        email: da.email,
+                        screenName: da.screenName
+                    };
+                    this.next();
+                };}(i));
+            }
+
+            ash.run();
 
             var updateObject = {};
-            updateObject["lastRead." + data[0]._id] = dat[0].messageCount - page*PAGE_SIZE;
+            updateObject["lastRead." + data._id] = dat.messageCount - page*PAGE_SIZE;
 
             db.update("chats", {
                 _id: ObjectId(req.body.chatId),
-                users: {$in: [data[0]._id]}
+                users: {$in: [data._id]}
             }, {
                 $max: updateObject
             }, function(){});
@@ -457,7 +500,7 @@ var fetchUserList = function(data, field, cb){
 
 io.on("connection", function(socket){
     /**
-     * Authorizes a client socket and stores it for future use
+     * Authorizes a client socket and stores it for future use.
      */
     socket.on("login", function(user, auth){
         if(socket.userId){
@@ -472,14 +515,14 @@ io.on("connection", function(socket){
         },
                  function(err, data){
             if(err){
-                io.to(socket.id).emit("login error", {description: "Login failed: server error."});
+                io.to(socket.id).emit("login", "Login failed: server error.");
                 return;
             }
             if(data.length != 1){
-                io.to(socket.id).emit("login error", {description: "Login failed: invalid auth token."});
+                io.to(socket.id).emit("login", "Login failed: authorization error.");
                 return;
             }
-            io.to(socket.id).emit("login success", {description: "Login succeeded.", id: data[0]._id});
+            io.to(socket.id).emit("login", null, {id: data[0]._id, contacts: data[0].contacts, email: data[0].email, screenName: data[0].screenName});
             console.log("Login succeeded.");
             socket.userId = data[0]._id;
             socket.email = data[0].email;
@@ -521,7 +564,7 @@ io.on("connection", function(socket){
     });
 
     /**
-     * Emits a request to add a comm to a given chat
+     * Emits a request to add a comm to a given chat.
      */
     socket.on("commrequest", function(chatId, comm){
         db.query("chats", {
@@ -552,7 +595,7 @@ io.on("connection", function(socket){
     });
 
     /**
-     * Emits a message sent by a user
+     * Emits a message sent by a user.
      */
     socket.on("message", function(chatId, comm, msg){
         if(socket.userId === undefined){
@@ -581,7 +624,12 @@ io.on("connection", function(socket){
                     return;
                 }
 
-                io.to(chatId).emit("message", chatId, socket.userId, dat[0].screenName, msg); // comm will probably be a part of this later
+                io.to(chatId).emit("message", chatId, {
+                    sender: {email: socket.email, _id: socket.userId, screenName: dat[0].screenName},
+                    comm: comm,
+                    message: msg,
+                    timestamp: moment().unix()
+                }); // comm will probably be a part of this later
 
                 db.update("chats", {
                     _id: ObjectId(chatId)
@@ -601,7 +649,7 @@ io.on("connection", function(socket){
     });
 
     /**
-     * Marks a user as "up to date" in a given chat
+     * Marks a user as "up to date" in a given chat.
      */
     socket.on("up to date", function(chatId){
         db.query("chats", {
@@ -657,20 +705,20 @@ var AsyncHandler = function(done){
  * @returns {object} An object describing whether or not the provided object is valid and what errors exist if any
  */
 var argCheck = function(args, type) {
-	for (kA in args) {
-		if (! type[kA]) {
-			return {valid: false, extra: kA};
-		}
-		if (typeof args[kA] != type[kA]) {
-			return {valid: false, badType: kA};
-		}
-	}
-	for (kT in type) {
-		if (! args[kT]) {
-			return {valid: false, missing: kT};
-		}
-	}
-	return {valid: true}
+    for (kA in args) {
+        if (! type[kA]) {
+            return {valid: false, extra: kA};
+        }
+        if (typeof args[kA] != type[kA]) {
+            return {valid: false, badType: kA};
+        }
+    }
+    for (kT in type) {
+        if (! args[kT]) {
+            return {valid: false, missing: kT};
+        }
+    }
+    return {valid: true}
 }
 
 // DEBUG: prints out the SOCKETS object every 20 seconds
