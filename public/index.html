@@ -668,12 +668,12 @@
             <ala-flex id="app-container">
                 <ala-sidebar>
                     <ala-chats-list>
-                        <button class="raised ok" id="new-chat">Create new chat</button>
+                        <button class="floating-action ok" id="new-chat"><img width="24" height="24" src="images/ic-add.svg" /></button>
                     </ala-chats-list>
                 </ala-sidebar>
                 <ala-chat-area-container>
                     <ala-chat-area>
-                        <ala-fade-gradient></ala-fade-gradient>
+                        <ala-fade-gradient class="hidden"></ala-fade-gradient>
                         <ala-message-list></ala-message-list>
                         <ala-input-area>
                             <textarea id="chat-input" name="send" placeholder="Message..."></textarea>

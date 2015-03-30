@@ -19,7 +19,7 @@ ala-entrance {
     height: 100vh;
     width: 100vw;
     position: absolute;
-    z-index: 10;
+    z-index: 20;
     top: 0vh;
     -webkit-transition-duration: 600ms;
     transition-duration: 600ms;
@@ -171,7 +171,7 @@ button.raised.warning {
     color: #FFFFFF;
 }
 
-button.raised.ok {
+button.ok {
     background: #4CAF50;
     color: #FFFFFF;
 }
@@ -295,7 +295,7 @@ header {
     -webkit-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
     height: 64px;
-    z-index: 5;
+    z-index: 10;
     position: relative;
 }
 
@@ -310,6 +310,7 @@ ala-snack-bar {
     padding: 12px 24px;
     text-align: center;
     z-index: 100;
+    pointer-events: none;
 }
 
 ala-snack-bar.active {
@@ -580,6 +581,8 @@ ala-message-list {
     -webkit-flex-grow: 1;
     -ms-flex-positive: 1;
     flex-grow: 1;
+    -webkit-flex-shrink: 1;
+    -ms-flex-negative: 1;
     flex-shrink: 1;
     display: -webkit-box;
     display: -webkit-flex;
@@ -616,7 +619,7 @@ ala-lightbox-container, ala-alert-container {
     right: 0px;
     bottom: 0px;
     background: rgba(0, 0, 0, .6);
-    z-index: 4;
+    z-index: 8;
     display: -webkit-box;
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -650,25 +653,6 @@ ala-lightbox {
 }
 
 ala-lightbox-container.active, ala-alert-container.active {
-    position: fixed;
-    left: 0px;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    background: rgba(0, 0, 0, .6);
-    z-index: 4;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    -ms-flex-align: center;
-    align-items: center;
-    -webkit-box-pack: center;
-    -webkit-justify-content: center;
-    -ms-flex-pack: center;
-    justify-content: center;
     opacity: 1;
     -webkit-transition: 400ms opacity linear;
     transition: 400ms opacity linear;
@@ -840,11 +824,9 @@ ala-chats-list {
 }
 
 #new-chat {
-    -webkit-box-ordinal-group: 2147483648;
-    -webkit-order: 2147483647;
-    -ms-flex-order: 2147483647;
-    order: 2147483647;
-    margin: 8px 0px;
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
 }
 ala-version-number {
     display: block;
@@ -871,6 +853,9 @@ ala-input-area {
 
 ala-chat-area-container {
     position: relative;
+    -webkit-box-flex: 1;
+    -webkit-flex-grow: 1;
+    -ms-flex-positive: 1;
     flex-grow: 1;
 }
 
@@ -880,6 +865,32 @@ ala-fade-gradient {
     right: 0px;
     top: 0px;
     height: 32px;
+    background: -webkit-gradient(linear, left bottom, left top, from(rgba(255, 255, 255, 0)), color-stop(70%, rgba(255, 255, 255, 1)));
+    background: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 70%);
     background: linear-gradient(to top, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 70%);
     z-index: 5;
+}
+
+.floating-action {
+    width: 56px;
+    height: 56px;
+    border-radius: 56px;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    z-index: 6;
+    -webkit-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    border: 0px;
+    font-size: 24px;
+    cursor: pointer;
 }
