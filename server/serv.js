@@ -8,6 +8,7 @@ app.use(cookieparser());
 var http = require("http").Server(app);
 var io = require("socket.io")(http);
 var path = require("path");
+var fs = require("fs");
 var crypto = require("crypto");
 var db = require("./db");
 var ObjectId = db.ObjectId;
@@ -33,6 +34,18 @@ var sendgridlogin = require("sendgrid");
 var sendgrid = undefined;
 
 var local = false;
+
+var email = require("./email");
+
+var stub;
+fs.readFile(__dirname + "/templates/notif-stubs.template", function(err, buff) {
+    if (err) {
+        console.log(err);
+    } else {
+        stub = buff.toString();
+    }
+})
+
 if (process.argv[2] == "-l") {
     local = true;
 }
@@ -73,6 +86,13 @@ app.get("/images/:file", function(req, res){
 });
 
 /**
+ * Serves the requested static file.
+ */
+app.get("/static/:file", function(req, res){
+    res.sendFile("/static/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+/**
  * Returns the public data about a user.
  */
 app.get("/user/:email", function(req, res){
@@ -104,26 +124,68 @@ app.get("/user/verify/:verID", function(req, res) {
         }
         if (data.length != 1) {
             res.status(400);
-            res.send("<h1>No user with this verification ID found</h1>"); //TODO: make prettier
+            res.send(renderTemplate("No user with this verification ID found")); //TODO: make prettier
             return;
         }
         if (data[0].verified) {
             res.status(200);
-            res.send("<h1>User already verified!</h1>");
+            res.send(renderTemplate("User already verified!"));
             return;
         }
         db.update("users", {verificationID: req.params.verID}, {"$set": {verified: true}}, function(err, data) {
             if (err) {
                 res.status(500);
-                res.send("Unable to verify user");
+                res.send(renderTemplate("Unable to verify user"));
                 return;
             }
             res.status(201);
-            res.send("<h1>User verified!</h1>");
+            res.send(renderTemplate("User verified!"));
         })
     })
 })
 
+
+app.get("/user/reset/:resetID", function(req, res) {
+    db.query("users",{resID: req.params.resetID}, function(err, data) {
+        if (err) {
+            res.status(500);
+            res.send("Request failed: Server error.");
+            return;
+        }
+        if (data.length != 1) {
+            res.status(400);
+            res.send(renderTemplate("No user with this reset ID found"));
+            return;
+        }
+        cryptoString(12, function(err, password){
+            console.log(password); // REMOVE THIS LINE IN PRODUCTION
+            var hash = passwordHash(password, data[0].salt);
+            db.update("users", {email: data[0].email}, {$set: {password: hash}}, function(err, datam){
+                // TODO: send data containing password
+                if (err) {
+                    res.status(400);
+                    res.send(renderTemplate("An error has occurred"));
+                    return;
+                }
+                res.status(200);
+                res.send(renderTemplate("Your password has been reset to: "+password+". Please remember to change your password the next time you log in."));
+                if (!sendgrid) {
+                    console.log("Error, cannot send reset email");
+                    return
+                }
+                email.sendEmail(
+                    sendgrid,
+                    data[0].email,
+                    {
+                        html: email.createEmail(data[0].email.split("@")[0], "Your password has been reset to: "+password+". Please remember to change your password the next time you log in."),
+                        subject: "Your A la Mod password has been reset"
+                    }
+                )
+                db.update("users",{resID: req.params.resetID}, {$unset:{resID: ""}}, function(){});
+            });
+        });
+    })
+})
 /**
  * Creates a new user.  Parameters are provided in the POST request as a JSON object.
  */
@@ -363,15 +425,31 @@ app.post("/user/reset-password", function(req, res){
             return;
         }
 
-        cryptoString(12, function(err, password){
-            console.log(password); // REMOVE THIS LINE IN PRODUCTION
-            var hash = passwordHash(password, data[0].salt);
-            db.update("users", {email: req.body.email}, {$set: {password: hash}}, function(err, data){
-                // TODO: send data containing password
-                res.status(200);
-                res.send();
-            });
-        });
+        var resID = crypto.randomBytes(16).toString("hex");
+        db.update("users", {email: req.body.email}, {$set: {resID: resID}}, function(err, data) {
+            if (err) {
+                res.status(400);
+                res.send("Request failed: Unknown error");
+                console.log(err);
+                console.log(data);
+                return;
+            }
+            res.status(200);
+            res.send("An email has been sent to "+req.body.email);
+            if (!sendgrid) {
+                console.log("Error, cannot send reset email");
+                   return
+            }
+            email.sendEmail(
+                sendgrid,
+                req.body.email,
+                {
+                    html: email.createEmail(req.body.email.split("@")[0], "You recently requested to change your password. If you still wish to do so, please click <a href='http://a-la-mod.herokuapp.com/user/reset/"+resID+"'>here</a>. If you did not request this, you may safely ignore this message."),
+                    subject: "A la Mod password reset"
+                }
+            )
+
+        })
     });
 });
 
@@ -796,23 +874,26 @@ var argCheck = function(args, type) {
     return {valid: true}
 }
 
+var renderTemplate = function(text) {
+    if (!stub) {
+        return text;
+    }
+    return stub.replace(/{{content}}/g,text)
+}
+
 var sendVerEmail = function(verID, emailaddr, username) {
     if (!sendgrid) {
         console.log("Error, cannot send verification email");
         return
     }
-    var email = new sendgrid.Email({fromname: "A-la-mod"})
-    email.addTo(emailaddr);
-    email.setFrom("donotreply@a-la-mod.herokuapp.com");
-    email.setSubject("Verify Your Email");
-    email.setHtml("<h1 style='font-family:basic;font-size:60px;color:rgb(21,101,192);text-align:center;width:100%'>Welcome to A la Mod</h1><br><p style='margin-left: 30px; margin-right: 30px'>Before you can start using A la Mod, we ask that you verify your email. Click <a href='http://a-la-mod.herokuapp.com/user/verify/"+verID+"'>here</a> to verify.</p>");
-    sendgrid.send(email, function(err, data) {
-        if (err) {
-            console.log (err);
-        } else {
-            console.log(data);
+    email.sendEmail(
+        sendgrid,
+        emailaddr,
+        {
+            html: email.createEmail(emailaddr.split("@")[0], "Welcome to &Agrave; la Mod!<br>Before you can start using A la Mod, we ask that you verify your email. Click <a href='http://a-la-mod.herokuapp.com/user/verify/"+verID+"'>here</a> to verify."),
+            subject: "Verify Your Email"
         }
-    });
+    )
 }
 
 // DEBUG: prints out the SOCKETS object every 20 seconds
