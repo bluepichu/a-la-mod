@@ -539,7 +539,7 @@ ala-flex#button-bar {
     
 }
 
-ala-lightbox-container {
+ala-lightbox-container, ala-alert-container {
     position: fixed;
     left: 0px;
     top: 0px;
@@ -567,6 +567,7 @@ ala-lightbox-container {
 
 ala-lightbox {
     display: block;
+    max-width: 450px;
     background: #FFFFFF;
     border-radius: 2px;
     padding: 16px;
@@ -578,7 +579,7 @@ ala-lightbox {
     transition: 400ms left ease-in;
 }
 
-ala-lightbox-container.active {
+ala-lightbox-container.active, ala-alert-container.active {
     position: fixed;
     left: 0px;
     top: 0px;
@@ -604,7 +605,7 @@ ala-lightbox-container.active {
     pointer-events: all;
 }
 
-ala-lightbox-container.active ala-lightbox {
+.active > ala-lightbox {
     display: block;
     background: #FFFFFF;
     border-radius: 2px;
@@ -615,6 +616,8 @@ ala-lightbox-container.active ala-lightbox {
     -webkit-transition: 400ms left ease-out 400ms;
     transition: 400ms left ease-out 400ms;
 }
+
+
 
 ala-lightbox form {
     width: 360px;

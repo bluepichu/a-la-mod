@@ -146,6 +146,13 @@
                     return false;
                 });
 
+                $("#form-hide-lightbox #welcome-ok").click(function(e) {
+                    $("ala-alert-container").removeClass("active");
+                    e.stopPropagation();
+                    e.preventDefault();
+                    return false;
+                })
+
                 $("#new-chat").click(function(e){
                     $("ala-lightbox-container").addClass("active");
                     e.stopPropagation();
@@ -229,6 +236,7 @@
                                         ala.chatInit();
                                         setTimeout(function(){
                                             ala.snack("Welcome to &Agrave; la Mod!");
+                                            $("ala-alert-container").addClass("active");
                                         }, 1000);
                                     } else {
                                         $("#form-register #register-submit").removeClass("hidden");
@@ -312,6 +320,8 @@
                         });
                         
                         xhr.send(JSON.stringify({
+                            email: $.cookie("email"),
+                            authToken: $.cookie("authToken"),
                             title: $("#form-new-chat #title").val(),
                             users: users
                         }));
@@ -600,6 +610,17 @@
         </ala-entrance>
         <ala-app>
             <header>&Agrave; la Mod</header>
+            <ala-alert-container>
+                <ala-lightbox>
+                    <h3>Welcome to &Agrave; la Mod!</h3>
+                    <p>Before you get started, we ask that you verify your email. Until you have done so, you won't be able to use certain functionality.</p>
+                    <form id="form-hide-lightbox">
+                        <ala-input class="align-right">
+                            <button id="welcome-ok" class="raised ok">Continue</button>
+                        </ala-input>
+                    </form>
+                </ala-lightbox>
+            </ala-alert-container>
             <ala-lightbox-container>
                 <ala-lightbox>
                     <form id="form-new-chat" class="disable-enter-submission">

@@ -231,53 +231,73 @@ app.post("/user/auth", function(req, res){
  * Creates a new chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chat/new", function(req, res){ // TODO: This should require auth
-    if(!argCheck(req.body,{title: "string", users: "object"}).valid) {
+    if(!argCheck(req.body,{email: "string", authToken: "string", title: "string", users: "object"}).valid) {
         res.status(400);
         res.send("Request failed: missing users list.");
         return;
     }
-
-    fetchUserList(req.body.users, "email", function(users){
-        var lastRead = {};
-
-        for(var i = 0; i < users.length; i++){
-            lastRead[users[i]._id] = 0;
-        }
-
-        db.insert("chats", {
-            users: users.map(function(el){ return el._id }),
-            title: req.body.title,
-            comms: [PLAINTEXT_COMM],
-            messages: [],
-            lastRead: lastRead,
-            messageCount: 0,
-            creationTime: moment().unix()
-        },
-                  function(err, data){
-            if(err){
+    db.query("users", {
+        email: req.body.email, 
+        authTokens: {
+            $in: [req.body.authToken]
+        }}, function(err, data) {
+            if (err) {
                 res.status(500);
-                res.send("Request failed: server error.");
+                res.send("Request failed: Server error.")
                 return;
             }
-
-            for(var i = 0; i < users.length; i++){
-                db.update("users", {_id: ObjectId(users[i]._id)}, {$addToSet: {contacts: {$each: req.body.users}}}, function(){});
-                if(users[i]._id in SOCKETS){
-                    for(var j = 0; j < SOCKETS[users[i]._id].length; j++){
-                        SOCKETS[users[i]._id][j].join(data._id);
-                    }
-                }
+            if (data.length != 1) {
+                res.status(400);
+                res.send("Request failed: Unauthorized user");
+                return;
             }
+            if (!data[0].verified) {
+                res.status(400);
+                res.send("Request failed: User not verified");
+                return;
+            }
+            fetchUserList(req.body.users, "email", function(users){
+                var lastRead = {};
 
-            io.to(data._id).emit("new chat", {
-                _id: data._id,
-                title: data.title,
-                users: users.map(function(el){ return el.screenName; })
-            });
+                for(var i = 0; i < users.length; i++){
+                    lastRead[users[i]._id] = 0;
+                }
 
-            res.status(200);
-            res.send("Ok.");
-        })});
+                db.insert("chats", {
+                    users: users.map(function(el){ return el._id }),
+                    title: req.body.title,
+                    comms: [PLAINTEXT_COMM],
+                    messages: [],
+                    lastRead: lastRead,
+                    messageCount: 0,
+                    creationTime: moment().unix()
+                },
+                          function(err, data){
+                    if(err){
+                        res.status(500);
+                        res.send("Request failed: server error.");
+                        return;
+                    }
+
+                    for(var i = 0; i < users.length; i++){
+                        db.update("users", {_id: ObjectId(users[i]._id)}, {$addToSet: {contacts: {$each: req.body.users}}}, function(){});
+                        if(users[i]._id in SOCKETS){
+                            for(var j = 0; j < SOCKETS[users[i]._id].length; j++){
+                                SOCKETS[users[i]._id][j].join(data._id);
+                            }
+                        }
+                    }
+
+                    io.to(data._id).emit("new chat", {
+                        _id: data._id,
+                        title: data.title,
+                        users: users.map(function(el){ return el.screenName; })
+                    });
+
+                    res.status(200);
+                    res.send("Ok.");
+                })});
+        })
 });
 
 /**
