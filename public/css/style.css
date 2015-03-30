@@ -767,3 +767,14 @@ ala-chats-list {
     order: 2147483647;
     margin: 8px 0px;
 }
+ala-version-number {
+    display: block;
+    position: absolute;
+    background: rgba(0, 0, 0, .6);
+    color: #FFFFFF;
+    right: 8px;
+    bottom: 8px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+}

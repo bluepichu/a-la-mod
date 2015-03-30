@@ -1,6 +1,6 @@
 {
   "name": "a-la-mod",
-  "version": "0.0.2",
+  "version": "0.0.8",
   "description": "Modular chat system.",
   "dependencies": {
     "body-parser": "^1.10.2",
