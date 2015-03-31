@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-<<<<<<< HEAD
 	<head>
 		<title>&Agrave; la Mod</title>
 
@@ -23,7 +22,6 @@
 		<script>
 			var ala = {};
 			ala.chats = {};
-			ala.socket;
 
 			$(document).ready(function(){
 				$("form:not(.disable-enter-submission) input[type=text], form:not(.disable-enter-submission) input[type=password]").keydown(function(e){
@@ -158,6 +156,15 @@
 					e.stopPropagation();
 					e.preventDefault();
 					return false;
+				});
+				
+				document.getElementById("chat-input").addEventListener("autosize.resized", function(){ // for some reason, the jQuery equivalent of this doesn't work
+					if($("ala-message-list").height() < $("ala-message-list-viewport").height()){
+						$("ala-message-list-viewport").scrollTop(0);
+						ala.chatScrollBottom = $("ala-message-list-viewport").height();
+					} else {
+						$("ala-message-list-viewport").scrollTop(ala.chatScrollBottom - $("ala-message-list-viewport").height());
+					}
 				});
 
 				$("form").submit(function(e){
@@ -376,7 +383,9 @@
 
 			ala.chatInit = function(){
 				$("ala-chats-list").niceScroll();
-				$("ala-message-list").niceScroll();
+				$("ala-message-list-viewport").niceScroll("ala-message-list").scrollend(function(){
+					ala.chatScrollBottom = $("ala-message-list-viewport").scrollTop() + $("ala-message-list-viewport").height();
+				});
 				$("ala-user-list").niceScroll();
 
 				autosize($("#chat-input"));
@@ -388,13 +397,6 @@
 						e.preventDefault();
 						return false;
 					}
-				});
-
-				$("#chat-input").on("autosize.resized", function(e){
-					console.log($("ala-message-list").scrollTop(), $(e.target).height(), $(e.target).parent().innerHeight());
-					$("ala-message-list").scrollTop($("ala-message-list").scrollTop() + $(e.target).height() - $(e.target).parent().innerHeight());
-					$(e.target).parent().css("height", $(e.target).height());
-
 				});
 
 				$("#chat-submit-button").click(function(){
@@ -461,12 +463,14 @@
 			ala.openChat = function(chatId){
 				var xhr = new XMLHttpRequest();
 				xhr.open("POST", "/chat/history", true);
+				
+				ala.lockOpenChat = true;
 
 				xhr.onload = function(){
 					var data = JSON.parse(this.responseText);
-					
-					$("ala-message-list, ala-fade-gradient").addClass("gone");
-					
+
+					$("ala-message-list-viewport").addClass("gone");
+
 					setTimeout(function(){
 						$("ala-message-list").empty();
 
@@ -485,8 +489,13 @@
 						}
 						ala.chats[chatId].listing.addClass("active").removeAttr("order").css("top", "");
 						
+						$("ala-message-list-viewport").scrollTop(Math.max($("ala-message-list").height() - $("ala-message-list-viewport").height(), 0));
+						ala.chatScrollBottom = $("ala-message-list-viewport").scrollTop() + $("ala-message-list-viewport").height();
+						
 						setTimeout(function(){
-							$("ala-message-list, ala-fade-gradient").removeClass("gone");
+							$("ala-message-list-viewport").removeClass("gone");
+							
+							ala.lockOpenChat = false;
 						}, 800);
 					}, (ala.currentChat ? 200 : 0));
 				}
@@ -512,7 +521,7 @@
 				$("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
 					message: msg.message
 				}));
-				$("ala-message-list").scrollTop(2e9);
+				//$("ala-message-list-viewport").scrollTop(2e9);
 			}
 
 			ala.loadChats = function(){
@@ -550,8 +559,10 @@
 
 					//ala.openChat(chats[0]._id);
 
-					$("ala-chats-list").on("click", "ala-chat-listing", function(){
-						ala.openChat($(this).attr("chat-id"));
+					$("ala-chats-list").on("click", "ala-chat-listing:not(.active)", function(){
+						if(!ala.lockOpenChat){
+							ala.openChat($(this).attr("chat-id"));
+						}
 					});
 				};
 
@@ -682,8 +693,9 @@
 				</ala-sidebar>
 				<ala-chat-area-container>
 					<ala-chat-area>
-						<ala-fade-gradient class="gone"></ala-fade-gradient>
-						<ala-message-list class="gone"></ala-message-list>
+						<ala-message-list-viewport class="gone">
+							<ala-message-list></ala-message-list>
+						</ala-message-list-viewport>
 						<ala-input-area>
 							<textarea id="chat-input" name="send" placeholder="Message..."></textarea>
 							<button id="chat-submit-button" class="raised ok">Submit</button>
