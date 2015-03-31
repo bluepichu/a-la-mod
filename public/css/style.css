@@ -155,6 +155,7 @@ button.flat.large {
 }
 
 button.raised {
+    transition: box-shadow .4s;
 	min-width: 64px;
 	margin: 4px;
 	border: none;
@@ -164,6 +165,10 @@ button.raised {
 	border-radius: 2px;
 	background: #FFFFFF;
 	color: rgba(0, 0, 0, .87);
+}
+
+button.raised:active, button.floating-action:active {
+    box-shadow: 0px 1px 1px rgba(0,0,0,.2)
 }
 
 button.raised.warning {
@@ -901,6 +906,7 @@ ala-chat-area-container {
 }
 
 .floating-action {
+    transition: box-shadow .4s;
 	width: 56px;
 	height: 56px;
 	border-radius: 56px;
