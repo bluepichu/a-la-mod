@@ -1,4 +1,5 @@
 //A lightweight Handlebars live rendering system similar to ember and blaze
+//Written 2015 by zwade
 
 Spark = function(hb) {
 	this._hb = hb;
