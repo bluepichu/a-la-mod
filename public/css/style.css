@@ -929,3 +929,17 @@ ala-chat-area-container {
 	font-size: 24px;
 	cursor: pointer;
 }
+
+ala-message-group[direction="left"] .timestamp {
+    position: absolute;
+    height: 24px;
+    bottom: 6px;
+    left: 42px;
+}
+
+ala-message-group[direction="right"] .timestamp {
+    position: absolute;
+    height: 24px;
+    bottom: 6px;
+    right: 42px;
+}

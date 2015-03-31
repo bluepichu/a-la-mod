@@ -16,12 +16,15 @@
 		<script src="js/textext.core.js"></script>
 		<script src="js/textext.plugin.autocomplete.js"></script>
 		<script src="js/md5.min.js"></script>
+        <script src="js/spark.js"></script>
 
 		<script src="templates/templates.js"></script>
 
 		<script>
 			var ala = {};
 			ala.chats = {};
+
+            var spark = new Spark(Handlebars);
 
 			$(document).ready(function(){
 				$("form:not(.disable-enter-submission) input[type=text], form:not(.disable-enter-submission) input[type=password]").keydown(function(e){
@@ -517,9 +520,11 @@
 
 			ala.appendMessage = function(msg){
 				if($("ala-message-list").children().last().attr("id") != msg.sender._id){
+                    console.log(msg);
 					$("ala-message-list").append(Handlebars.templates["chat-group"]({
 						sender: msg.sender,
-						you: msg.sender._id == ala.user.id
+						you: msg.sender._id == ala.user.id,
+                        timestamp: msg.timestamp*1000,
 					}));
 				}
 				$("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
@@ -578,6 +583,14 @@
 				}));
 			}
 
+            var buffer = function(str, len) {
+                str = ""+str;
+                while (str.length < len) {
+                    str = "0"+str;
+                }
+                return str;
+            }
+
 			ala.moveChatListingToTop = function(listing){
 				for(var i = listing.attr("order")-1; i >= 0; i--){
 					$("ala-chat-listing[order=" + i +"]").attr("order", i+1).css("top", 120 * i + 136);
@@ -589,6 +602,31 @@
 				console.log(email, size);
 				return new Handlebars.SafeString("<img class='icon icon-" + size + "' src='http://www.gravatar.com/avatar/" + (email && typeof(email) == "string" ? md5(email.trim().toLowerCase()) : "") + "?s=" + size + "&d=identicon' />");
 			});
+
+            Handlebars.registerHelper("date", function(date, aux) {  //TODO: live templating
+                var d = new Date(date);
+                if (Date.now() - date < 1000*60*60) {
+                    var m = (new Date()).getMinutes() - d.getMinutes();
+                    if (m < 0) {
+                        m += 60;
+                    } 
+                    return m + " minutes ago";
+                }
+                if (Date.now() - date < 1000*60*60*24) {
+                    return (d.getHours()-1)%12+1 + ":" + buffer(d.getMinutes(),2) + (d.getHours() > 12 ? " PM" : " AM");
+                }
+                var out = "";
+                out += ["Jan","Feb","Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getMonth()];
+                out += " " + d.getDate();
+                if ((new Date()).getYear() == d.getYear()) {
+                    return out;
+                }
+                return out + ", " + (1900+d.getYear()); 
+            })
+            spark.set("minutes", 0);
+            setInterval(function() {
+                spark.set("minutes", spark.get("minutes") + 1)
+            }, 60000);
 		</script>
 	</head>
 	<body>
