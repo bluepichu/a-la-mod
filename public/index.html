@@ -519,17 +519,21 @@
 			}
 
 			ala.appendMessage = function(msg){
+                var num = $("ala-message-list").children().length;
 				if($("ala-message-list").children().last().attr("id") != msg.sender._id){
                     console.log(msg);
 					$("ala-message-list").append(Handlebars.templates["chat-group"]({
 						sender: msg.sender,
 						you: msg.sender._id == ala.user.id,
-                        timestamp: msg.timestamp*1000,
+                        timestamp: "|date"+num,//msg.timestamp*1000,
 					}));
+                    num++;
 				}
+                num--;
 				$("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
 					message: msg.message
 				}));
+                spark.set("date"+num, msg.timestamp*1000);
 				//$("ala-message-list-viewport").scrollTop(2e9);
 			}
 
