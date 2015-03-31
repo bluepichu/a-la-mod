@@ -1,6 +1,4 @@
 * {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
 
@@ -155,15 +153,20 @@ button.flat.large {
 }
 
 button.raised {
+    -webkit-transition: box-shadow .4s;
+    transition: box-shadow .4s;
 	min-width: 64px;
 	margin: 4px;
 	border: none;
-	-webkit-box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
 	box-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
 	cursor: pointer;
 	border-radius: 2px;
 	background: #FFFFFF;
 	color: rgba(0, 0, 0, .87);
+}
+
+button.raised:active, button.floating-action:active {
+    box-shadow: 0px 1px 1px rgba(0,0,0,.2)
 }
 
 button.raised.warning {
@@ -260,7 +263,6 @@ ala-input {
 
 input[type=submit] {
 	background: #FFFFFF;
-	-webkit-box-shadow: 0px 0px 2px rgba(0, 0, 0, .1), 0px 3px 5px rgba(0, 0, 0, .2);
 	box-shadow: 0px 0px 2px rgba(0, 0, 0, .1), 0px 3px 5px rgba(0, 0, 0, .2);
 	border-radius: 2px;
 	padding: 4px 16px;
@@ -291,7 +293,6 @@ header {
 	background: #1565C0;
 	color: #FFFFFF;
 	padding: 16px 48px;
-	-webkit-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 	height: 64px;
 	z-index: 10;
@@ -374,8 +375,6 @@ textarea#chat-input {
 	resize: none;
 	font-family: "Basic", sans-serif;
 	max-height: 400px;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	resize: none;
 	width: calc(100% - 20px);
@@ -392,7 +391,6 @@ ala-chat-listing {
 	-ms-user-select: none;
 	user-select: none;
 	cursor: pointer;
-	-webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 	border-radius: 2px;
 	margin-bottom: 4px;
@@ -423,7 +421,6 @@ ala-chat-listing.active {
 	-webkit-transition: 400ms left ease, 400ms width ease, 400ms top ease 400ms, 400ms height ease 400ms;
 	transition: 400ms left ease, 400ms width ease, 400ms top ease 400ms, 400ms height ease 400ms;
 	z-index: 3;
-	-webkit-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 	cursor: default;
 }
@@ -684,7 +681,6 @@ ala-lightbox {
 	background: #FFFFFF;
 	border-radius: 2px;
 	padding: 16px;
-	-webkit-box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 	position: relative;
 	left: -100%;
@@ -704,7 +700,6 @@ ala-lightbox-container.active, ala-alert-container.active {
 	background: #FFFFFF;
 	border-radius: 2px;
 	padding: 16px;
-	-webkit-box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 	left: 0px;
 	-webkit-transition: 400ms left ease-out 400ms;
@@ -884,7 +879,6 @@ ala-input-area {
 	display: block;
 	height: auto;
 	background: #FFFFFF;
-	-webkit-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 	border-radius: 2px;
 	z-index: 5;
@@ -900,6 +894,8 @@ ala-chat-area-container {
 }
 
 .floating-action {
+    -webkit-transition: box-shadow .4s;
+    transition: box-shadow .4s;
 	width: 56px;
 	height: 56px;
 	border-radius: 56px;
@@ -916,7 +912,6 @@ ala-chat-area-container {
 	-ms-flex-pack: center;
 	justify-content: center;
 	z-index: 6;
-	-webkit-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 	border: 0px;
 	font-size: 24px;
@@ -1000,4 +995,18 @@ ala-divider {
 p.hint {
 	font-size: 12px;
 	color: rgba(0, 0, 0, .54);
+}
+
+ala-message-group[direction="left"] .timestamp {
+    position: absolute;
+    height: 24px;
+    bottom: 6px;
+    left: 42px;
+}
+
+ala-message-group[direction="right"] .timestamp {
+    position: absolute;
+    height: 24px;
+    bottom: 6px;
+    right: 42px;
 }

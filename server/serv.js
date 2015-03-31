@@ -52,7 +52,7 @@ if (process.argv[2] == "-l") {
 
 if (process.env.SGPASS) {
     sendgrid = sendgridlogin("a-la-mod",process.env.SGPASS);
-    
+
 } else {
     console.log("Missing SGPASS environment variable. Will not be able to verify email addresses");
 }
@@ -303,100 +303,114 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
         authTokens: {
             $in: [req.body.authToken]
         }}, function(err, data) {
-            if (err) {
-                res.status(500);
-                res.send("Request failed: Server error.")
-                return;
-            }
-            if (data.length != 1) {
-                res.status(400);
-                res.send("Request failed: Unauthorized user");
-                return;
-            }
-            if (!data[0].verified) {
-                res.status(400);
-                res.send("Request failed: User not verified");
-                return;
-            }
-            fetchUserList(req.body.users, "email", function(users){
-                var lastRead = {};
+        if (err) {
+            res.status(500);
+            res.send("Request failed: Server error.")
+            return;
+        }
+        if (data.length != 1) {
+            res.status(400);
+            res.send("Request failed: Unauthorized user");
+            return;
+        }
+        if (!data[0].verified) {
+            res.status(400);
+            res.send("Request failed: User not verified");
+            return;
+        }
+        fetchUserList(req.body.users, "email", function(users){
+            var lastRead = {};
 
-                for(var i = 0; i < users.length; i++){
-                    lastRead[users[i]._id] = 0;
+            for(var i = 0; i < users.length; i++){
+                lastRead[users[i]._id] = 0;
+            }
+
+            db.insert("chats", {
+                users: users.map(function(el){ return el._id }),
+                title: req.body.title,
+                comms: [PLAINTEXT_COMM],
+                messages: [],
+                lastRead: lastRead,
+                messageCount: 0,
+                creationTime: moment().unix()
+            },
+                      function(err, data){
+                if(err){
+                    res.status(500);
+                    res.send("Request failed: server error.");
+                    return;
                 }
 
-                db.insert("chats", {
-                    users: users.map(function(el){ return el._id }),
-                    title: req.body.title,
-                    comms: [PLAINTEXT_COMM],
-                    messages: [],
-                    lastRead: lastRead,
-                    messageCount: 0,
-                    creationTime: moment().unix()
-                },
-                          function(err, data){
-                    if(err){
-                        res.status(500);
-                        res.send("Request failed: server error.");
-                        return;
-                    }
-
-                    for(var i = 0; i < users.length; i++){
-                        db.update("users", {_id: ObjectId(users[i]._id)}, {$addToSet: {contacts: {$each: req.body.users}}}, function(){});
-                        if(users[i]._id in SOCKETS){
-                            for(var j = 0; j < SOCKETS[users[i]._id].length; j++){
-                                SOCKETS[users[i]._id][j].join(data._id);
-                            }
+                for(var i = 0; i < users.length; i++){
+                    db.update("users", {_id: ObjectId(users[i]._id)}, {$addToSet: {contacts: {$each: req.body.users}}}, function(){});
+                    if(users[i]._id in SOCKETS){
+                        for(var j = 0; j < SOCKETS[users[i]._id].length; j++){
+                            SOCKETS[users[i]._id][j].join(data._id);
                         }
                     }
+                }
 
-                    io.to(data._id).emit("new chat", {
-                        _id: data._id,
-                        title: data.title,
-                        users: users.map(function(el){ return el.screenName; })
-                    });
+                io.to(data._id).emit("new chat", {
+                    _id: data._id,
+                    title: data.title,
+                    users: users.map(function(el){ return el.screenName; })
+                });
 
-                    res.status(200);
-                    res.send("Ok.");
-                })});
-        })
+                res.status(200);
+                res.send("Ok.");
+            })});
+    })
 });
 
 /**
- * Changes a user's screen name.  Parameters are provided in the POST request as a JSON object.
+ * Updates a user's information.  Parameters are provided in the POST request as a JSON object.
  */
-app.post("/user/screen-name", function(req, res){
-    var chk = argCheck(req.body, {email: "string", authToken: "string", screenName: "string"});
-    console.log (chk);
+app.post("/user/update", function(req, res){
+    var chk = argCheck(req.body, {email: "string", password: "string", updates: "object"});
     if(!chk.valid) {
         res.status(400);
         res.send("Request failed: "+JSON.stringify(chk));
         return;
     }
-    db.update("users", {
-        email: req.body.email,
-        authTokens: {
-            $in: [req.body.authToken]
-        }
-    },
-              {
-        $set: {
-            screenName: req.body.screenName
-        }
-    },
-              function(err, data){
+    var updateObj = {};
+    if(req.body.updates.password){
+        updateObj.salt = crypto.randomBytes(32).toString("base64");
+        updateObj.password = passwordHash(req.body.updates.password, updateObj.salt);
+        updateObj.authTokens = [];
+    }
+    if(req.body.updates.screenName){
+        updateObj.screenName = req.body.updates.screenName;
+    }
+    db.query("users", {email: req.body.email}, function(err, data){
         if(err){
             res.status(500);
             res.send("Request failed: server error.");
             return;
         }
-        if(data.length == 0){
+        if(data.length != 1){
             res.status(400);
-            res.send("Request failed: user not found or password incorrect.");
+            res.send("Request failed: user not found.");
             return;
         }
-        res.status(200);
-        res.send("Ok.");
+        db.update("users", {
+            email: req.body.email,
+            password: passwordHash(req.body.password, data[0].salt)
+        }, {
+            $set: updateObj
+        }, function(er, dat){
+            if(er){
+                res.status(500);
+                res.send("Request failed: server error.");
+                return;
+            }
+            if(dat.n == 0){
+                res.status(400);
+                res.send("Request failed: incorrect password.");
+                return;
+            }
+            res.status(200);
+            res.send("Ok.");
+        });
     });
 });
 
@@ -438,7 +452,7 @@ app.post("/user/reset-password", function(req, res){
             res.send("An email has been sent to "+req.body.email);
             if (!sendgrid) {
                 console.log("Error, cannot send reset email");
-                   return
+                return
             }
             email.sendEmail(
                 sendgrid,
@@ -675,7 +689,7 @@ io.on("connection", function(socket){
                 io.to(socket.id).emit("login", "Login failed: authorization error.");
                 return;
             }
-            io.to(socket.id).emit("login", null, {id: data[0]._id, contacts: data[0].contacts, email: data[0].email, screenName: data[0].screenName});
+            io.to(socket.id).emit("login", null, {_id: data[0]._id, contacts: data[0].contacts, email: data[0].email, screenName: data[0].screenName});
             console.log("Login succeeded.");
             socket.userId = data[0]._id;
             socket.email = data[0].email;
