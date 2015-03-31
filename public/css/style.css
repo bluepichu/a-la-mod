@@ -290,7 +290,6 @@ ala-app {
 header {
 	background: #1565C0;
 	color: #FFFFFF;
-	font-size: 32px;
 	padding: 16px 48px;
 	-webkit-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
@@ -922,4 +921,83 @@ ala-chat-area-container {
 	border: 0px;
 	font-size: 24px;
 	cursor: pointer;
+}
+
+h4 {
+	font-size: 32px;
+	margin: 0px;
+	padding: 0px;
+	display: inline-block;
+	font-weight: 400;
+}
+
+ala-dropdown-toggle {
+	font-size: 24px;
+	float: right;
+	display: inline-block;
+	cursor: pointer;
+	padding: 2px 0px 4px 10px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+ala-dropdown-toggle:after {
+	content: url("/images/ic-drop-down.svg");
+	width: 24px;
+	height: 24px;
+	display: inline-block;
+	position: relative;
+	top: 4px;
+}
+
+ala-dropdown-toggle.active,
+ala-dropdown-toggle:hover {
+	background: #0D47A1;
+}
+
+ala-dropdown-toggle.active:after {
+	content: url("/images/ic-drop-up.svg");
+}
+
+ala-dropdown {
+	display: none;
+	position: absolute;
+	top: calc(100% - 12px);
+	width: 200px;
+	right: 48px;
+	background: #282828;
+}
+
+ala-dropdown-toggle.active + ala-dropdown {
+	display: block;
+}
+
+ala-dropdown-item {
+	display: block;
+	font-size: 20px;
+	padding: 8px;
+	cursor: pointer;
+}
+
+ala-dropdown-item:not(:last-child) {
+	border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+
+ala-dropdown-item:hover {
+	background: #323232;
+}
+
+ala-divider {
+	width: 100%;
+	height: 1px;
+	background: rgba(0, 0, 0, .12);
+	display: block;
+	margin: 8px 0px;
+}
+
+p.hint {
+	font-size: 12px;
+	color: rgba(0, 0, 0, .54);
 }
