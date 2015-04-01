@@ -52,10 +52,10 @@
                 });
 
                 $("#login-back, #register-back").click(function(e){
-                    $("form").removeClass("fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
+                    $("ala-entrance form").removeClass("fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
                     $("#button-bar").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
                     setTimeout(function(){
-                        $("form").addClass("hidden");
+                        $("ala-entrance form").addClass("hidden");
                     }, 800);
                     e.stopPropagation();
                     return false;
@@ -140,22 +140,22 @@
                     $(this).trigger("setSuggestions", {result: te.itemManager().filter(list, query)});
                 });
 
-                $("#form-new-chat #cancel").click(function(e){
-                    $("ala-lightbox-container").removeClass("active");
+                $("ala-lightbox").on("click", "form #cancel", function(e){
+                    ala.lightbox("");
                     e.stopPropagation();
                     e.preventDefault();
                     return false;
                 });
 
-                $("#form-hide-lightbox #welcome-ok").click(function(e) {
-                    $("ala-alert-container").removeClass("active");
+                $("#form-welcome #welcome-ok").click(function(e) {
+                    ala.lightbox("");
                     e.stopPropagation();
                     e.preventDefault();
                     return false;
                 })
 
                 $("#new-chat").click(function(e){
-                    $("ala-lightbox-container").addClass("active");
+                    ala.lightbox("form-new-chat");
                     e.stopPropagation();
                     e.preventDefault();
                     return false;
@@ -168,6 +168,29 @@
                     } else {
                         $("ala-message-list-viewport").scrollTop(ala.chatScrollBottom - $("ala-message-list-viewport").height());
                     }
+                });
+
+                $("ala-dropdown-toggle").click(function(e){
+                    $("ala-dropdown-toggle").toggleClass("active");
+                    e.stopPropagation();
+                });
+
+                $(":not(ala-dropdown-toggle)").click(function(){
+                    $("ala-dropdown-toggle").removeClass("active");
+                });
+
+                $("#dropdown-settings").click(function(){
+                    ala.lightbox("form-account-settings");
+                    $("#screen-name").val(ala.user.screenName);
+                });
+
+                $("#dropdown-log-out").click(function(){
+                    $.cookie("email", "");
+                    $.cookie("authToken", "");
+                    ala.snack("Logged out.  Refreshing...");
+                    setTimeout(function(){
+                        location.reload();
+                    }, 2000);
                 });
 
                 $("form").submit(function(e){
@@ -245,8 +268,7 @@
                                         ala.clearSnack();
                                         ala.chatInit();
                                         setTimeout(function(){
-                                            ala.snack("Welcome to &Agrave; la Mod!");
-                                            $("ala-alert-container").addClass("active");
+                                            ala.lightbox("form-welcome");
                                         }, 1000);
                                     } else {
                                         $("#form-register #register-submit").removeClass("hidden");
@@ -315,7 +337,7 @@
                         xhr.onload = function(){
                             if(this.status == 200){
                                 ala.snack("Chat created.");
-                                $("ala-lightbox-container").removeClass("active");
+                                ala.lightbox("");
                             } else {
                                 ala.snack(this.responseText);
                             }
@@ -339,9 +361,47 @@
                         e.stopPropagation();
                         e.preventDefault();
                         return false;
-                    }
+                    } else if($(this).attr("id") == "form-account-settings"){
+                        if($("#new-password").val() != $("#confirm-new-password").val()){
+                            ala.snack("'New Password' and 'Confirm New Password' fields don't match.");
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return false;
+                        }
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST", "/user/update", true);
 
-                    return false;
+                        xhr.onload = function(){
+                            if(this.status == 200){
+                                ala.snack("Account updated succesfully.  Refreshing...");
+                                setTimeout(function(){
+                                    location.reload();
+                                }, 2000);
+                            } else {
+                                ala.snack(this.responseText);
+                            }
+                        }
+
+                        xhr.setRequestHeader("Content-Type", "application/json");
+
+                        var updates = {
+                            screenName: $("#screen-name").val()
+                        };
+
+                        if($("#new-password").val() != ""){
+                            updates.password = $("#new-password").val();
+                        }
+
+                        xhr.send(JSON.stringify({
+                            email: $.cookie("email"),
+                            password: $("#current-password").val(),
+                            updates: updates
+                        }));
+
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
                 });
 
                 if($.cookie("email") && $.cookie("authToken")){
@@ -429,15 +489,16 @@
                     ala.snack(descr.description);
                 });
 
-                ala.socket.on("commrequest", function(source, name){
-                    //permissionToast(source + " would like to add the " + name + " comm to this chat."); // FIX ME
-                });
-
                 ala.socket.on("login", function(err, dat){
-                    ala.user = dat;
-                    $("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, removable: false}));
-                    ala.loadChats();
-                    ala.onLogin(err);
+                    if(err){
+                        ala.snack(err);
+                    } else {
+                        ala.user = dat;
+                        $("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, removable: false}));
+                        $("ala-dropdown-toggle").text(ala.user.screenName);
+                        ala.loadChats();
+                        ala.onLogin(err);
+                    }
                 });
 
                 ala.socket.on("new chat", function(dat){
@@ -519,21 +580,17 @@
             }
 
             ala.appendMessage = function(msg){
-                var num = $("ala-message-list").children().length;
                 if($("ala-message-list").children().last().attr("id") != msg.sender._id){
                     console.log(msg);
                     $("ala-message-list").append(Handlebars.templates["chat-group"]({
                         sender: msg.sender,
                         you: msg.sender._id == ala.user.id,
-                        timestamp: "|date"+num,//msg.timestamp*1000,
+                        timestamp: msg.timestamp*1000,
                     }));
-                    num++;
                 }
-                num--;
                 $("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
                     message: msg.message
                 }));
-                spark.set("date"+num, msg.timestamp*1000);
                 //$("ala-message-list-viewport").scrollTop(2e9);
             }
 
