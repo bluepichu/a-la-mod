@@ -920,7 +920,7 @@ ala-chat-area-container {
 
 h4 {
 	font-size: 32px;
-	margin: 0px;
+	margin: 0px 0px 0px 8px;
 	padding: 0px;
 	display: inline-block;
 	font-weight: 400;
@@ -1009,4 +1009,9 @@ ala-message-group[direction="right"] .timestamp {
     height: 24px;
     bottom: 6px;
     right: 42px;
+}
+.header-icon {
+    float: left;
+    position: relative;
+    top: -6px;
 }
