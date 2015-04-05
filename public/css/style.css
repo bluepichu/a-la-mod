@@ -110,7 +110,11 @@ ala-entrance.authorized {
 }
 
 h1 {
-	font-size: 86px;
+
+	
+
+	font-size: 5.4em;
+
 	text-align: center;
 	color: #FFFFFF;
 	margin-bottom: 24px;
@@ -123,7 +127,11 @@ h1 {
 }
 
 h2 {
-	font-size: 48px;
+
+	
+
+	font-size: 3em;
+
 	text-align: center;
 	color: #FFFFFF;
 	margin-top: 16px;
@@ -148,7 +156,11 @@ button.flat {
 }
 
 button.flat.large {
-	font-size: 32px;
+
+	
+
+	font-size: 2em;
+
 	margin-top: 120px;
 }
 
@@ -226,7 +238,11 @@ input[type=password] {
 	border: 0px;
 	border-bottom: 1px solid #FFFFFF;
 	color: #FFFFFF;
-	font-size: 18px;
+
+	
+
+	font-size: 1.2em;
+
 	background: 0px;
 	padding: 4px 4px 0px;
 	width: 100%;
@@ -236,7 +252,11 @@ label {
 	position: absolute;
 	left: 4px;
 	bottom: 2px;
-	font-size: 18px;
+
+	
+
+	font-size: 1.2em;
+
 	-webkit-transition-duration: 200ms;
 	transition-duration: 200ms;
 	color: rgba(255, 255, 255, .54);
@@ -251,7 +271,11 @@ input[type=text]:valid + label,
 input[type=text]:focus + label,
 input[type=password]:valid + label,
 input[type=password]:focus + label {
-	font-size: 12px;
+
+	
+
+	font-size: .8em;
+
 	bottom: 24px;
 }
 
@@ -268,7 +292,11 @@ input[type=submit] {
 	padding: 4px 16px;
 	border: 0px;
 	font-family: "Basic", sans-serif;
-	font-size: 16px;
+
+	
+
+	font-size: 1em;
+
 	text-align: center;
 	margin: 0px auto;
 }
@@ -303,7 +331,11 @@ ala-snack-bar {
 	display: block;
 	position: fixed;
 	bottom: -48px;
-	font-size: 16px;
+
+	
+
+	font-size: 1em;
+
 	color: #FFFFFF;
 	background: rgba(0, 0, 0, .87);
 	left: 24px;
@@ -379,7 +411,11 @@ textarea#chat-input {
 	resize: none;
 	width: calc(100% - 20px);
 	height: 40px;
-	font-size: 14px;
+
+	
+
+	font-size: .8em;
+
 }
 
 ala-chat-listing {
@@ -436,7 +472,11 @@ ala-chat-listing.active ala-members-list {
 
 ala-chat-title {
 	display: block;
-	font-size: 24px;
+
+	
+
+	font-size: 1.6em;
+
 	color: rgba(0, 0, 0, .87);
 }
 
@@ -468,7 +508,11 @@ ala-most-recent {
 	display: block;
 	color: rgba(0, 0, 0, .54);
 	font-style: italic;
-	font-size: 14px;
+
+	
+
+	font-size: .8em;
+
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	width: 100%;
@@ -486,7 +530,11 @@ ala-unread-count {
 	position: absolute;
 	right: 4px;
 	top: 4px;
-	font-size: 12px;
+
+	
+
+	font-size: .8em;
+
 	background: #FF5252;
 	color: #FFFFFF;
 	padding: 0px 4px;
@@ -541,7 +589,11 @@ ala-chat-message {
 	color: #FFFFFF;
 	word-wrap: break-word;
 	display: block;
-	font-size: 14px;
+
+	
+
+	font-size: .8em;
+
 }
 
 ala-message-group[direction=left] ala-chat-message {
@@ -723,17 +775,29 @@ input[type=password].dark {
 }
 
 #form-new-chat #title {
-	font-size: 24px;
+
+	
+
+	font-size: 1.4em;
+
 	width: 100%;
 }
 
 #form-new-chat #title + label {
-	font-size: 24px;
+
+	
+
+	font-size: 1.4em;
+
 }
 
 #form-new-chat #title:focus + label,
 #form-new-chat #title:valid + label {
-	font-size: 12px;
+
+	
+
+	font-size: .8em;
+
 	bottom: 32px;
 }
 
@@ -743,7 +807,11 @@ input[type=password].dark {
 
 ala-email-suggestion {
 	display: block;
-	font-size: 18px;
+
+	
+
+	font-size: 1.2em;
+
 }
 
 ala-user-list {
@@ -782,7 +850,11 @@ ala-remove-button {
 	margin: 26px 16px;
 	color: #FFFFFF;
 	display: inline-block;
-	font-size: 9px;
+
+	
+
+	font-size: .6em;
+
 	text-align: center;
 	cursor: pointer;
 	-webkit-touch-callout: none;
@@ -826,11 +898,19 @@ ala-user-info {
 }
 
 ala-screen-name {
-	font-size: 16px;
+
+	
 }
 
 ala-email {
-	font-size: 12px;
+	
+
+	font-size: 1em;
+}
+
+ala-email {
+	font-size: .8em;
+
 	color: rgba(0, 0, 0, .54);
 }
 
@@ -870,7 +950,11 @@ ala-version-number {
 	color: #FFFFFF;
 	right: 8px;
 	bottom: 8px;
-	font-size: 12px;
+
+	
+
+	font-size: .8em;
+
 	padding: 4px 10px;
 	border-radius: 12px;
 }
@@ -914,12 +998,12 @@ ala-chat-area-container {
 	z-index: 6;
 	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 	border: 0px;
-	font-size: 24px;
+	font-size: 1.4em;
 	cursor: pointer;
 }
 
 h4 {
-	font-size: 32px;
+	font-size: 2em;
 	margin: 0px 0px 0px 8px;
 	padding: 0px;
 	display: inline-block;
@@ -927,7 +1011,7 @@ h4 {
 }
 
 ala-dropdown-toggle {
-	font-size: 24px;
+	font-size: 1.4em;
 	float: right;
 	display: inline-block;
 	cursor: pointer;
@@ -971,7 +1055,11 @@ ala-dropdown-toggle.active + ala-dropdown {
 
 ala-dropdown-item {
 	display: block;
-	font-size: 20px;
+
+	
+
+	font-size: 1.2em;
+
 	padding: 8px;
 	cursor: pointer;
 }
@@ -993,7 +1081,11 @@ ala-divider {
 }
 
 p.hint {
-	font-size: 12px;
+
+	
+
+	font-size: .8em;
+
 	color: rgba(0, 0, 0, .54);
 }
 

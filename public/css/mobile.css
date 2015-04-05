@@ -1,0 +1,22 @@
+html {
+    font-size: 12px;
+}
+
+ala-chat-area {
+    left: 0px;
+    right: 0px;
+}
+
+@media (max-device-width: 480px) {
+    ala-chat-listing:not(.active) {
+        max-width: calc(50vw - 16px);
+    }
+
+    ala-chat-listing.active {
+        left: calc(50vw  + 16px);
+    }
+    
+    ala-sidebar {
+        width: 50vw;
+    }
+}
