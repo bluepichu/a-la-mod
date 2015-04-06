@@ -383,7 +383,7 @@ ala-chat-area {
 	-webkit-flex-grow: 1;
 	-ms-flex-positive: 1;
 	flex-grow: 1;
-	padding: 0px 16px;
+	padding: 2px 16px;
 	z-index: 4;
 	display: -webkit-box;
 	display: -webkit-flex;
