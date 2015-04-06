@@ -111,7 +111,7 @@ ala-entrance.authorized {
 
 h1 {
 
-	
+
 
 	font-size: 5.4em;
 
@@ -128,7 +128,7 @@ h1 {
 
 h2 {
 
-	
+
 
 	font-size: 3em;
 
@@ -157,7 +157,7 @@ button.flat {
 
 button.flat.large {
 
-	
+
 
 	font-size: 2em;
 
@@ -165,8 +165,8 @@ button.flat.large {
 }
 
 button.raised {
-    -webkit-transition: box-shadow .4s;
-    transition: box-shadow .4s;
+	-webkit-transition: box-shadow .4s;
+	transition: box-shadow .4s;
 	min-width: 64px;
 	margin: 4px;
 	border: none;
@@ -178,7 +178,7 @@ button.raised {
 }
 
 button.raised:active, button.floating-action:active {
-    box-shadow: 0px 1px 1px rgba(0,0,0,.2)
+	box-shadow: 0px 1px 1px rgba(0,0,0,.2)
 }
 
 button.raised.warning {
@@ -239,7 +239,7 @@ input[type=password] {
 	border-bottom: 1px solid #FFFFFF;
 	color: #FFFFFF;
 
-	
+
 
 	font-size: 1.2em;
 
@@ -253,7 +253,7 @@ label {
 	left: 4px;
 	bottom: 2px;
 
-	
+
 
 	font-size: 1.2em;
 
@@ -272,7 +272,7 @@ input[type=text]:focus + label,
 input[type=password]:valid + label,
 input[type=password]:focus + label {
 
-	
+
 
 	font-size: .8em;
 
@@ -293,7 +293,7 @@ input[type=submit] {
 	border: 0px;
 	font-family: "Basic", sans-serif;
 
-	
+
 
 	font-size: 1em;
 
@@ -302,7 +302,7 @@ input[type=submit] {
 }
 
 ala-input.large-margin {
-	margin: 32px 0px 0px;
+	margin: 48px 0px 0px;
 }
 
 .centering {
@@ -332,7 +332,7 @@ ala-snack-bar {
 	position: fixed;
 	bottom: -48px;
 
-	
+
 
 	font-size: 1em;
 
@@ -412,7 +412,7 @@ textarea#chat-input {
 	width: calc(100% - 20px);
 	height: 40px;
 
-	
+
 
 	font-size: .8em;
 
@@ -473,7 +473,7 @@ ala-chat-listing.active ala-members-list {
 ala-chat-title {
 	display: block;
 
-	
+
 
 	font-size: 1.6em;
 
@@ -509,7 +509,7 @@ ala-most-recent {
 	color: rgba(0, 0, 0, .54);
 	font-style: italic;
 
-	
+
 
 	font-size: .8em;
 
@@ -531,7 +531,7 @@ ala-unread-count {
 	right: 4px;
 	top: 4px;
 
-	
+
 
 	font-size: .8em;
 
@@ -590,7 +590,7 @@ ala-chat-message {
 	word-wrap: break-word;
 	display: block;
 
-	
+
 
 	font-size: .8em;
 
@@ -776,7 +776,7 @@ input[type=password].dark {
 
 #form-new-chat #title {
 
-	
+
 
 	font-size: 1.4em;
 
@@ -785,7 +785,7 @@ input[type=password].dark {
 
 #form-new-chat #title + label {
 
-	
+
 
 	font-size: 1.4em;
 
@@ -794,7 +794,7 @@ input[type=password].dark {
 #form-new-chat #title:focus + label,
 #form-new-chat #title:valid + label {
 
-	
+
 
 	font-size: .8em;
 
@@ -808,7 +808,7 @@ input[type=password].dark {
 ala-email-suggestion {
 	display: block;
 
-	
+
 
 	font-size: 1.2em;
 
@@ -851,7 +851,7 @@ ala-remove-button {
 	color: #FFFFFF;
 	display: inline-block;
 
-	
+
 
 	font-size: .6em;
 
@@ -899,11 +899,11 @@ ala-user-info {
 
 ala-screen-name {
 
-	
+
 }
 
 ala-email {
-	
+
 
 	font-size: 1em;
 }
@@ -951,7 +951,7 @@ ala-version-number {
 	right: 8px;
 	bottom: 8px;
 
-	
+
 
 	font-size: .8em;
 
@@ -978,8 +978,8 @@ ala-chat-area-container {
 }
 
 .floating-action {
-    -webkit-transition: box-shadow .4s;
-    transition: box-shadow .4s;
+	-webkit-transition: box-shadow .4s;
+	transition: box-shadow .4s;
 	width: 56px;
 	height: 56px;
 	border-radius: 56px;
@@ -1055,11 +1055,7 @@ ala-dropdown-toggle.active + ala-dropdown {
 
 ala-dropdown-item {
 	display: block;
-
-	
-
 	font-size: 1.2em;
-
 	padding: 8px;
 	cursor: pointer;
 }
@@ -1081,29 +1077,90 @@ ala-divider {
 }
 
 p.hint {
-
-	
-
 	font-size: .8em;
-
 	color: rgba(0, 0, 0, .54);
 }
 
 ala-message-group[direction="left"] .timestamp {
-    position: absolute;
-    height: 24px;
-    bottom: 6px;
-    left: 42px;
+	position: absolute;
+	height: 24px;
+	bottom: 6px;
+	left: 42px;
 }
 
 ala-message-group[direction="right"] .timestamp {
-    position: absolute;
-    height: 24px;
-    bottom: 6px;
-    right: 42px;
+	position: absolute;
+	height: 24px;
+	bottom: 6px;
+	right: 42px;
 }
 .header-icon {
-    float: left;
-    position: relative;
-    top: -6px;
+	float: left;
+	position: relative;
+	top: -6px;
 }
+
+ala-input-blocker {
+	position: fixed;
+	left: 0px;
+	right: 0px;
+	top: 0px;
+	bottom: 0px;
+	background: rgba(0, 0, 0, 0);
+	pointer-events: none;
+	z-index: 1000;
+}
+
+ala-input-blocker.active {
+	pointer-events: all;
+}
+
+.spinner-target {
+	position: relative;
+}
+
+.spinner-target.loading > * {
+	visibility: hidden !important;
+}
+
+.spinner-target.loading:before {
+	content: url("/images/spinner.svg");
+	width: 64px;
+	height: 64px;
+	display: inline-block;
+	-webkit-animation: rotator 1.4s linear infinite;
+	animation: rotator 1.4s linear infinite;
+	position: absolute;
+	left: 50%;
+	bottom: 0px;
+	-webkit-transform: translate(-50%, 0px);
+	-ms-transform: translate(-50%, 0px);
+	transform: translate(-50%, 0px);
+}
+
+.spinner-target.spinner-target-white.loading:before {
+	content: url("/images/spinner-white.svg");
+}
+
+@-webkit-keyframes rotator {
+	0% {
+		-webkit-transform: translate(-50%, 0px) rotate(0deg);
+		transform: translate(-50%, 0px) rotate(0deg);
+	}
+	100% {
+		-webkit-transform: translate(-50%, 0px) rotate(270deg);
+		transform: translate(-50%, 0px) rotate(270deg);
+	}
+}
+
+@keyframes rotator {
+	0% {
+		-webkit-transform: translate(-50%, 0px) rotate(0deg);
+		transform: translate(-50%, 0px) rotate(0deg);
+	}
+	100% {
+		-webkit-transform: translate(-50%, 0px) rotate(270deg);
+		transform: translate(-50%, 0px) rotate(270deg);
+	}
+}
+
