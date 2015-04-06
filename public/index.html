@@ -546,7 +546,7 @@
                         $("ala-message-list").empty();
 
                         for(var i = 0; i < data.messages.length; i++){
-                            data.messages[i].you = data.messages[i].sender == ala.user.id;
+                            data.messages[i].you = data.messages[i].sender == ala.user._id;
                             ala.appendMessage(data.messages[i]);
                         }
 
@@ -587,7 +587,7 @@
                     console.log(msg);
                     $("ala-message-list").append(Handlebars.templates["chat-group"]({
                         sender: msg.sender,
-                        you: msg.sender._id == ala.user.id,
+                        you: msg.sender._id == ala.user._id,
                         timestamp: msg.timestamp*1000,
                     }));
                 }
@@ -614,7 +614,7 @@
                     for(var i = 0; i < chats.length; i++){
                         ala.chats[chats[i]._id] = {
                             users: chats[i].users,
-                            unread: chats[i].messageCount - chats[i].lastRead[ala.user.id],
+                            unread: chats[i].messageCount - chats[i].lastRead[ala.user._id],
                             listing: $(Handlebars.templates["chat-listing"]({
                                 id: chats[i]._id,
                                 title: chats[i].title,
