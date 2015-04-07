@@ -156,10 +156,8 @@ app.get("/user/reset/:resetID", function(req, res) {
             return;
         }
         cryptoString(12, function(err, password){
-            console.log(password); // REMOVE THIS LINE IN PRODUCTION
             var hash = passwordHash(password, data[0].salt);
             db.update("users", {email: data[0].email}, {$set: {password: hash}}, function(err, datam){
-                // TODO: send data containing password
                 if (err) {
                     res.status(400);
                     res.send(renderTemplate("An error has occurred"));
@@ -169,7 +167,7 @@ app.get("/user/reset/:resetID", function(req, res) {
                 res.send(renderTemplate("Your password has been reset to: "+password+". Please remember to change your password the next time you log in."));
                 if (!sendgrid) {
                     console.log("Error, cannot send reset email");
-                    return
+                    return;
                 }
                 email.sendEmail(
                     sendgrid,
@@ -188,9 +186,7 @@ app.get("/user/reset/:resetID", function(req, res) {
  * Creates a new user.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/user/new", function(req, res){
-    console.log(req.body);
     var chk = argCheck(req.body, {email: "string", password: "string"});
-    console.log (chk);
     if (!chk.valid) {
         res.status(400);
         res.send("Request failed: "+JSON.stringify(chk));
@@ -230,7 +226,6 @@ app.post("/user/new", function(req, res){
                 res.status(500);
                 res.send("Request failed: server error.");
             } else {
-                console.log("user inserted.");
                 res.status(200);
                 res.send("Ok.");
                 if (!local) {
@@ -246,7 +241,6 @@ app.post("/user/new", function(req, res){
  */
 app.post("/user/auth", function(req, res){
     var chk = argCheck(req.body, {email: "string", password: "string"});
-    console.log (chk);
     if (!chk.valid) {
         res.status(400);
         res.send("Request failed: "+JSON.stringify(chk));
@@ -422,8 +416,6 @@ app.post("/user/reset-password", function(req, res){
         return;
     }
     db.query("users", {email: req.body.email}, function(err, data){
-        console.log(data, err);
-
         if(err){
             res.status(500);
             res.send("Request failed: server error.");
@@ -441,8 +433,6 @@ app.post("/user/reset-password", function(req, res){
             if (err) {
                 res.status(400);
                 res.send("Request failed: Unknown error");
-                console.log(err);
-                console.log(data);
                 return;
             }
             res.status(200);
@@ -468,8 +458,7 @@ app.post("/user/reset-password", function(req, res){
  * Returns a list of chats for the current user.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chats", function(req, res){
-    var chk = argCheck(req.body, {email: "string", authToken: "string" })
-    console.log (chk);
+    var chk = argCheck(req.body, {email: "string", authToken: "string" });
     if (!chk.valid) {
         res.status(400);
         res.send("Request failed: "+JSON.stringify(chk));
@@ -536,8 +525,7 @@ app.post("/chats", function(req, res){
  * Returns a list of previous messages for a given chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chat/history", function(req, res){
-    var chk = argCheck(req.body, {chatId: "string", email: "string", authToken: "string", page: {type: "number", optional: true}})
-    console.log (chk);
+    var chk = argCheck(req.body, {chatId: "string", email: "string", authToken: "string", page: {type: "number", optional: true}});
     if (!chk.valid) {
         res.status(400);
         res.send("Request failed: "+JSON.stringify(chk));
@@ -574,7 +562,6 @@ app.post("/chat/history", function(req, res){
             if(er){
                 res.status(500);
                 res.send("Request failed: server error.");
-                console.log(er);
                 return;
             }
             if(dat.length != 1){
@@ -695,10 +682,8 @@ io.on("connection", function(socket){
                 return;
             }
             io.to(socket.id).emit("login", null, {_id: data[0]._id, contacts: data[0].contacts, email: data[0].email, screenName: data[0].screenName});
-            console.log("Login succeeded.");
             socket.userId = data[0]._id;
             socket.email = data[0].email;
-            console.log(socket.userId);
             if(!(socket.userId in SOCKETS)){
                 SOCKETS[socket.userId] = [];
             }
@@ -785,7 +770,6 @@ io.on("connection", function(socket){
                 io.to(socket.id).emit("error", {description: "Request failed: you're not a part of that chat."});
                 return;
             }
-            console.log("sending message...");
             db.query("users", {
                 email: socket.email
             },
@@ -920,12 +904,3 @@ var sendVerEmail = function(verID, emailaddr, username) {
         }
     )
 }
-
-// DEBUG: prints out the SOCKETS object every 20 seconds
-setInterval(function(){
-    console.log();
-    for(x in SOCKETS){
-        console.log(x + ": " + SOCKETS[x].length);
-    }
-    console.log();
-}, 20000);

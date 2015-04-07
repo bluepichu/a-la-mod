@@ -16,7 +16,6 @@ console.log("DB connected @ " + dbPath);
  * @param {function} cb Callback function for completion, taking two arguments - the data on a succesful request and the error on an unsuccesful one
  */
 var query = function(collection, query, cb){
-    console.log("QUERY: " + JSON.stringify(query));
     db[collection].find(query, function(err, data){
         if(err){
             cb(err, null);
@@ -34,9 +33,6 @@ var query = function(collection, query, cb){
  * @param {function} cb Callback function for completion, taking two arguments - the data on a succesful request and the error on an unsuccesful one
  */
 var project = function(collection, query, projection, cb){
-    console.log("PROJECT:");
-    console.log(JSON.stringify(query));
-    console.log(JSON.stringify(projection));
     db[collection].find(query, projection, function(err, data){
         if(err){
             cb(err, null);
@@ -54,7 +50,6 @@ var project = function(collection, query, projection, cb){
  * @param {function} cb Callback function for completion, taking two arguments - the data on a succesful request and the error on an unsuccesful one
  */
 var insert = function(collection, data, cb){
-    console.log("INSERT: " + JSON.stringify(data));
     db[collection].save(data, function(err, data){
         if(err){
             cb(err, null);
@@ -73,9 +68,6 @@ var insert = function(collection, data, cb){
  * @param {function} cb Callback function for completion, taking two arguments - the data on a succesful request and the error on an unsuccesful one
  */
 var update = function(collection, query, data, cb){
-    console.log("UPDATE:");
-    console.log(JSON.stringify(query));
-    console.log(JSON.stringify(data));
     db[collection].update(query, data, function(err, data){
         if(err){
             cb(err, null);
