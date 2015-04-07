@@ -1,7 +1,7 @@
 {
   "name": "a-la-mod",
-  "version": "0.0.8",
-  "description": "Modular chat system.",
+  "version": "0.1.0",
+  "description": "À la Mod, the modular chat system - your chat, your way.",
   "dependencies": {
     "body-parser": "^1.10.2",
     "connect-handlebars": "^0.1.0",

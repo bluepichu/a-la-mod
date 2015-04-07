@@ -1,9 +1,9 @@
 {
-	"short_name": "A la Mod",
-	"name": "A la Mod Modular Chat",
+	"short_name": "À la Mod",
+	"name": "À la Mod",
 	"icons": [
 		{
-			"src": "/images/icon.png",
+			"src": "/images/app-icon-192.png",
 			"sizes": "192x192",
 			"type": "image/png"
 		}
