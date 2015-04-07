@@ -1097,3 +1097,9 @@ ala-scroll-overlay {
 ala-scroll-overlay-content {
 	display: block;
 }
+
+ala-suggestion-dropdown,
+ala-suggestion-list,
+ala-suggestion {
+	display: block;
+}
