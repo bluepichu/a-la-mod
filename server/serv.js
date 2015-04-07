@@ -22,7 +22,7 @@ app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/te
 }));
 
 var HASH_COUNT = 2;  // Number of times passwords are hashed.  DO NOT CHANGE, AS IT WILL BREAK OLD ACCOUNTS.
-var PAGE_SIZE = 2e9;  // Number of chat results to return in a single request.
+var PAGE_SIZE = 40;  // Number of chat results to return in a single request.
 
 var PLAINTEXT_COMM = ObjectId("54cc2db98c8b2e4fc87cbcb1");
 
@@ -539,13 +539,14 @@ app.post("/chats", function(req, res){
  * Returns a list of previous messages for a given chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chat/history", function(req, res){
-    var chk = argCheck(req.body, {chatId: "string", email: "string", authToken: "string" })
+    var chk = argCheck(req.body, {chatId: "string", email: "string", authToken: "string", page: {type: "number", optional: true}})
     console.log (chk);
     if (!chk.valid) {
         res.status(400);
         res.send("Request failed: "+JSON.stringify(chk));
         return;
     }
+	
     var page = 0;
     if(req.body.page){
         page = req.body.page;
@@ -569,7 +570,8 @@ app.post("/chat/history", function(req, res){
             _id: ObjectId(req.body.chatId),
             users: {$in: [ObjectId(data[0]._id)]}
         }, {
-            messages: {$slice: [-(page+1)*PAGE_SIZE, PAGE_SIZE]}
+            messages: {$slice: [-(page+1)*PAGE_SIZE, PAGE_SIZE]},
+			messageCount: 1
         },
                    function(er, dat){
             if(er){
@@ -583,7 +585,14 @@ app.post("/chat/history", function(req, res){
                 res.send("Request failed: chat not found.");
                 return;
             }
-            res.status(200);
+			
+			if(page*PAGE_SIZE > dat[0].messageCount){
+				res.sta
+				tus(200).send({title: dat[0].title, messages: []});
+				return;
+			} else if((page+1)*PAGE_SIZE > dat[0].messageCount){
+				dat[0].messages = dat[0].messages.slice(0, dat[0].messageCount - page*PAGE_SIZE);
+			}
 
             data = data[0];
             dat = dat[0];
@@ -869,19 +878,25 @@ var AsyncHandler = function(done){
  * Ensures that the given argument object matches the given schema.
  * @param {object} args The provided argument object
  * @param {object} type The schema to check against
- * @returns {object} An object describing whether or not the provided object is valid and what errors exist if any
+ * @returns {object} An object describing whether or not the provided object is valid and what errors exist, if any
  */
-var argCheck = function(args, type) {
-    for (kA in args) {
-        if (! type[kA]) {
+var argCheck = function(args, type){
+    for(kA in args) {
+        if(!type[kA]) {
             return {valid: false, extra: kA};
         }
-        if (typeof args[kA] != type[kA]) {
-            return {valid: false, badType: kA};
-        }
+		if(typeof type[kA] == "object"){
+			if(typeof args[kA] != type[kA].type){
+				return {valid: false, badType: kA};
+			}
+		} else {
+        	if(typeof args[kA] != type[kA]) {
+				return {valid: false, badType: kA};
+        	}
+		}
     }
-    for (kT in type) {
-        if (! args[kT]) {
+    for(kT in type) {
+        if(!args[kT] && !(typeof type[kT] == "object" && type[kT].optional)) {
             return {valid: false, missing: kT};
         }
     }

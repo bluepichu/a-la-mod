@@ -1125,7 +1125,8 @@ ala-input-blocker.active {
 	visibility: hidden !important;
 }
 
-.spinner-target.loading:before {
+.spinner-target.loading:before,
+ala-message-list:not(.no-load) ala-message-group:first-child:before {
 	content: url("/images/spinner.svg");
 	width: 64px;
 	height: 64px;
@@ -1138,6 +1139,13 @@ ala-input-blocker.active {
 	-webkit-transform: translate(-50%, 0px);
 	-ms-transform: translate(-50%, 0px);
 	transform: translate(-50%, 0px);
+}
+
+ala-message-list:not(.no-load) ala-message-group:first-child:before {
+	bottom: auto;
+	top: -48px;
+	width: 32px;
+	height: 32px;
 }
 
 .spinner-target.spinner-target-white.loading:before {

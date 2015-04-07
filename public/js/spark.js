@@ -38,7 +38,6 @@ Spark = function(hb) {
 				for (var p = 0; p < params.length; p++) {
 					cont[params[p]] = spark._kvp[params[p]];
 				}
-				console.log(cont);
 				return spark._hb.compile(str)(cont);
 			}
 		}(hbstr, params, that)
@@ -50,16 +49,20 @@ Spark = function(hb) {
 	})
 }
 
-Spark.prototype.set = function(key,value) {
+Spark.prototype.set = function(key,value){
 	this._kvp[key] = value;
 	if (this._upd[key]) {
 		for (var f = 0; f < this._upd[key].length; f++) {
-			console.log("UPDATING", this._upd[key][f].id);
 			document.getElementById("spark-" + this._upd[key][f].id).innerHTML = this._upd[key][f].funct();
 		}
 	}
 }
 
-Spark.prototype.get = function(key) {
+Spark.prototype.get = function(key){
 	return this._kvp[key];
+}
+
+Spark.prototype.reset = function(){
+	this._kvp = {};
+	this._upd = {};
 }
