@@ -1081,18 +1081,20 @@ p.hint {
 	color: rgba(0, 0, 0, .54);
 }
 
-ala-message-group[direction="left"] ala-timestamp {
+ala-timestamp {
+	font-size: .8em;
+	font-weight: 700;
+	color: rgba(0, 0, 0, .54);
 	position: absolute;
-	height: 24px;
-	bottom: 6px;
-	left: 42px;
+	bottom: 12px;
+}
+
+ala-message-group[direction="left"] ala-timestamp {
+	left: 44px;
 }
 
 ala-message-group[direction="right"] ala-timestamp {
-	position: absolute;
-	height: 24px;
-	bottom: 6px;
-	right: 42px;
+	right: 44px;
 }
 .header-icon {
 	float: left;
