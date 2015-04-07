@@ -20,6 +20,10 @@ ala-chat-area {
     ala-sidebar {
         width: 50vw;
     }
+	
+	ala-scroll-overlay {
+		width: 50vw;
+	}
     
     h4 {
         display: none;
