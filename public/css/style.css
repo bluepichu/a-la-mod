@@ -110,11 +110,7 @@ ala-entrance.authorized {
 }
 
 h1 {
-
-
-
 	font-size: 5.4em;
-
 	text-align: center;
 	color: #FFFFFF;
 	margin-bottom: 24px;
@@ -127,11 +123,7 @@ h1 {
 }
 
 h2 {
-
-
-
 	font-size: 3em;
-
 	text-align: center;
 	color: #FFFFFF;
 	margin-top: 16px;
@@ -156,11 +148,7 @@ button.flat {
 }
 
 button.flat.large {
-
-
-
 	font-size: 2em;
-
 	margin-top: 120px;
 }
 
@@ -238,11 +226,7 @@ input[type=password] {
 	border: 0px;
 	border-bottom: 1px solid #FFFFFF;
 	color: #FFFFFF;
-
-
-
 	font-size: 1.2em;
-
 	background: 0px;
 	padding: 4px 4px 0px;
 	width: 100%;
@@ -252,11 +236,7 @@ label {
 	position: absolute;
 	left: 4px;
 	bottom: 2px;
-
-
-
 	font-size: 1.2em;
-
 	-webkit-transition-duration: 200ms;
 	transition-duration: 200ms;
 	color: rgba(255, 255, 255, .54);
@@ -271,11 +251,7 @@ input[type=text]:valid + label,
 input[type=text]:focus + label,
 input[type=password]:valid + label,
 input[type=password]:focus + label {
-
-
-
 	font-size: .8em;
-
 	bottom: 24px;
 }
 
@@ -292,11 +268,7 @@ input[type=submit] {
 	padding: 4px 16px;
 	border: 0px;
 	font-family: "Basic", sans-serif;
-
-
-
 	font-size: 1em;
-
 	text-align: center;
 	margin: 0px auto;
 }
@@ -331,11 +303,7 @@ ala-snack-bar {
 	display: block;
 	position: fixed;
 	bottom: -48px;
-
-
-
 	font-size: 1em;
-
 	color: #FFFFFF;
 	background: rgba(0, 0, 0, .87);
 	left: 24px;
@@ -374,7 +342,7 @@ ala-sidebar {
 	height: 100%;
 	width: 240px;
 	background: #F8F8F8;
-	padding: 8px;
+	padding: 0px 8px;
 	border-right: 1px solid rgba(0, 0, 0, .12);
 }
 
@@ -411,11 +379,7 @@ textarea#chat-input {
 	resize: none;
 	width: calc(100% - 20px);
 	height: 40px;
-
-
-
 	font-size: .8em;
-
 }
 
 ala-chat-listing {
@@ -472,11 +436,7 @@ ala-chat-listing.active ala-members-list {
 
 ala-chat-title {
 	display: block;
-
-
-
 	font-size: 1.6em;
-
 	color: rgba(0, 0, 0, .87);
 }
 
@@ -508,11 +468,7 @@ ala-most-recent {
 	display: block;
 	color: rgba(0, 0, 0, .54);
 	font-style: italic;
-
-
-
 	font-size: .8em;
-
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	width: 100%;
@@ -530,11 +486,7 @@ ala-unread-count {
 	position: absolute;
 	right: 4px;
 	top: 4px;
-
-
-
 	font-size: .8em;
-
 	background: #FF5252;
 	color: #FFFFFF;
 	padding: 0px 4px;
@@ -589,11 +541,7 @@ ala-chat-message {
 	color: #FFFFFF;
 	word-wrap: break-word;
 	display: block;
-
-
-
 	font-size: .8em;
-
 }
 
 ala-message-group[direction=left] ala-chat-message {
@@ -775,29 +723,17 @@ input[type=password].dark {
 }
 
 #form-new-chat #title {
-
-
-
 	font-size: 1.4em;
-
 	width: 100%;
 }
 
 #form-new-chat #title + label {
-
-
-
 	font-size: 1.4em;
-
 }
 
 #form-new-chat #title:focus + label,
 #form-new-chat #title:valid + label {
-
-
-
 	font-size: .8em;
-
 	bottom: 32px;
 }
 
@@ -807,11 +743,7 @@ input[type=password].dark {
 
 ala-email-suggestion {
 	display: block;
-
-
-
 	font-size: 1.2em;
-
 }
 
 ala-user-list {
@@ -850,11 +782,7 @@ ala-remove-button {
 	margin: 26px 16px;
 	color: #FFFFFF;
 	display: inline-block;
-
-
-
 	font-size: .6em;
-
 	text-align: center;
 	cursor: pointer;
 	-webkit-touch-callout: none;
@@ -897,20 +825,12 @@ ala-user-info {
 	margin-left: 12px;
 }
 
-ala-screen-name {
-
-
-}
-
 ala-email {
-
-
 	font-size: 1em;
 }
 
 ala-email {
 	font-size: .8em;
-
 	color: rgba(0, 0, 0, .54);
 }
 
@@ -927,15 +847,7 @@ ala-email {
 }
 
 ala-chats-list {
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
-	display: flex;
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: column;
-	-ms-flex-direction: column;
-	flex-direction: column;
+	height: 100%;
 }
 
 #new-chat {
@@ -950,11 +862,7 @@ ala-version-number {
 	color: #FFFFFF;
 	right: 8px;
 	bottom: 8px;
-
-
-
 	font-size: .8em;
-
 	padding: 4px 10px;
 	border-radius: 12px;
 }
@@ -1174,3 +1082,18 @@ ala-message-list:not(.no-load) ala-message-group:first-child:before {
 	}
 }
 
+
+ala-scroll-overlay {
+	left: 0px;
+	width: 240px;
+	top: 0px;
+	bottom: 0px;
+	display: block;
+	position: absolute;
+	z-index: 5;
+	cursor: pointer;
+}
+
+ala-scroll-overlay-content {
+	display: block;
+}

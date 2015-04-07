@@ -54,7 +54,7 @@
 			});
 
 			$(document).ready(function(){
-				$("form:not(.disable-enter-submission) input[type=text], form:not(.disable-enter-submission) input[type=password]").keydown(function(e){
+				$("form:not(.disable-enter-submission) input[type=text]:not(.disable-enter-submission), form:not(.disable-enter-submission) input[type=password]:not(.disable-enter-submission)").keydown(function(e){
 					if(e.keyCode == 13){
 						$(this).parent().submit();
 						e.stopPropagation();
@@ -186,6 +186,12 @@
 					e.stopPropagation();
 					e.preventDefault();
 					return false;
+				});
+				
+				$("ala-scroll-overlay").scroll(function(e){
+					$("ala-chat-listing[order]").each(function(){
+						$(this).css("top", 120 * $(this).attr("order") - $("ala-scroll-overlay").scrollTop() + 8);
+					});
 				});
 
 				document.getElementById("chat-input").addEventListener("autosize.resized", function(){ // for some reason, the jQuery equivalent of this doesn't work
@@ -458,16 +464,16 @@
 
 			ala.chatInit = function(){
 				$("ala-chats-list").niceScroll();
-				$("ala-message-list-viewport").niceScroll("ala-message-list").scrollend(function(){
+				$("ala-message-list-viewport").niceScroll("ala-message-list");
+				$("ala-message-list-viewport").scroll(function(){
 					ala.chatScrollBottom = $("ala-message-list-viewport").scrollTop() + $("ala-message-list-viewport").height();
-					
-					console.log($("ala-message-list-viewport").scrollTop());
-					
+
 					if($("ala-message-list-viewport").scrollTop() < 16){
 						ala.loadPreviousPage();
 					}
 				});
 				$("ala-user-list").niceScroll();
+				$("ala-scroll-overlay").niceScroll();
 
 				autosize($("#chat-input"));
 
@@ -486,6 +492,13 @@
 
 				$("#chat-submit-button").click(function(){
 					ala.submit();
+				});
+
+				$("ala-scroll-overlay").click(function(e){
+					$(this).css("display", "none");
+					var el = document.elementFromPoint(e.pageX, e.pageY);
+					$(this).css("display", "block");
+					$(el).trigger(e);
 				});
 
 				ala.socket = io();
@@ -512,7 +525,6 @@
 						ala.snack(err);
 					} else {
 						ala.user = dat;
-						$("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, removable: false}));
 						$("ala-dropdown-toggle").text(ala.user.screenName);
 						ala.loadChats();
 						ala.onLogin(err);
@@ -526,11 +538,22 @@
 						listing: $(Handlebars.templates["chat-listing"]({
 							id: dat._id,
 							title: dat.title,
-							members: dat.users.join(", "),
+							members: dat.users,
 							mostRecent: undefined
 						}))
 					}
+					ala.chatCount++;
+					ala.chats[dat._id].listing.click(function(){
+						if(!$(this).hasClass("active") && !ala.lockOpenChat){
+							ala.openChat($(this).attr("chat-id"));
+						}
+					});
+					ala.moveChatListingToTop(ala.chats[dat._id].listing.attr("order", ala.chatCount).css("left", -480));
+					setTimeout(function(){
+						ala.chats[dat._id].listing.css("left", "");
+					}, 600);
 					$("ala-chats-list").append(ala.chats[dat._id].listing);
+					$("ala-scroll-overlay-content").css("height", 120*ala.chatCount + 8);
 					if(ala.chats[dat._id].unread > 0){
 						ala.chats[dat._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[dat._id].unread);
 					}
@@ -574,7 +597,7 @@
 						ala.moveChatListingToTop($("ala-chat-listing.active").removeClass("active").attr("order", ala.chatCount));
 
 						for(var i = ala.chats[chatId].listing.attr("order"); i < ala.chatCount; i++){
-							$("ala-chat-listing[order=" + i +"]").attr("order", i-1).css("top", 120 * i - 104);
+							$("ala-chat-listing[order=" + i +"]").attr("order", i-1).css("top", 120 * i - 104 - $("ala-scroll-overlay").scrollTop());
 						}
 						ala.chats[chatId].listing.addClass("active").removeAttr("order").css("top", "");
 
@@ -648,7 +671,7 @@
 				if(ala.loadingPage || !ala.loadMorePages){
 					return;
 				}
-				
+
 				var xhr = new XMLHttpRequest();
 				xhr.open("POST", "/chat/history", true);
 
@@ -657,35 +680,37 @@
 					if(this.status == 200){
 						var data = JSON.parse(this.responseText);
 						var messages = data.messages;
-						
+
 						var lastMessage = $("ala-message-list").children("ala-message-group").first().children("ala-chat-message").first();
 
 						for(var i = messages.length-1; i >= 0; i--){
 							ala.prependMessage(messages[i]);
 						}
-						
-						$("ala-message-list-viewport").scrollTop(lastMessage.position().top);
-						
+
+						if(lastMessage.position()){
+							$("ala-message-list-viewport").scrollTop(lastMessage.position().top);
+						}
+
 						if(messages.length == 0){
 							ala.loadMorePages = false;
 							$("ala-message-list").addClass("no-load");
 						}
-						
+
 						ala.nextPage++;
 					} else {
 						ala.snack(this.responseText);
 					}
 				}
-				
+
 				xhr.setRequestHeader("Content-Type", "application/json");
-				
+
 				xhr.send(JSON.stringify({
 					email: $.cookie("email"),
 					authToken: $.cookie("authToken"),
 					chatId: ala.currentChat,
 					page: ala.nextPage
 				}));
-				
+
 				ala.loadingPage = true;
 			}
 
@@ -713,19 +738,19 @@
 								mostRecent: chats[i].messages[0]
 							}))
 						}
+						ala.chats[chats[i]._id].listing.click(function(){
+							if(!$(this).hasClass("active") && !ala.lockOpenChat){
+								ala.openChat($(this).attr("chat-id"));
+							}
+						});
 						$("ala-chats-list").append(ala.chats[chats[i]._id].listing);
 						if(ala.chats[chats[i]._id].unread > 0){
 							ala.chats[chats[i]._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[chats[i]._id].unread);
 						}
 						ala.chats[chats[i]._id].listing.attr("order", ala.chatCount).css("top", 120 * ala.chatCount + 16);
 						ala.chatCount++;
+						$("ala-scroll-overlay-content").css("height", 120*ala.chatCount + 8);
 					}
-
-					$("ala-chats-list").on("click", "ala-chat-listing:not(.active)", function(){
-						if(!ala.lockOpenChat){
-							ala.openChat($(this).attr("chat-id"));
-						}
-					});
 				};
 
 				xhr.setRequestHeader("Content-Type", "application/json");
@@ -738,19 +763,25 @@
 
 			ala.moveChatListingToTop = function(listing){
 				for(var i = listing.attr("order")-1; i >= 0; i--){
-					$("ala-chat-listing[order=" + i +"]").attr("order", i+1).css("top", 120 * i + 136);
+					$("ala-chat-listing[order=" + i +"]").attr("order", i+1).css("top", 120 * i + 136 - $("ala-scroll-overlay").scrollTop());
 				}
-				listing.attr("order", 0).css("top", 16);
+				listing.attr("order", 0).css("top", 16 - $("ala-scroll-overlay").scrollTop());
 			}
 
 			ala.lightbox = function(formId){
 				if(formId != ""){
+					ala.clearForm(formId);
 					$("ala-lightbox-container").addClass("active");
 					$("ala-lightbox-container form").addClass("hidden");
 					$("ala-lightbox-container form#" + formId).removeClass("hidden");
 				} else {
 					$("ala-lightbox-container").removeClass("active");
 				}
+			}
+
+			ala.clearForm = function(formId){
+				$("form#" + formId + " input").val("");
+				$("form#" + formId + " ala-user-list").empty().append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, removable: false}));
 			}
 
 			Handlebars.registerHelper("gravatar", function(email, size){
@@ -849,14 +880,14 @@
 							<button id="welcome-ok" class="raised ok">Continue</button>
 						</ala-input>
 					</form>
-					<form id="form-new-chat" class="disable-enter-submission" novalidate>
+					<form id="form-new-chat" novalidate>
 						<h3>New Chat</h3>
 						<ala-input>
 							<input type="text" class="dark" id="title" name="title" required />
 							<label>Title</label>
 						</ala-input>
 						<ala-input>
-							<input type="text" class="dark" id="email-entry" name="email-entry" placeholder="Enter emails to join chat..." />
+							<input type="text" class="dark disable-enter-submission" id="email-entry" name="email-entry" placeholder="Enter emails to join chat..." />
 						</ala-input>
 						<ala-input>
 							<ala-user-list></ala-user-list>
@@ -894,6 +925,9 @@
 			</ala-lightbox-container>
 			<ala-flex id="app-container">
 				<ala-sidebar>
+					<ala-scroll-overlay>
+						<ala-scroll-overlay-content></ala-scroll-overlay-content>
+					</ala-scroll-overlay>
 					<ala-chats-list>
 						<button class="floating-action ok" id="new-chat"><img width="24" height="24" src="images/ic-add.svg" /></button>
 					</ala-chats-list>

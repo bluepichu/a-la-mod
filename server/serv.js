@@ -24,8 +24,6 @@ app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/te
 var HASH_COUNT = 2;  // Number of times passwords are hashed.  DO NOT CHANGE, AS IT WILL BREAK OLD ACCOUNTS.
 var PAGE_SIZE = 40;  // Number of chat results to return in a single request.
 
-var PLAINTEXT_COMM = ObjectId("54cc2db98c8b2e4fc87cbcb1");
-
 var SOCKETS = {}; // Stores currently authorized sockets, as {<user id>: [<list of connected sockets authorized with user id>]}
 
 var PORT = process.env.PORT || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
@@ -328,7 +326,6 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
             db.insert("chats", {
                 users: users.map(function(el){ return el._id }),
                 title: req.body.title,
-                comms: [PLAINTEXT_COMM],
                 messages: [],
                 lastRead: lastRead,
                 messageCount: 0,
@@ -353,7 +350,7 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
                 io.to(data._id).emit("new chat", {
                     _id: data._id,
                     title: data.title,
-                    users: users.map(function(el){ return el.screenName; })
+                    users: users.map(function(el){return {_id: el._id, email: el.email, screenName: el.screenName}; })
                 });
 
                 res.status(200);
@@ -587,8 +584,7 @@ app.post("/chat/history", function(req, res){
             }
 			
 			if(page*PAGE_SIZE > dat[0].messageCount){
-				res.sta
-				tus(200).send({title: dat[0].title, messages: []});
+				res.status(200).send({title: dat[0].title, messages: []});
 				return;
 			} else if((page+1)*PAGE_SIZE > dat[0].messageCount){
 				dat[0].messages = dat[0].messages.slice(0, dat[0].messageCount - page*PAGE_SIZE);
