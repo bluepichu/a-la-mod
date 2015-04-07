@@ -1081,14 +1081,14 @@ p.hint {
 	color: rgba(0, 0, 0, .54);
 }
 
-ala-message-group[direction="left"] .timestamp {
+ala-message-group[direction="left"] ala-timestamp {
 	position: absolute;
 	height: 24px;
 	bottom: 6px;
 	left: 42px;
 }
 
-ala-message-group[direction="right"] .timestamp {
+ala-message-group[direction="right"] ala-timestamp {
 	position: absolute;
 	height: 24px;
 	bottom: 6px;

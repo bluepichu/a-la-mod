@@ -38,13 +38,14 @@ Spark = function(hb) {
 				for (var p = 0; p < params.length; p++) {
 					cont[params[p]] = spark._kvp[params[p]];
 				}
+				console.log(cont);
 				return spark._hb.compile(str)(cont);
 			}
 		}(hbstr, params, that)
 		for (var p = 0; p < params.length; p++) {
 			that._upd[params[p]].push({funct: upFunc, id: id})
 		}
-		return new that._hb.SafeString("<spark-block id='"+id+"'>"+upFunc()+"</spark-block>");
+		return new that._hb.SafeString("<spark-block id='spark-"+id+"'>"+upFunc()+"</spark-block>");
 
 	})
 }
@@ -53,7 +54,8 @@ Spark.prototype.set = function(key,value) {
 	this._kvp[key] = value;
 	if (this._upd[key]) {
 		for (var f = 0; f < this._upd[key].length; f++) {
-			document.getElementById(this._upd[key][f].id).innerHTML = this._upd[key][f].funct();
+			console.log("UPDATING", this._upd[key][f].id);
+			document.getElementById("spark-" + this._upd[key][f].id).innerHTML = this._upd[key][f].funct();
 		}
 	}
 }
