@@ -77,6 +77,20 @@ app.get("/js/:file", function(req, res){
 });
 
 /**
+ * Serves the requested JS mod enconder file.
+ */
+app.get("/js/mods/enc/:file", function(req, res){
+    res.sendFile("/js/mods/enc/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+/**
+ * Serves the requested JS mod decoder file.
+ */
+app.get("/js/mods/dec/:file", function(req, res){
+    res.sendFile("/js/mods/dec/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+/**
  * Serves the requested image file.
  */
 app.get("/images/:file", function(req, res){
@@ -167,7 +181,6 @@ app.get("/user/reset/:resetID", function(req, res) {
                 res.send(renderTemplate("Your password has been reset to: "+password+". Please remember to change your password the next time you log in."));
                 if (!sendgrid) {
                     console.log("Error, cannot send reset email");
-                    return;
                 }
                 email.sendEmail(
                     sendgrid,
@@ -719,46 +732,14 @@ io.on("connection", function(socket){
             }
         }
     });
-
-    /**
-     * Emits a request to add a comm to a given chat.
-     */
-    socket.on("commrequest", function(chatId, comm){
-        db.query("chats", {
-            _id: Objectid(chatId),
-            users: {$in: [ObjectId(socket.userId)]}
-        }, function(err, data){
-            if(err){
-                io.to(socket.id).emit("error", {description: "Request failed: server error."});
-                return;
-            }
-            if(data.length != 1){
-                io.to(socket.id).emit("error", {description: "Request failed: can't find chat."});
-                return;
-            }
-            var found = false;
-            for(var i = 0; i < data[0].comms.length; i++){
-                if(data[0].comms[i] == comm){
-                    found = true;
-                    break;
-                }
-            }
-            if(found){
-                io.to(socket.id).emit("error", {description: "Request failed: comm already in use."});
-            } else {
-                //stuff
-            }
-        });
-    });
-
+	
     /**
      * Emits a message sent by a user.
      */
-    socket.on("message", function(chatId, comm, msg){
+    socket.on("message", function(chatId, msg){
         if(socket.userId === undefined){
             io.to(socket.id).emit("error", {description: "Request failed: you're not logged in."});
         }
-        // do something fun with comms here later
         db.query("chats", {
             _id: ObjectId(chatId),
             users: {
@@ -782,10 +763,9 @@ io.on("connection", function(socket){
 
                 io.to(chatId).emit("message", chatId, {
                     sender: {email: socket.email, _id: socket.userId, screenName: dat[0].screenName},
-                    comm: comm,
                     message: msg,
                     timestamp: moment().unix()
-                }); // comm will probably be a part of this later
+                });
 
                 db.update("chats", {
                     _id: ObjectId(chatId)
@@ -793,7 +773,6 @@ io.on("connection", function(socket){
                           {
                     $push: {messages: {
                         sender: dat[0]._id,
-                        comm: comm,
                         message: msg,
                         timestamp: moment().unix()
                     }},

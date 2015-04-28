@@ -20,6 +20,9 @@
 		<script src="js/md5.min.js"></script>
 		<script src="js/spark.js"></script>
 		<script src="js/moment.js"></script>
+		
+		<script src="js/mods/enc/links-endocer.js"></script>
+		<script src="js/mods/dec/links-decoder.js"></script>
 
 		<script src="templates/templates.js"></script>
 
@@ -27,6 +30,9 @@
 			var ala = {};
 			ala.chats = {};
 			ala.spark = new Spark(Handlebars);
+			ala.mods = {};
+			ala.mods.encoding = [new LinksEncoder()];
+			ala.mods.decoding = [new LinksDecoder()];
 
 			moment.locale("en", {
 				calendar: {
@@ -563,9 +569,14 @@
 			}
 
 			ala.submit = function(){
-				var data = $("#chat-input").val();
+				var data = [$("#chat-input").val()];
 				$("#chat-input").val("");
-				ala.socket.emit("message", ala.currentChat, "plaintext", data);
+				
+				for(var i = 0; i < ala.mods.encoding.length; i++){
+					data = ala.mods.encoding[i].encode(data);
+				}
+				
+				ala.socket.emit("message", ala.currentChat, data);
 				return false;
 			}
 
@@ -626,19 +637,37 @@
 				ala.spark.reset();
 			}
 
-			ala.appendMessage = function(msg){
-				if($("ala-message-list").children().last().attr("id") != msg.sender._id){
+			ala.appendMessage = function(data){
+				var msg = data.message;
+				
+				for(var i = 0; i < ala.mods.decoding.length; i++){
+					msg = ala.mods.decoding[i].decode(msg);
+				}
+				
+				var msgOut = "";
+				
+				for(var i = 0; i < msg.length; i++){
+					if(typeof(msg[i]) == "string"){
+						msgOut += msg[i];
+					} else {
+						msgOut += msg[i].fallback;
+					}
+				}
+				
+				data.message = msgOut;
+				
+				if($("ala-message-list").children().last().attr("id") != data.sender._id){
 					ala.chatGroupCounterStart++;
 					$("ala-message-list").append(Handlebars.templates["chat-group"]({
-						sender: msg.sender,
-						you: msg.sender._id == ala.user._id,
+						sender: data.sender,
+						you: data.sender._id == ala.user._id,
 						timestamp: "|date" + ala.chatGroupCounterStart,
 					}));
 				}
 				$("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
-					message: msg.message
+					message: data.message
 				}));
-				ala.spark.set("date" + ala.chatGroupCounterStart, msg.timestamp);
+				ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
 				//$("ala-message-list-viewport").scrollTop(2e9);
 			}
 
