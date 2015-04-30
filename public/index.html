@@ -38,6 +38,7 @@
 			ala.mods = {};
 			ala.mods.encoding = [new LinksEncoder(), new GithubIssueEncoder(), new CodeEncoder()];
 			ala.mods.decoding = [new CodeDecoder(), new GithubIssueDecoder(), new LinksDecoder()];
+			ala.messageCounter = 0;
 
 			moment.locale("en", {
 				calendar: {
@@ -652,40 +653,44 @@
 			ala.appendMessage = function(data){
 				var msg = data.message;
 
-				var end = function(msg){
-					for(var i = 0; i < msg.length; i++){
-						if(msg[i].fallback !== undefined){
-							msg[i] = msg[i].fallback;
-						}
-					}
+				data.message = msg;
 
-					data.message = msg;
+				ala.messageCounter++;
 
-					if($("ala-message-list").children().last().attr("id") != data.sender._id){
-						ala.chatGroupCounterStart++;
-						$("ala-message-list").append(Handlebars.templates["chat-group"]({
-							sender: data.sender,
-							you: data.sender._id == ala.user._id,
-							timestamp: "|date" + ala.chatGroupCounterStart,
-						}));
-					}
-					$("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
-						message: data.message
+				if($("ala-message-list").children().last().attr("id") != data.sender._id){
+					ala.chatGroupCounterStart++;
+					$("ala-message-list").append(Handlebars.templates["chat-group"]({
+						sender: data.sender,
+						you: data.sender._id == ala.user._id,
+						timestamp: "|date" + ala.chatGroupCounterStart,
 					}));
-					ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
-				};
+				}
+				var newMessage = $(Handlebars.templates["chat-message"]({
+					message: ["Loading..."]
+				}));
+				$("ala-message-list").children().last().append(newMessage);
+				newMessage.attr("message-id", ala.messageCounter);
+				ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
 
-				var closure = function(i){
+				var closure = function(ind, id){
 					return function(data){
-						if(i >= ala.mods.decoding.length){
-							end(data);
+						if(ind >= ala.mods.decoding.length){
+							for(var i = 0; i < data.length; i++){
+								if(data[i].fallback !== undefined){
+									data[i] = data[i].fallback;
+								}
+							}
+							
+							$("[message-id=" + id + "]").replaceWith(Handlebars.templates["chat-message"]({
+								message: data
+							}));
 						} else {
-							ala.mods.decoding[i].decode(data, closure(i+1));
+							ala.mods.decoding[ind].decode(data, closure(ind+1, id));
 						}
 					};
 				};
 
-				ala.mods.decoding[0].decode(data.message, closure(1));
+				ala.mods.decoding[0].decode(data.message, closure(1, ala.messageCounter));
 			}
 
 			ala.prependMessage = function(msg){
