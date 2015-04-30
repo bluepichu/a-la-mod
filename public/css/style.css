@@ -1152,3 +1152,9 @@ ala-github-issue[open]:before {
 ala-github-issue[closed]:before {
 	background-color: #bd2c00;
 }
+
+code {
+	font-family: "Share Tech Mono", monospace;
+	background: rgba(255, 255, 255, .2);
+	padding: .2em .4em;
+}

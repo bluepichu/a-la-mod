@@ -8,6 +8,7 @@
 		<link rel="stylesheet" href="css/style.css" type="text/css" />
 		<link rel="stylesheet" href="css/mobile.css" type="text/css" media="only screen and (max-device-width: 800px)" />
 		<link href='http://fonts.googleapis.com/css?family=Basic' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=Share+Tech+Mono' rel='stylesheet' type='text/css'>
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 		<script src="js/jquery.cookie.js"></script>
@@ -25,6 +26,8 @@
 		<script src="js/mods/dec/links-decoder.js"></script>
 		<script src="js/mods/enc/github-issue-encoder.js"></script>
 		<script src="js/mods/dec/github-issue-decoder.js"></script>
+		<script src="js/mods/enc/code-encoder.js"></script>
+		<script src="js/mods/dec/code-decoder.js"></script>
 
 		<script src="templates/templates.js"></script>
 
@@ -33,8 +36,8 @@
 			ala.chats = {};
 			ala.spark = new Spark(Handlebars);
 			ala.mods = {};
-			ala.mods.encoding = [new LinksEncoder(), new GithubIssueEncoder()];
-			ala.mods.decoding = [new GithubIssueDecoder(), new LinksDecoder()];
+			ala.mods.encoding = [new LinksEncoder(), new GithubIssueEncoder(), new CodeEncoder()];
+			ala.mods.decoding = [new CodeDecoder(), new GithubIssueDecoder(), new LinksDecoder()];
 
 			moment.locale("en", {
 				calendar: {
