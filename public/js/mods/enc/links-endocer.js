@@ -2,7 +2,7 @@ function LinksEncoder(){
 	this.searchPattern = /\[(.*?)\]\((.*?)\)/;
 }
 
-LinksEncoder.prototype.encode = function(inp){
+LinksEncoder.prototype.encode = function(inp, cb){
 	var out = [];
 	for(var i = 0; i < inp.length; i++){
 		if(typeof(inp[i]) == "string"){
@@ -35,5 +35,5 @@ LinksEncoder.prototype.encode = function(inp){
 			out.push(inp[i]);
 		}
 	}
-	return out;
+	cb(out);
 }

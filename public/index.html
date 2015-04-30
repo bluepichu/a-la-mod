@@ -20,7 +20,7 @@
 		<script src="js/md5.min.js"></script>
 		<script src="js/spark.js"></script>
 		<script src="js/moment.js"></script>
-		
+
 		<script src="js/mods/enc/links-endocer.js"></script>
 		<script src="js/mods/dec/links-decoder.js"></script>
 
@@ -193,7 +193,7 @@
 					e.preventDefault();
 					return false;
 				});
-				
+
 				$("ala-scroll-overlay").scroll(function(e){
 					$("ala-chat-listing[order]").each(function(){
 						$(this).css("top", 120 * $(this).attr("order") - $("ala-scroll-overlay").scrollTop() + 8);
@@ -571,12 +571,19 @@
 			ala.submit = function(){
 				var data = [$("#chat-input").val()];
 				$("#chat-input").val("");
-				
-				for(var i = 0; i < ala.mods.encoding.length; i++){
-					data = ala.mods.encoding[i].encode(data);
-				}
-				
-				ala.socket.emit("message", ala.currentChat, data);
+
+				var closure = function(i){
+					return function(data){
+						if(i >= ala.mods.encoding.length){
+							ala.socket.emit("message", ala.currentChat, data);
+						} else {
+							ala.mods.encoding[i].encode(data, closure(i+1));
+						}
+					};
+				};
+
+				ala.mods.encoding[0].encode(data, closure(1));
+
 				return false;
 			}
 
@@ -639,36 +646,46 @@
 
 			ala.appendMessage = function(data){
 				var msg = data.message;
-				
-				for(var i = 0; i < ala.mods.decoding.length; i++){
-					msg = ala.mods.decoding[i].decode(msg);
-				}
-				
-				var msgOut = "";
-				
-				for(var i = 0; i < msg.length; i++){
-					if(typeof(msg[i]) == "string"){
-						msgOut += msg[i];
-					} else {
-						msgOut += msg[i].fallback;
+
+				var end = function(msg){
+					var msgOut = "";
+
+					for(var i = 0; i < msg.length; i++){
+						if(typeof(msg[i]) == "string"){
+							msgOut += msg[i];
+						} else {
+							msgOut += msg[i].fallback;
+						}
 					}
-				}
-				
-				data.message = msgOut;
-				
-				if($("ala-message-list").children().last().attr("id") != data.sender._id){
-					ala.chatGroupCounterStart++;
-					$("ala-message-list").append(Handlebars.templates["chat-group"]({
-						sender: data.sender,
-						you: data.sender._id == ala.user._id,
-						timestamp: "|date" + ala.chatGroupCounterStart,
+
+					data.message = msgOut;
+
+					if($("ala-message-list").children().last().attr("id") != data.sender._id){
+						ala.chatGroupCounterStart++;
+						$("ala-message-list").append(Handlebars.templates["chat-group"]({
+							sender: data.sender,
+							you: data.sender._id == ala.user._id,
+							timestamp: "|date" + ala.chatGroupCounterStart,
+						}));
+					}
+					$("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
+						message: data.message
 					}));
-				}
-				$("ala-message-list").children().last().append(Handlebars.templates["chat-message"]({
-					message: data.message
-				}));
-				ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
-				//$("ala-message-list-viewport").scrollTop(2e9);
+					ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
+					//$("ala-message-list-viewport").scrollTop(2e9);
+				};
+
+				var closure = function(i){
+					return function(data){
+						if(i >= ala.mods.decoding.length){
+							end(data);
+						} else {
+							ala.mods.decoding[i].decode(data, closure(i+1));
+						}
+					};
+				};
+
+				ala.mods.decoding[0].decode(data.message, closure(1));
 			}
 
 			ala.prependMessage = function(msg){
