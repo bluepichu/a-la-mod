@@ -650,17 +650,13 @@
 				var msg = data.message;
 
 				var end = function(msg){
-					var msgOut = "";
-
 					for(var i = 0; i < msg.length; i++){
-						if(typeof(msg[i]) == "string"){
-							msgOut += msg[i];
-						} else {
-							msgOut += msg[i].fallback;
+						if(msg[i].fallback !== undefined){
+							msg[i] = msg[i].fallback;
 						}
 					}
 
-					data.message = msgOut;
+					data.message = msg;
 
 					if($("ala-message-list").children().last().attr("id") != data.sender._id){
 						ala.chatGroupCounterStart++;
@@ -674,7 +670,6 @@
 						message: data.message
 					}));
 					ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
-					//$("ala-message-list-viewport").scrollTop(2e9);
 				};
 
 				var closure = function(i){
