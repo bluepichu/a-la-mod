@@ -24,7 +24,7 @@ LinksEncoder.prototype.encode = function(inp, cb){
 						text: match[1],
 						url: match[2]
 					},
-					fallback: match[0]
+					fallback: match[1] + " (" + match[2] + ")"
 				});
 				str = str.substring(match.index + match[0].length);
 			}

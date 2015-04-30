@@ -578,17 +578,17 @@
 				var data = [$("#chat-input").val()];
 				$("#chat-input").val("");
 
-				var closure = function(i){
+				var closure = function(ind){
 					return function(data){
-						if(i >= ala.mods.encoding.length){
+						if(ind >= ala.mods.encoding.length){
 							ala.socket.emit("message", ala.currentChat, data);
 						} else {
-							ala.mods.encoding[i].encode(data, closure(i+1));
+							ala.mods.encoding[ind].encode(data, closure(ind+1));
 						}
 					};
 				};
-
-				ala.mods.encoding[0].encode(data, closure(1));
+				
+				closure(0)(data);
 
 				return false;
 			}
@@ -651,10 +651,6 @@
 			}
 
 			ala.appendMessage = function(data){
-				var msg = data.message;
-
-				data.message = msg;
-
 				ala.messageCounter++;
 
 				if($("ala-message-list").children().last().attr("id") != data.sender._id){
@@ -689,8 +685,8 @@
 						}
 					};
 				};
-
-				ala.mods.decoding[0].decode(data.message, closure(1, ala.messageCounter));
+				
+				closure(0, ala.messageCounter)(data.message);
 			}
 
 			ala.prependMessage = function(msg){
