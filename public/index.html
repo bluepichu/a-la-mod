@@ -22,12 +22,18 @@
 		<script src="js/spark.js"></script>
 		<script src="js/moment.js"></script>
 
+		<script type="text/javascript"
+				src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default">
+		</script>
+
 		<script src="js/mods/enc/links-endocer.js"></script>
 		<script src="js/mods/dec/links-decoder.js"></script>
 		<script src="js/mods/enc/github-issue-encoder.js"></script>
 		<script src="js/mods/dec/github-issue-decoder.js"></script>
 		<script src="js/mods/enc/code-encoder.js"></script>
 		<script src="js/mods/dec/code-decoder.js"></script>
+		<script src="js/mods/enc/latex-encoder.js"></script>
+		<script src="js/mods/dec/latex-decoder.js"></script>
 
 		<script src="templates/templates.js"></script>
 
@@ -36,8 +42,8 @@
 			ala.chats = {};
 			ala.spark = new Spark(Handlebars);
 			ala.mods = {};
-			ala.mods.encoding = [new LinksEncoder(), new GithubIssueEncoder(), new CodeEncoder()];
-			ala.mods.decoding = [new CodeDecoder(), new GithubIssueDecoder(), new LinksDecoder()];
+			ala.mods.encoding = [new LinksEncoder(), new GithubIssueEncoder(), new CodeEncoder(), new LatexEncoder()];
+			ala.mods.decoding = [new CodeDecoder(), new GithubIssueDecoder(), new LinksDecoder(), new LatexDecoder()];
 			ala.messageCounter = 0;
 
 			moment.locale("en", {
@@ -587,7 +593,7 @@
 						}
 					};
 				};
-				
+
 				closure(0)(data);
 
 				return false;
@@ -676,7 +682,7 @@
 									data[i] = data[i].fallback;
 								}
 							}
-							
+
 							$("[message-id=" + id + "]").replaceWith(Handlebars.templates["chat-message"]({
 								message: data
 							}));
@@ -685,7 +691,7 @@
 						}
 					};
 				};
-				
+
 				closure(0, ala.messageCounter)(data.message);
 			}
 
