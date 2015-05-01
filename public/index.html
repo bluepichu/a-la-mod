@@ -41,10 +41,20 @@
 			var ala = {};
 			ala.chats = {};
 			ala.spark = new Spark(Handlebars);
-			ala.mods = {};
-			ala.mods.encoding = [new LinksEncoder(), new GithubIssueEncoder(), new CodeEncoder(), new LatexEncoder()];
-			ala.mods.decoding = [new CodeDecoder(), new GithubIssueDecoder(), new LinksDecoder(), new LatexDecoder()];
+			ala.mods = {encoding: [], decoding: []};
+			ala.modsList = {};
+			ala.modsList.encoding = [new LinksEncoder(), new CodeEncoder(), new GithubIssueEncoder(), new LatexEncoder()];
+			ala.modsList.decoding = [new LinksDecoder(), new CodeDecoder(), new GithubIssueDecoder(), new LatexDecoder()];
 			ala.messageCounter = 0;
+
+			if(!$.cookie("mods")){
+				$.cookie("mods", JSON.stringify({
+					encoding: [true, true, true, true],
+					decoding: [true, true, true, true]
+				}));
+			}
+
+			ala.modSelection = JSON.parse($.cookie("mods"));
 
 			moment.locale("en", {
 				calendar: {
@@ -233,6 +243,11 @@
 				$("#dropdown-settings").click(function(){
 					ala.lightbox("form-account-settings");
 					$("#screen-name").val(ala.user.screenName);
+				});
+
+				$("#dropdown-mods").click(function(){
+					ala.updateMods();
+					ala.lightbox("form-mods", true);
 				});
 
 				$("#dropdown-log-out").click(function(){
@@ -436,6 +451,25 @@
 						ala.setLoading(true);
 						e.stopPropagation();
 						e.preventDefault();
+						return false;
+					} else if($(this).attr("id") == "form-mods"){
+						ala.modSelection = {
+							encoding: [
+								$("#links-enc").prop("checked"),
+								$("#code-enc").prop("checked"),
+								$("#git-enc").prop("checked"),
+								$("#latex-enc").prop("checked")
+							],
+							decoding: [
+								$("#links-dec").prop("checked"),
+								$("#code-dec").prop("checked"),
+								$("#git-dec").prop("checked"),
+								$("#latex-dec").prop("checked")
+							]
+						};
+						$.cookie("mods", JSON.stringify(ala.modSelection));
+						ala.updateMods();
+						ala.lightbox("");
 						return false;
 					}
 				});
@@ -821,9 +855,11 @@
 				listing.attr("order", 0).css("top", 16 - $("ala-scroll-overlay").scrollTop());
 			}
 
-			ala.lightbox = function(formId){
+			ala.lightbox = function(formId, doNotClear){
 				if(formId != ""){
-					ala.clearForm(formId);
+					if(!doNotClear){
+						ala.clearForm(formId);
+					}
 					$("ala-lightbox-container").addClass("active");
 					$("ala-lightbox-container form").addClass("hidden");
 					$("ala-lightbox-container form#" + formId).removeClass("hidden");
@@ -836,6 +872,32 @@
 				$("form#" + formId + " input").val("");
 				$("form#" + formId + " ala-user-list").empty().append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, removable: false}));
 			}
+
+			ala.updateMods = function(){
+				var lstEnc = [$("#links-enc"), $("#code-enc"), $("#git-enc"), $("#latex-enc")];
+				var lstDec = [$("#links-dec"), $("#code-dec"), $("#git-dec"), $("#latex-dec")];
+
+				ala.mods.encoding = [];
+				ala.mods.decoding = [];
+
+				$("#form-mods input[type=checkbox]").prop("checked", false);
+
+				for(var i = 0; i < ala.modsList.encoding.length; i++){
+					if(ala.modSelection.encoding[i]){
+						ala.mods.encoding.push(ala.modsList.encoding[i]);
+						lstEnc[i].prop("checked", true);
+					}
+				}
+
+				for(var i = 0; i < ala.modsList.decoding.length; i++){
+					if(ala.modSelection.decoding[i]){
+						ala.mods.decoding.push(ala.modsList.decoding[i]);
+						lstDec[i].prop("checked", true);
+					}
+				}
+			}
+
+			ala.updateMods();
 
 			Handlebars.registerHelper("gravatar", function(email, size){
 				return new Handlebars.SafeString("<img class='icon icon-" + size + "' src='http://www.gravatar.com/avatar/" + (email && typeof(email) == "string" ? md5(email.trim().toLowerCase()) : "") + "?s=" + size + "&d=identicon' />");
@@ -921,6 +983,7 @@
 				<ala-dropdown-toggle></ala-dropdown-toggle>
 				<ala-dropdown>
 					<ala-dropdown-item id="dropdown-settings">Settings</ala-dropdown-item>
+					<ala-dropdown-item id="dropdown-mods">Mods</ala-dropdown-item>
 					<ala-dropdown-item id="dropdown-log-out">Log Out</ala-dropdown-item>
 				</ala-dropdown>
 			</header>
@@ -972,6 +1035,45 @@
 						<ala-input class="align-right spinner-target">
 							<button id="cancel" class="raised">Cancel</button>
 							<button type="submit" id="account-settings-submit" class="raised ok">Update Account</button>
+						</ala-input>
+					</form>
+					<form id="form-mods" novalidate>
+						<h3>Mods</h3>
+						<ala-input>
+							<input type="checkbox" id="links-enc" name="links-enc" class="dark" />
+							<label for="links-enc">Links Encoder</label>
+						</ala-input>
+						<ala-input>
+							<input type="checkbox" id="code-enc" name="code-enc" class="dark" />
+							<label for="code-enc">Code Encoder</label>
+						</ala-input>
+						<ala-input>
+							<input type="checkbox" id="git-enc" name="git-enc" class="dark" />
+							<label for="git-enc">Github Issues Encoder</label>
+						</ala-input>
+						<ala-input>
+							<input type="checkbox" id="latex-enc" name="latex-enc" class="dark" />
+							<label for="latex-enc">Latex Encoder</label>
+						</ala-input>
+						<ala-input>
+							<input type="checkbox" id="links-dec" name="links-dec" class="dark" />
+							<label for="links-dec">Links Decoder</label>
+						</ala-input>
+						<ala-input>
+							<input type="checkbox" id="code-dec" name="code-dec" class="dark" />
+							<label for="code-dec">Code Decoder</label>
+						</ala-input>
+						<ala-input>
+							<input type="checkbox" id="git-dec" name="git-dec" class="dark" />
+							<label for="git-dec">Github Issues Decoder</label>
+						</ala-input>
+						<ala-input>
+							<input type="checkbox" id="latex-dec" name="latex-dec" class="dark" />
+							<label for="latex-dec">Latex Decoder</label>
+						</ala-input>
+						<ala-input class="align-right spinner-target">
+							<button id="cancel" class="raised">Cancel</button>
+							<button type="submit" id="mods-submit" class="raised ok">Update</button>
 						</ala-input>
 					</form>
 				</ala-lightbox>
