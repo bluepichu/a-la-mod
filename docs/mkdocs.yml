@@ -1,0 +1,5 @@
+site_name: My Docs
+pages:
+- [index.md, Home]
+- [encoders.md, Encoders]
+theme: readthedocs
