@@ -708,7 +708,7 @@
 				newMessage.attr("message-id", ala.messageCounter);
 				ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
 
-				var closure = function(ind, id){
+				var closure = function(ind, id, sender){
 					return function(data){
 						if(ind >= ala.mods.decoding.length){
 							for(var i = 0; i < data.length; i++){
@@ -718,15 +718,16 @@
 							}
 
 							$("[message-id=" + id + "]").replaceWith(Handlebars.templates["chat-message"]({
-								message: data
+								message: data,
+								sender: sender
 							}));
 						} else {
-							ala.mods.decoding[ind].decode(data, closure(ind+1, id));
+							ala.mods.decoding[ind].decode(data, closure(ind+1, id, sender));
 						}
 					};
 				};
 
-				closure(0, ala.messageCounter)(data.message);
+				closure(0, ala.messageCounter, data.sender)(data.message);
 			}
 
 			ala.prependMessage = function(msg){
@@ -1020,6 +1021,9 @@
 							<label>Screen Name</label>
 						</ala-input>
 						<ala-input>
+							<p>Color picker here</p>
+						</ala-input>
+						<ala-input>
 							<input type="password" class="dark" id="current-password" name="current-password" required />
 							<label>Current Password</label>
 						</ala-input>
@@ -1032,6 +1036,7 @@
 							<label>Confirm New Password</label>
 						</ala-input>
 						<p class="hint">Leave the "new password" fields blank if you don't want to change your password.</p>
+						<p class="hint">Want to change your icon?  Change your <a href="//https://en.gravatar.com/">Gravatar</a>!</p>
 						<ala-input class="align-right spinner-target">
 							<button id="cancel" class="raised">Cancel</button>
 							<button type="submit" id="account-settings-submit" class="raised ok">Update Account</button>

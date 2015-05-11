@@ -19,9 +19,7 @@ ala-entrance {
 	position: absolute;
 	z-index: 20;
 	top: 0vh;
-	-webkit-transition-duration: 600ms;
 	transition-duration: 600ms;
-	-webkit-transition-timing-function: ease-in;
 	transition-timing-function: ease-in;
 }
 
@@ -29,81 +27,56 @@ ala-entrance.authorized {
 	top: -200vh;
 }
 
-@-webkit-keyframes fade-in {from {opacity: 0;} to {opacity: 1;}}
-
 @keyframes fade-in {from {opacity: 0;} to {opacity: 1;}}
-@-webkit-keyframes fade-out {from {opacity: 1;} to {opacity: 0;}}
 @keyframes fade-out {from {opacity: 1;} to {opacity: 0;}}
-@-webkit-keyframes slide-up {from {top: 24px;} to {top: 0px;}}
 @keyframes slide-up {from {top: 24px;} to {top: 0px;}}
-@-webkit-keyframes slide-down {from {top: 0px;} to {top: 24px;}}
 @keyframes slide-down {from {top: 0px;} to {top: 24px;}}
 
 .fade-in {
 	opacity: 0;
-	-webkit-animation: fade-in ease-out;
 	animation: fade-in ease-out;
-	-webkit-animation-fill-mode: forwards;
 	animation-fill-mode: forwards;
-	-webkit-animation-duration: 600ms;
 	animation-duration: 600ms;
 }
 
 .fade-out {
 	opacity: 1;
-	-webkit-animation: fade-out ease-out;
 	animation: fade-out ease-out;
-	-webkit-animation-fill-mode: forwards;
 	animation-fill-mode: forwards;
-	-webkit-animation-duration: 600ms;
 	animation-duration: 600ms;
 }
 
 .fade-in.slide-up {
-	-webkit-animation: fade-in ease-out, slide-up ease-out;
 	animation: fade-in ease-out, slide-up ease-out;
-	-webkit-animation-fill-mode: forwards, forwards;
 	animation-fill-mode: forwards, forwards;
-	-webkit-animation-duration: 600ms, 600ms;
 	animation-duration: 600ms, 600ms;
 }
 
 .fade-in.slide-down {
-	-webkit-animation: fade-in ease-out, slide-down ease-out;
 	animation: fade-in ease-out, slide-down ease-out;
-	-webkit-animation-fill-mode: forwards, forwards;
 	animation-fill-mode: forwards, forwards;
-	-webkit-animation-duration: 600ms, 600ms;
 	animation-duration: 600ms, 600ms;
 }
 
 .fade-out.slide-up {
-	-webkit-animation: fade-out ease-out, slide-up ease-out;
 	animation: fade-out ease-out, slide-up ease-out;
-	-webkit-animation-fill-mode: forwards, forwards;
 	animation-fill-mode: forwards, forwards;
-	-webkit-animation-duration: 600ms, 600ms;
 	animation-duration: 600ms, 600ms;
 }
 
 .fade-out.slide-down {
-	-webkit-animation: fade-out ease-out, slide-down ease-out;
 	animation: fade-out ease-out, slide-down ease-out;
-	-webkit-animation-fill-mode: forwards, forwards;
 	animation-fill-mode: forwards, forwards;
-	-webkit-animation-duration: 600ms, 600ms;
 	animation-duration: 600ms, 600ms;
 }
 
 .skip-animation-out {
-	-webkit-animation: none !important;
 	animation: none !important;
 	opacity: 0;
 	top: 0px;
 }
 
 .skip-animation-in {
-	-webkit-animation: none !important;
 	animation: none !important;
 	opacity: 1;
 	top: 0px;
@@ -114,7 +87,6 @@ h1 {
 	text-align: center;
 	color: #FFFFFF;
 	margin-bottom: 24px;
-	-webkit-animation-delay: 0ms !important;
 	animation-delay: 0ms !important;
 	position: relative;
 	top: 0px;
@@ -128,7 +100,6 @@ h2 {
 	color: #FFFFFF;
 	margin-top: 16px;
 	margin-bottom: 64px;
-	-webkit-animation-delay: 200ms !important;
 	animation-delay: 200ms !important;
 	position: relative;
 	top: 0px;
@@ -153,7 +124,6 @@ button.flat.large {
 }
 
 button.raised {
-	-webkit-transition: box-shadow .4s;
 	transition: box-shadow .4s;
 	min-width: 64px;
 	margin: 4px;
@@ -186,7 +156,6 @@ button.ok {
 }
 
 .anim-delay {
-	-webkit-animation-delay: 400ms !important;
 	animation-delay: 400ms !important;
 }
 
@@ -237,7 +206,6 @@ label {
 	left: 4px;
 	bottom: 2px;
 	font-size: 1.2em;
-	-webkit-transition-duration: 200ms;
 	transition-duration: 200ms;
 	color: rgba(255, 255, 255, .54);
 	pointer-events: none;
@@ -315,7 +283,6 @@ ala-snack-bar {
 
 ala-snack-bar.active {
 	bottom: 10px;
-	-webkit-transition: bottom 200ms ease-out, opacity 1000ms linear;
 	transition: bottom 200ms ease-out, opacity 1000ms linear;
 }
 
@@ -325,9 +292,6 @@ ala-snack-bar.active {
 }
 
 ala-flex {
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
 }
 
@@ -353,14 +317,7 @@ ala-chat-area {
 	flex-grow: 1;
 	padding: 2px 16px;
 	z-index: 4;
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: column;
-	-ms-flex-direction: column;
 	flex-direction: column;
 	position: absolute;
 	left: 16px;
@@ -386,9 +343,6 @@ ala-chat-listing {
 	background: #FFFFFF;
 	padding: 8px;
 	overflow: hidden;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
 	user-select: none;
 	cursor: pointer;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
@@ -396,19 +350,11 @@ ala-chat-listing {
 	margin-bottom: 4px;
 	z-index: 2;
 	height: 112px;
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: column;
-	-ms-flex-direction: column;
 	flex-direction: column;
 	position: absolute;
 	left: 8px;
 	width: 224px;
-	-webkit-transition: 400ms top ease, 400ms height ease, 400ms left ease 400ms, 400ms width ease 400ms;
 	transition: 400ms top ease, 400ms height ease, 400ms left ease 400ms, 400ms width ease 400ms;
 }
 
@@ -418,7 +364,6 @@ ala-chat-listing.active {
 	top: 8px;
 	width: calc(100% - 256px);
 	height: calc(100% - 16px);
-	-webkit-transition: 400ms left ease, 400ms width ease, 400ms top ease 400ms, 400ms height ease 400ms;
 	transition: 400ms left ease, 400ms width ease, 400ms top ease 400ms, 400ms height ease 400ms;
 	z-index: 3;
 	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
@@ -441,19 +386,9 @@ ala-chat-title {
 }
 
 ala-members-list {
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
 	color: rgba(0, 0, 0, .87);
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	-ms-flex-align: center;
 	align-items: center;
-	-webkit-box-orient: horizontal;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: row;
-	-ms-flex-direction: row;
 	flex-direction: row;
 	height: 32px;
 	border-bottom: 1px solid rgba(0, 0, 0, 0);
@@ -478,7 +413,6 @@ ala-most-recent {
 	-ms-flex-positive: 1;
 	flex-grow: 1;
 	opacity: 1;
-	-webkit-transition: 400ms opacity;
 	transition: 400ms opacity;
 }
 
@@ -562,18 +496,16 @@ ala-chat-message:last-child:before {
 }
 
 ala-message-group[direction=left] ala-chat-message:before {
-	border-bottom: 12px solid transparent;
-	border-right: 12px solid transparent;
-	border-top: 12px solid #536DFE;
-	border-left: 12px solid #536DFE;
+	border: 12px solid transparent;
+	border-top-color: inherit;
+	border-left-color: inherit;
 	left: 12px;
 }
 
 ala-message-group[direction=right] ala-chat-message:before {
-	border-bottom: 12px solid transparent;
-	border-right: 12px solid #FF5252;
-	border-top: 12px solid #FF5252;
-	border-left: 12px solid transparent;
+	border: 12px solid transparent;
+	border-right-color: inherit;
+	border-top-color: inherit;
 	right: 12px;
 }
 
@@ -586,12 +518,9 @@ ala-message-list-viewport {
 	-webkit-flex-grow: 1;
 	-ms-flex-positive: 1;
 	flex-grow: 1;
-	-webkit-flex-shrink: 1;
-	-ms-flex-negative: 1;
 	flex-shrink: 1;
 	position: relative;
 	height: 0px;
-	-webkit-transition: 200ms opacity linear;
 	transition: 200ms opacity linear;
 	opacity: 1;
 }
@@ -603,8 +532,6 @@ ala-message-list-viewport:before {
 	right: 0px;
 	top: 0px;
 	height: 24px;
-	background: -webkit-gradient(linear, left bottom, left top, from(rgba(255, 255, 255, 0)), color-stop(70%, rgba(255, 255, 255, 1)));
-	background: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 70%);
 	background: linear-gradient(to top, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 70%);
 	z-index: 3;
 }
@@ -616,21 +543,12 @@ ala-message-list-viewport:after {
 	right: 0px;
 	bottom: 0px;
 	height: 24px;
-	background: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 255, 0)), color-stop(70%, rgba(255, 255, 255, 1)));
-	background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 70%);
 	background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 70%);
 	z-index: 3;
 }
 
 ala-message-list {
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: column;
-	-ms-flex-direction: column;
 	flex-direction: column;
 }
 
@@ -639,8 +557,6 @@ ala-message-list {
 }
 
 ala-flex#button-bar {
-	-webkit-justify-content: space-around;
-	-ms-flex-pack: distribute;
 	justify-content: space-around;
 	position: relative;
 }
@@ -657,20 +573,10 @@ ala-lightbox-container, ala-alert-container {
 	bottom: 0px;
 	background: rgba(0, 0, 0, .6);
 	z-index: 8;
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	-ms-flex-align: center;
 	align-items: center;
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	-ms-flex-pack: center;
 	justify-content: center;
 	opacity: 0;
-	-webkit-transition: 400ms opacity linear 400ms;
 	transition: 400ms opacity linear 400ms;
 	pointer-events: none;
 }
@@ -684,13 +590,11 @@ ala-lightbox {
 	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 	position: relative;
 	left: -100%;
-	-webkit-transition: 400ms left ease-in;
 	transition: 400ms left ease-in;
 }
 
 ala-lightbox-container.active, ala-alert-container.active {
 	opacity: 1;
-	-webkit-transition: 400ms opacity linear;
 	transition: 400ms opacity linear;
 	pointer-events: all;
 }
@@ -702,7 +606,6 @@ ala-lightbox-container.active, ala-alert-container.active {
 	padding: 16px;
 	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 	left: 0px;
-	-webkit-transition: 400ms left ease-out 400ms;
 	transition: 400ms left ease-out 400ms;
 }
 
@@ -752,19 +655,9 @@ ala-user-list {
 	overflow-y: scroll;
 }
 ala-user {
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
 	height: 48px;
-	-webkit-box-orient: horizontal;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: row;
-	-ms-flex-direction: row;
 	flex-direction: row;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	-ms-flex-align: center;
 	align-items: center;
 	background: #FFFFFF;
 }
@@ -786,10 +679,7 @@ ala-remove-button {
 	text-align: center;
 	cursor: pointer;
 	-webkit-touch-callout: none;
-	-webkit-user-select: none;
 	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
 	user-select: none;
 }
 
@@ -813,14 +703,7 @@ ala-user-info {
 	-webkit-flex-grow: 1;
 	-ms-flex-positive: 1;
 	flex-grow: 1;
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: column;
-	-ms-flex-direction: column;
 	flex-direction: column;
 	margin-left: 12px;
 }
@@ -886,22 +769,12 @@ ala-chat-area-container {
 }
 
 .floating-action {
-	-webkit-transition: box-shadow .4s;
 	transition: box-shadow .4s;
 	width: 56px;
 	height: 56px;
 	border-radius: 56px;
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	-ms-flex-align: center;
 	align-items: center;
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	-ms-flex-pack: center;
 	justify-content: center;
 	z-index: 6;
 	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
@@ -924,9 +797,6 @@ ala-dropdown-toggle {
 	display: inline-block;
 	cursor: pointer;
 	padding: 2px 0px 4px 10px;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
 	user-select: none;
 }
 
@@ -1039,13 +909,10 @@ ala-message-list:not(.no-load) ala-message-group:first-child:before {
 	width: 64px;
 	height: 64px;
 	display: inline-block;
-	-webkit-animation: rotator 1.4s linear infinite;
 	animation: rotator 1.4s linear infinite;
 	position: absolute;
 	left: 50%;
 	bottom: 0px;
-	-webkit-transform: translate(-50%, 0px);
-	-ms-transform: translate(-50%, 0px);
 	transform: translate(-50%, 0px);
 }
 
@@ -1060,24 +927,11 @@ ala-message-list:not(.no-load) ala-message-group:first-child:before {
 	content: url("/images/spinner-white.svg");
 }
 
-@-webkit-keyframes rotator {
-	0% {
-		-webkit-transform: translate(-50%, 0px) rotate(0deg);
-		transform: translate(-50%, 0px) rotate(0deg);
-	}
-	100% {
-		-webkit-transform: translate(-50%, 0px) rotate(270deg);
-		transform: translate(-50%, 0px) rotate(270deg);
-	}
-}
-
 @keyframes rotator {
 	0% {
-		-webkit-transform: translate(-50%, 0px) rotate(0deg);
 		transform: translate(-50%, 0px) rotate(0deg);
 	}
 	100% {
-		-webkit-transform: translate(-50%, 0px) rotate(270deg);
 		transform: translate(-50%, 0px) rotate(270deg);
 	}
 }
