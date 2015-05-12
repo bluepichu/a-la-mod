@@ -385,6 +385,9 @@ app.post("/user/update", function(req, res){
 	if(req.body.updates.screenName){
 		updateObj.screenName = req.body.updates.screenName;
 	}
+	if(req.body.updates.color){
+		updateObj.color = req.body.updates.color;
+	}
 	db.query("users", {email: req.body.email}, function(err, data){
 		if(err){
 			res.status(500);
@@ -695,7 +698,7 @@ io.on("connection", function(socket){
 				io.to(socket.id).emit("login", "Login failed: authorization error.");
 				return;
 			}
-			io.to(socket.id).emit("login", null, {_id: data[0]._id, contacts: data[0].contacts, email: data[0].email, screenName: data[0].screenName});
+			io.to(socket.id).emit("login", null, {_id: data[0]._id, contacts: data[0].contacts, email: data[0].email, screenName: data[0].screenName, color: data[0].color});
 			socket.userId = data[0]._id;
 			socket.email = data[0].email;
 			if(!(socket.userId in SOCKETS)){

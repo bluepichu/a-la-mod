@@ -176,6 +176,11 @@
 				var renderFunc = function(suggestion){
 					return "<ala-email-suggestion>" + suggestion + "</ala-email-suggestion>"
 				}
+				
+				$("ala-color-swatch").click(function(){
+					$(this).parent().children().removeClass("active");
+					$(this).addClass("active");
+				});
 
 				$("#email-entry").textext({
 					plugins: "autocomplete",
@@ -243,6 +248,8 @@
 				$("#dropdown-settings").click(function(){
 					ala.lightbox("form-account-settings");
 					$("#screen-name").val(ala.user.screenName);
+					$("#color-picker").children().removeClass("active");
+					$("#color-picker").find("ala-color-swatch[color=" + ala.user.color + "]").addClass("active");
 				});
 
 				$("#dropdown-mods").click(function(){
@@ -440,6 +447,10 @@
 
 						if($("#new-password").val() != ""){
 							updates.password = $("#new-password").val();
+						}
+						
+						if($("ala-color-swatch.active").size() == 1){
+							updates.color = $("ala-color-swatch.active").attr("color");
 						}
 
 						xhr.send(JSON.stringify({
@@ -1021,7 +1032,28 @@
 							<label>Screen Name</label>
 						</ala-input>
 						<ala-input>
-							<p>Color picker here</p>
+							<ala-flex id="color-picker">
+								<ala-color-swatch color="#F44336" style="background: #F44336" ></ala-color-swatch>
+								<ala-color-swatch color="#E91E63" style="background: #E91E63" ></ala-color-swatch>
+								<ala-color-swatch color="#9C27B0" style="background: #9C27B0" ></ala-color-swatch>
+								<ala-color-swatch color="#673AB7" style="background: #673AB7" ></ala-color-swatch>
+								<ala-color-swatch color="#3F51B5" style="background: #3F51B5" ></ala-color-swatch>
+								<ala-color-swatch color="#2196F3" style="background: #2196F3" ></ala-color-swatch>
+								<ala-color-swatch color="#03A9F4" style="background: #03A9F4" ></ala-color-swatch>
+								<ala-color-swatch color="#00BCD4" style="background: #00BCD4" ></ala-color-swatch>
+								<ala-color-swatch color="#009688" style="background: #009688" ></ala-color-swatch>
+								<ala-color-swatch color="#4CAF50" style="background: #4CAF50" ></ala-color-swatch>
+								<ala-color-swatch color="#8BC34A" style="background: #8BC34A" ></ala-color-swatch>
+								<ala-color-swatch color="#CDDC39" style="background: #CDDC39" ></ala-color-swatch>
+								<ala-color-swatch color="#FFEB3B" style="background: #FFEB3B" ></ala-color-swatch>
+								<ala-color-swatch color="#FFC107" style="background: #FFC107" ></ala-color-swatch>
+								<ala-color-swatch color="#FF9800" style="background: #FF9800" ></ala-color-swatch>
+								<ala-color-swatch color="#FF5722" style="background: #FF5722" ></ala-color-swatch>
+								<ala-color-swatch color="#795548" style="background: #795548" ></ala-color-swatch>
+								<ala-color-swatch color="#9E9E9E" style="background: #9E9E9E" ></ala-color-swatch>
+								<ala-color-swatch color="#607D8B" style="background: #607D8B" ></ala-color-swatch>
+							</ala-flex>
+							<label class="small dark">Display Color</label>
 						</ala-input>
 						<ala-input>
 							<input type="password" class="dark" id="current-password" name="current-password" required />
