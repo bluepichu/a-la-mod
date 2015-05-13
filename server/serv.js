@@ -76,6 +76,9 @@ app.get("/js/:file", function(req, res){
 	res.sendFile("/js/" + req.params.file, {root: path.join(__dirname, "../public")});
 });
 
+app.get("/service-worker.js", function(req, res) {
+	res.sendFile("/service-worker.js", {root: path.join(__dirname, "../public")})
+})
 /**
  * Serves the requested JS mod enconder file.
  */
