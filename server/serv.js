@@ -11,6 +11,8 @@ var path = require("path");
 var fs = require("fs");
 var crypto = require("crypto");
 var db = require("./db");
+var pushObj = require("./notifs");
+var push = new pushObj();
 var ObjectId = db.ObjectId;
 var moment = require("moment");
 var emailValidator = require("email-validator");
@@ -54,7 +56,11 @@ if (process.env.SGPASS) {
 } else {
 	console.log("Missing SGPASS environment variable. Will not be able to verify email addresses");
 }
-
+app.get("/push", function(req, res) {
+	console.log(new require("./notifs"))
+	push.test()
+	res.send("Tried");
+})
 /**
  * Serves the À la Mod page.
  */
