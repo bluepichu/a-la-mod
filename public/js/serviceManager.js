@@ -70,14 +70,14 @@ window.pushInst = null;
 
 					// We have a subcription, so call unsubscribe on it
 					pushSubscription.unsubscribe().then(function(successful) {
-						if (that.onUnsubscribe) that.onUnsubscribe(successful)
 						that.enabled = false;
+						if (that.onUnsubscribe) that.onUnsubscribe(successful)
 					}).catch(function(e) {
 						// We failed to unsubscribe, this can lead to
 						// an unusual state, so may be best to remove 
 						// the subscription id from your data store and 
 						// inform the user that you disabled push
-
+						that.enabled = true;
 						if (that.onUnsubscribe) that.onUnsubscribe(e)
 						console.log('Unsubscription error: ', e);
 					});
@@ -94,7 +94,7 @@ window.pushInst = null;
 			serviceWorkerRegistration.pushManager.subscribe()
 				.then(function(subscription) {
 					// The subscription was successful
-					this.enabled = true;
+					that.enabled = true;
 					if (that.onSubscribe) that.onSubscribe(null, subscription)
 					that.subscription = subscription;
 					that.endpoint = subscription.endpoint;
@@ -147,6 +147,7 @@ window.pushInst = null;
 			return;
 		}
 		this.state = 4;
+		this.available = true;
 		var that = this;
 		// We need the service worker registration to check for a subscription
 		navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
@@ -158,8 +159,8 @@ window.pushInst = null;
 					if (!subscription) {
 						// We aren’t subscribed to push, so set UI
 						// to allow the user to enable push
-						return;
 						if (that.onLoad) that.onLoad(null, false);
+						return;
 					}
 					that.subscription = subscription;
 					that.endpoint = subscription.endpoint;
@@ -180,8 +181,4 @@ window.pushInst = null;
 		});
 	}
 
-	window.addEventListener('load', function() {
-		console.log("load")
-		window.pushInst = new pushManager()
-	})
 })(window)

@@ -7,6 +7,7 @@
 		<link rel="manifest" href="static/manifest.json">
 
 		<link rel="stylesheet" href="css/style.css" type="text/css" />
+		<link rel="stylesheet" href="css/sass-free.css" type="text/css" />
 		<link rel="stylesheet" href="css/mobile.css" type="text/css" media="only screen and (max-device-width: 800px)" />
 		<link href='https://fonts.googleapis.com/css?family=Basic' rel='stylesheet' type='text/css'>
 		<link href='https://fonts.googleapis.com/css?family=Share+Tech+Mono' rel='stylesheet' type='text/css'>
@@ -99,6 +100,45 @@
 						$("#button-bar").addClass("hidden");
 					}, 800);
 				});
+				$("ala-notif-container").append(Handlebars.templates.bell())
+				ala.pushInst = new pushManager()
+				ala.pushInst.onLoad = function(err, sub) {
+					console.log("Load>>",arguments)
+					if (ala.pushInst.available) {
+						ala.spark.set("available",true)
+					} else {
+						ala.spark.set("available",false)
+						return
+					}
+					if (ala.pushInst.enabled) {
+						ala.spark.set("enabled",true)
+					} else {
+						ala.spark.set("enabled",false)
+					}
+					$("#notification").click(notifFunc)
+				}
+				ala.pushInst.onSubscribe = function(err, sub) {
+					console.log("Sub>>",arguments)
+					ala.spark.set("enabled", ala.pushInst.enabled)
+					$("#notification").click(notifFunc)
+				}
+				ala.pushInst.onUnsubscribe = function() {
+					console.log("Unsub>>",arguments,ala.pushInst)
+					ala.spark.set("enabled", ala.pushInst.enabled)
+					$("#notification").click(notifFunc)
+				}
+				notifFunc = function() {
+					console.log("boo")
+					if (!ala.spark.get("available")) {
+						return
+					}
+					if (ala.spark.get("enabled")) {
+						ala.pushInst.unsubscribe()
+					} else {
+						ala.pushInst.subscribe()
+					}
+				}
+				$("#notification").click(notifFunc)
 
 				$("#register").click(function(){
 					$("#button-bar").removeClass("hidden fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
@@ -183,6 +223,7 @@
 					$(this).parent().children().removeClass("active");
 					$(this).addClass("active");
 				});
+
 
 				$("#email-entry").textext({
 					plugins: "autocomplete",
@@ -994,12 +1035,15 @@
 			<header>
 				<img src="images/app-icon-48.png" class="header-icon" />
 				<h4>&Agrave; la Mod</h4>
+
 				<ala-dropdown-toggle></ala-dropdown-toggle>
 				<ala-dropdown>
 					<ala-dropdown-item id="dropdown-settings">Settings</ala-dropdown-item>
 					<ala-dropdown-item id="dropdown-mods">Mods</ala-dropdown-item>
 					<ala-dropdown-item id="dropdown-log-out">Log Out</ala-dropdown-item>
 				</ala-dropdown>
+				<ala-notif-container>
+				</ala-notif-container>
 			</header>
 			<ala-lightbox-container>
 				<ala-lightbox>
