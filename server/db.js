@@ -4,7 +4,7 @@ if(process.argv[2] == "-l" || process.argv[2] == "-d"){
     console.log("RUNNING LOCALLY");
     dbPath = "mongodb://localhost:27017/a-la-mod";
 }
-var db = mjs.connect(dbPath, ["users", "chats"]);
+var db = mjs.connect(dbPath, ["users", "chats", "push"]);
 var ObjectId = mjs.ObjectId;
 
 console.log("DB connected @ " + dbPath);
@@ -82,5 +82,6 @@ module.exports = {
     insert: insert,
     update: update,
     project: project,
-    ObjectId: ObjectId
+    ObjectId: ObjectId,
+    db: db,
 }

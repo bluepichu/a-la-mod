@@ -84,6 +84,18 @@
 				}
 			});
 
+			var sendToServer = function(subId, add) {
+				var xhr = new XMLHttpRequest()
+				xhr.open("POST","/user/notifs/register")
+				xhr.setRequestHeader("Content-Type","application/json")
+				xhr.send(JSON.stringify({
+					subscriptionId: subId,
+					email: ala.user.email,
+					auth: $.cookie("authToken"),
+					shouldAdd: add
+				}))
+			}
+
 			$(document).ready(function(){
 				$("form:not(.disable-enter-submission) input[type=text]:not(.disable-enter-submission), form:not(.disable-enter-submission) input[type=password]:not(.disable-enter-submission)").keydown(function(e){
 					if(e.keyCode == 13){
@@ -118,13 +130,16 @@
 					$("#notification").click(notifFunc)
 				}
 				ala.pushInst.onSubscribe = function(err, sub) {
-					console.log("Sub>>",arguments)
+					console.log("Sub>>",arguments, ala.pushInst)
 					ala.spark.set("enabled", ala.pushInst.enabled)
+					sendToServer(arguments[1].subscriptionId, true)
 					$("#notification").click(notifFunc)
 				}
 				ala.pushInst.onUnsubscribe = function() {
 					console.log("Unsub>>",arguments,ala.pushInst)
+					console.log(ala.pushInst)
 					ala.spark.set("enabled", ala.pushInst.enabled)
+					sendToServer(ala.pushInst.subscriptionId, false)
 					$("#notification").click(notifFunc)
 				}
 				notifFunc = function() {
