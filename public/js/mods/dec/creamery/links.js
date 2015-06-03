@@ -10,11 +10,11 @@ decode = function(inp, cb){
 
 onmessage = function(ev){
 	var data = ev.data;
-	switch(data.operation){
+	switch(data.method){
 		case "decode":
 			decode(data.options.message, function(output){
 				postMessage({
-					operation: "return",
+					method: "return",
 					requestId: data.id,
 					output: {
 						message: output
