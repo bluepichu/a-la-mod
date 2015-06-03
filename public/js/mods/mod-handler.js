@@ -73,6 +73,8 @@ ala.mods.initialize = function(mod, options){
 		throw "Mod Initialization Error: mod is already initialized, or naming conflict exists.";
 	}
 	addTo[mod] = new Worker("/js/mods/" + options.modType + "/" + mod + ".js");
+	addTo[mod].modType = options.modType;
+	addTo[mod].name = mod;
 	delete options["modType"];
 	addTo[mod].postMessage({method: "init", options: options});
 	addTo[mod].onmessage = ala.mods.messageHandler;
@@ -90,7 +92,10 @@ ala.mods.execute = function(mod, modType, method, options, cb){
 		default:
 			throw "Mod Initialization Error: invalid modType.";
 	}
-	ala.mods.methods[ala.mods.methodCounter] = {
+	if(!((modType + " " + mod) in ala.mods.methods)){
+		ala.mods.methods[modType + " " + mod] = {};
+	}
+	ala.mods.methods[modType + " " + mod][ala.mods.methodCounter] = {
 		method: method,
 		mod: mod,
 		modType: modType,
@@ -106,6 +111,6 @@ ala.mods.execute = function(mod, modType, method, options, cb){
 
 ala.mods.messageHandler = function(ev){
 	var options = ev.data;
-	ala.mods.methods[options.requestId].callback(options.output);
-	delete ala.mods.methods[options.requestId];
+	ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId].callback(options.output);
+	delete ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId];
 }
