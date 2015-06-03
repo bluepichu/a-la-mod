@@ -1,6 +1,8 @@
 var searchPattern = /github:(.*?)\/(.*?)\s#?(\d+)/;
 
-encode = function(inp, cb){
+importScripts("/js/mods/utils/creamery/mod-base.js");
+
+registerMethod("encode", function(inp, cb){
 	var out = [];
 	for(var i = 0; i < inp.length; i++){
 		if(typeof(inp[i]) == "string"){
@@ -35,20 +37,4 @@ encode = function(inp, cb){
 		}
 	}
 	cb(out);
-}
-
-onmessage = function(ev){
-	var data = ev.data;
-	switch(data.method){
-		case "encode":
-			encode(data.options.message, function(output){
-				postMessage({
-					method: "return",
-					requestId: data.id,
-					output: {
-						message: output
-					}
-				});
-			});
-	}
-}
+});

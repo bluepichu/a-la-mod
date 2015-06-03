@@ -1,7 +1,10 @@
-decode = function(inp, cb){
+importScripts("/js/mods/utils/creamery/mod-base.js");
+
+registerMethod("decode", function(inp, cb){
+	inp = inp.message;
 	var out = inp.slice(0, inp.length);
 	var ash = new AsyncHandler(function(){
-		cb(out);
+		cb({message: out});
 	});
 	for(var i = 0; i < inp.length; i++){
 		if(typeof(inp[i]) == "object" && inp[i].codec !== undefined && inp[i].codec.namespace == "com.alamod.github" && inp[i].codec.type == "issue"){
@@ -33,23 +36,7 @@ decode = function(inp, cb){
 		}
 	}
 	ash.run();
-}
-
-onmessage = function(ev){
-	var data = ev.data;
-	switch(data.method){
-		case "decode":
-			decode(data.options.message, function(output){
-				postMessage({
-					method: "return",
-					requestId: data.id,
-					output: {
-						message: output
-					}
-				});
-			});
-	}
-}
+});
 
 // AsyncHandler written by bluepichu.  May become an import at a later point, since this may be published as its own project.
 var AsyncHandler = function(done){
