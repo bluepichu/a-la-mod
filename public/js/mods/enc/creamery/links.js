@@ -1,8 +1,8 @@
-function GithubIssueEncoder(){
-	this.searchPattern = /github:(.*?)\/(.*?)\s#?(\d+)/;
-}
+var searchPattern = /\[(.*?)\]\((.*?)\)/;
 
-GithubIssueEncoder.prototype.encode = function(inp, cb){
+importScripts("/js/mods/utils/creamery/mod-base.js");
+
+registerMethod("encode", function(inp, cb){
 	var out = [];
 	for(var i = 0; i < inp.length; i++){
 		if(typeof(inp[i]) == "string"){
@@ -17,15 +17,14 @@ GithubIssueEncoder.prototype.encode = function(inp, cb){
 				}
 				out.push({
 					codec: {
-						namespace: "com.alamod.github",
-						type: "issue"
+						namespace: "com.alamod",
+						type: "link"
 					},
 					content: {
-						owner: match[1],
-						repo: match[2],
-						issue: parseInt(match[3])
+						text: match[1],
+						url: match[2]
 					},
-					fallback: match[1] + "/" + match[2] + " #" + match[3]
+					fallback: match[1] + " (" + match[2] + ")"
 				});
 				str = str.substring(match.index + match[0].length);
 			}
@@ -37,4 +36,4 @@ GithubIssueEncoder.prototype.encode = function(inp, cb){
 		}
 	}
 	cb(out);
-}
+});

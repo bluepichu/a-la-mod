@@ -1,8 +1,8 @@
-function LinksEncoder(){
-	this.searchPattern = /\[(.*?)\]\((.*?)\)/;
-}
+var searchPattern = /`(.*?)`/;
 
-LinksEncoder.prototype.encode = function(inp, cb){
+importScripts("/js/mods/utils/creamery/mod-base.js");
+
+registerMethod("encode", function(inp, cb){
 	var out = [];
 	for(var i = 0; i < inp.length; i++){
 		if(typeof(inp[i]) == "string"){
@@ -18,13 +18,12 @@ LinksEncoder.prototype.encode = function(inp, cb){
 				out.push({
 					codec: {
 						namespace: "com.alamod",
-						type: "link"
+						type: "code"
 					},
 					content: {
-						text: match[1],
-						url: match[2]
+						code: match[1]
 					},
-					fallback: match[1] + " (" + match[2] + ")"
+					fallback: match[1]
 				});
 				str = str.substring(match.index + match[0].length);
 			}
@@ -36,4 +35,4 @@ LinksEncoder.prototype.encode = function(inp, cb){
 		}
 	}
 	cb(out);
-}
+});

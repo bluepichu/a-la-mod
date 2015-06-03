@@ -7,8 +7,8 @@
 
 		<link rel="stylesheet" href="css/style.css" type="text/css" />
 		<link rel="stylesheet" href="css/mobile.css" type="text/css" media="only screen and (max-device-width: 800px)" />
-		<link href='http://fonts.googleapis.com/css?family=Basic' rel='stylesheet' type='text/css'>
-		<link href='http://fonts.googleapis.com/css?family=Share+Tech+Mono' rel='stylesheet' type='text/css'>
+		<link href='https://fonts.googleapis.com/css?family=Basic' rel='stylesheet' type='text/css'>
+		<link href='https://fonts.googleapis.com/css?family=Share+Tech+Mono' rel='stylesheet' type='text/css'>
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 		<script src="js/jquery.cookie.js"></script>
@@ -26,25 +26,19 @@
 				src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default">
 		</script>
 
-		<script src="js/mods/enc/links-endocer.js"></script>
-		<script src="js/mods/dec/links-decoder.js"></script>
-		<script src="js/mods/enc/github-issue-encoder.js"></script>
-		<script src="js/mods/dec/github-issue-decoder.js"></script>
-		<script src="js/mods/enc/code-encoder.js"></script>
-		<script src="js/mods/dec/code-decoder.js"></script>
-		<script src="js/mods/enc/latex-encoder.js"></script>
-		<script src="js/mods/dec/latex-decoder.js"></script>
+		<script>
+			var ala = {};
+		</script>
 
+		<script src="js/mods/mod-handler.js"></script>
 		<script src="templates/templates.js"></script>
 
 		<script>
-			var ala = {};
 			ala.chats = {};
 			ala.spark = new Spark(Handlebars);
-			ala.mods = {encoding: [], decoding: []};
 			ala.modsList = {};
-			ala.modsList.encoding = [new LinksEncoder(), new CodeEncoder(), new GithubIssueEncoder(), new LatexEncoder()];
-			ala.modsList.decoding = [new LinksDecoder(), new CodeDecoder(), new GithubIssueDecoder(), new LatexDecoder()];
+			ala.modsList.encoding = ["creamery/code", "creamery/github-issues", "creamery/latex", "creamery/links"];
+			ala.modsList.decoding = ["creamery/code", "creamery/github-issues", "creamery/latex", "creamery/links"];
 			ala.messageCounter = 0;
 
 			if(!$.cookie("mods")){
@@ -55,6 +49,18 @@
 			}
 
 			ala.modSelection = JSON.parse($.cookie("mods"));
+
+			ala.mods.initializeEncoder("creamery/code");
+			ala.mods.initializeDecoder("creamery/code");
+
+			ala.mods.initializeEncoder("creamery/github-issues");
+			ala.mods.initializeDecoder("creamery/github-issues");
+
+			ala.mods.initializeEncoder("creamery/latex");
+			ala.mods.initializeDecoder("creamery/latex");
+
+			ala.mods.initializeEncoder("creamery/links");
+			ala.mods.initializeDecoder("creamery/links");
 
 			moment.locale("en", {
 				calendar: {
@@ -177,6 +183,11 @@
 					return "<ala-email-suggestion>" + suggestion + "</ala-email-suggestion>"
 				}
 
+				$("ala-color-swatch").click(function(){
+					$(this).parent().children().removeClass("active");
+					$(this).addClass("active");
+				});
+
 				$("#email-entry").textext({
 					plugins: "autocomplete",
 					autoComplete: {
@@ -243,11 +254,21 @@
 				$("#dropdown-settings").click(function(){
 					ala.lightbox("form-account-settings");
 					$("#screen-name").val(ala.user.screenName);
+					$("#color-picker").children().removeClass("active");
+					$("#color-picker").find("ala-color-swatch[color=" + ala.user.color + "]").addClass("active");
 				});
 
 				$("#dropdown-mods").click(function(){
 					ala.updateMods();
 					ala.lightbox("form-mods", true);
+					$("#code-enc").prop("checked", ala.modSelection.encoding[0]);
+					$("#git-enc").prop("checked", ala.modSelection.encoding[1]);
+					$("#latex-enc").prop("checked", ala.modSelection.encoding[2]);
+					$("#links-enc").prop("checked", ala.modSelection.encoding[3]);
+					$("#code-dec").prop("checked", ala.modSelection.decoding[0]);
+					$("#git-dec").prop("checked", ala.modSelection.decoding[1]);
+					$("#latex-dec").prop("checked", ala.modSelection.decoding[2]);
+					$("#links-dec").prop("checked", ala.modSelection.decoding[3]);
 				});
 
 				$("#dropdown-log-out").click(function(){
@@ -442,6 +463,10 @@
 							updates.password = $("#new-password").val();
 						}
 
+						if($("ala-color-swatch.active").size() == 1){
+							updates.color = $("ala-color-swatch.active").attr("color");
+						}
+
 						xhr.send(JSON.stringify({
 							email: $.cookie("email"),
 							password: $("#current-password").val(),
@@ -455,16 +480,16 @@
 					} else if($(this).attr("id") == "form-mods"){
 						ala.modSelection = {
 							encoding: [
-								$("#links-enc").prop("checked"),
 								$("#code-enc").prop("checked"),
 								$("#git-enc").prop("checked"),
-								$("#latex-enc").prop("checked")
+								$("#latex-enc").prop("checked"),
+								$("#links-enc").prop("checked")
 							],
 							decoding: [
-								$("#links-dec").prop("checked"),
 								$("#code-dec").prop("checked"),
 								$("#git-dec").prop("checked"),
-								$("#latex-dec").prop("checked")
+								$("#latex-dec").prop("checked"),
+								$("#links-dec").prop("checked")
 							]
 						};
 						$.cookie("mods", JSON.stringify(ala.modSelection));
@@ -615,21 +640,20 @@
 			}
 
 			ala.submit = function(){
-				var data = [$("#chat-input").val()];
+				var data = $("#chat-input").val();
 				$("#chat-input").val("");
 
-				var closure = function(ind){
-					return function(data){
-						if(ind >= ala.mods.encoding.length){
-							ala.socket.emit("message", ala.currentChat, data);
-						} else {
-							ala.mods.encoding[ind].encode(data, closure(ind+1));
-						}
-					};
-				};
+				var encodeOrder = [];
 
-				closure(0)(data);
+				for(var i = 0; i < ala.modsList.encoding.length; i++){
+					if(ala.modSelection.encoding[i]){
+						encodeOrder.push(ala.modsList.encoding[i]);
+					}
+				}
 
+				ala.mods.encode(data, encodeOrder, function(data){
+					ala.socket.emit("message", ala.currentChat, data);
+				});
 				return false;
 			}
 
@@ -702,31 +726,37 @@
 					}));
 				}
 				var newMessage = $(Handlebars.templates["chat-message"]({
-					message: ["Loading..."]
+					message: [new Handlebars.SafeString("<ala-dot-loader><ala-dot class='dot1'></ala-dot><ala-dot class='dot2'></ala-dot><ala-dot class='dot3'></ala-dot><ala-dot class='dot4'></ala-dot></ala-dot-loader>")],
+					sender: data.sender
 				}));
 				$("ala-message-list").children().last().append(newMessage);
 				newMessage.attr("message-id", ala.messageCounter);
 				ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
 
-				var closure = function(ind, id){
+				var decodeOrder = [];
+
+				for(var i = 0; i < ala.modsList.decoding.length; i++){
+					if(ala.modSelection.decoding[i]){
+						decodeOrder.push(ala.modsList.decoding[i]);
+					}
+				}
+
+				ala.mods.decode(data.message, decodeOrder, function(id, sender){
 					return function(data){
-						if(ind >= ala.mods.decoding.length){
-							for(var i = 0; i < data.length; i++){
-								if(data[i].fallback !== undefined){
-									data[i] = data[i].fallback;
-								}
+						for(var i = 0; i < data.length; i++){
+							if(data[i].fallback !== undefined){
+								data[i] = data[i].fallback;
+							} else if(data[i].type == "SafeString"){
+								data[i] = new Handlebars.SafeString(data[i].content);
 							}
-
-							$("[message-id=" + id + "]").replaceWith(Handlebars.templates["chat-message"]({
-								message: data
-							}));
-						} else {
-							ala.mods.decoding[ind].decode(data, closure(ind+1, id));
 						}
-					};
-				};
 
-				closure(0, ala.messageCounter)(data.message);
+						$("[message-id=" + id + "]").replaceWith(Handlebars.templates["chat-message"]({
+							message: data,
+							sender: sender
+						}));
+					}
+				}(ala.messageCounter, data.sender));
 			}
 
 			ala.prependMessage = function(msg){
@@ -874,33 +904,19 @@
 			}
 
 			ala.updateMods = function(){
-				var lstEnc = [$("#links-enc"), $("#code-enc"), $("#git-enc"), $("#latex-enc")];
-				var lstDec = [$("#links-dec"), $("#code-dec"), $("#git-dec"), $("#latex-dec")];
+				var lstEnc = [$("#code-enc"), $("#git-enc"), $("#latex-enc"), $("#links-enc")];
+				var lstDec = [$("#code-dec"), $("#git-dec"), $("#latex-dec"), $("#links-dec")];
 
 				ala.mods.encoding = [];
 				ala.mods.decoding = [];
 
 				$("#form-mods input[type=checkbox]").prop("checked", false);
-
-				for(var i = 0; i < ala.modsList.encoding.length; i++){
-					if(ala.modSelection.encoding[i]){
-						ala.mods.encoding.push(ala.modsList.encoding[i]);
-						lstEnc[i].prop("checked", true);
-					}
-				}
-
-				for(var i = 0; i < ala.modsList.decoding.length; i++){
-					if(ala.modSelection.decoding[i]){
-						ala.mods.decoding.push(ala.modsList.decoding[i]);
-						lstDec[i].prop("checked", true);
-					}
-				}
 			}
 
 			ala.updateMods();
 
 			Handlebars.registerHelper("gravatar", function(email, size){
-				return new Handlebars.SafeString("<img class='icon icon-" + size + "' src='http://www.gravatar.com/avatar/" + (email && typeof(email) == "string" ? md5(email.trim().toLowerCase()) : "") + "?s=" + size + "&d=identicon' />");
+				return new Handlebars.SafeString("<img class='icon icon-" + size + "' src='https://www.gravatar.com/avatar/" + (email && typeof(email) == "string" ? md5(email.trim().toLowerCase()) : "") + "?s=" + size + "&d=identicon' />");
 			});
 
 			Handlebars.registerHelper("date", function(date, aux) {
@@ -1020,6 +1036,30 @@
 							<label>Screen Name</label>
 						</ala-input>
 						<ala-input>
+							<ala-flex id="color-picker">
+								<ala-color-swatch color="#F44336" style="background: #F44336" ></ala-color-swatch>
+								<ala-color-swatch color="#E91E63" style="background: #E91E63" ></ala-color-swatch>
+								<ala-color-swatch color="#9C27B0" style="background: #9C27B0" ></ala-color-swatch>
+								<ala-color-swatch color="#673AB7" style="background: #673AB7" ></ala-color-swatch>
+								<ala-color-swatch color="#3F51B5" style="background: #3F51B5" ></ala-color-swatch>
+								<ala-color-swatch color="#2196F3" style="background: #2196F3" ></ala-color-swatch>
+								<ala-color-swatch color="#03A9F4" style="background: #03A9F4" ></ala-color-swatch>
+								<ala-color-swatch color="#00BCD4" style="background: #00BCD4" ></ala-color-swatch>
+								<ala-color-swatch color="#009688" style="background: #009688" ></ala-color-swatch>
+								<ala-color-swatch color="#4CAF50" style="background: #4CAF50" ></ala-color-swatch>
+								<ala-color-swatch color="#8BC34A" style="background: #8BC34A" ></ala-color-swatch>
+								<ala-color-swatch color="#CDDC39" style="background: #CDDC39" ></ala-color-swatch>
+								<ala-color-swatch color="#FFEB3B" style="background: #FFEB3B" ></ala-color-swatch>
+								<ala-color-swatch color="#FFC107" style="background: #FFC107" ></ala-color-swatch>
+								<ala-color-swatch color="#FF9800" style="background: #FF9800" ></ala-color-swatch>
+								<ala-color-swatch color="#FF5722" style="background: #FF5722" ></ala-color-swatch>
+								<ala-color-swatch color="#795548" style="background: #795548" ></ala-color-swatch>
+								<ala-color-swatch color="#9E9E9E" style="background: #9E9E9E" ></ala-color-swatch>
+								<ala-color-swatch color="#607D8B" style="background: #607D8B" ></ala-color-swatch>
+							</ala-flex>
+							<label class="small dark">Display Color</label>
+						</ala-input>
+						<ala-input>
 							<input type="password" class="dark" id="current-password" name="current-password" required />
 							<label>Current Password</label>
 						</ala-input>
@@ -1032,6 +1072,7 @@
 							<label>Confirm New Password</label>
 						</ala-input>
 						<p class="hint">Leave the "new password" fields blank if you don't want to change your password.</p>
+						<p class="hint">Want to change your icon?  Change your <a href="//en.gravatar.com/" target="_blank">Gravatar</a>!</p>
 						<ala-input class="align-right spinner-target">
 							<button id="cancel" class="raised">Cancel</button>
 							<button type="submit" id="account-settings-submit" class="raised ok">Update Account</button>

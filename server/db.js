@@ -1,6 +1,6 @@
 var mjs = require("mongojs");
 var dbPath = "mongodb://exchange:modify@ds039431.mongolab.com:39431/heroku_app33623467";
-if(process.argv[2] == "-l"){
+if(process.argv[2] == "-l" || process.argv[2] == "-d"){
     console.log("RUNNING LOCALLY");
     dbPath = "mongodb://localhost:27017/a-la-mod";
 }

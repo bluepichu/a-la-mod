@@ -1,8 +1,8 @@
-function LatexEncoder(){
-	this.searchPattern = /\$(.*?)\$|\\\((.*?)\\\)/;
-}
+var searchPattern = /\$(.*?)\$|\\\((.*?)\\\)/;
 
-LatexEncoder.prototype.encode = function(inp, cb){
+importScripts("/js/mods/utils/creamery/mod-base.js");
+
+registerMethod("encode", function(inp, cb){
 	var out = [];
 	for(var i = 0; i < inp.length; i++){
 		if(typeof(inp[i]) == "string"){
@@ -39,4 +39,4 @@ LatexEncoder.prototype.encode = function(inp, cb){
 		}
 	}
 	cb(out);
-}
+});

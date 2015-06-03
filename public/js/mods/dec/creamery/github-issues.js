@@ -1,9 +1,10 @@
-function GithubIssueDecoder(){}
+importScripts("/js/mods/utils/creamery/mod-base.js");
 
-GithubIssueDecoder.prototype.decode = function(inp, cb){
+registerMethod("decode", function(inp, cb){
+	inp = inp.message;
 	var out = inp.slice(0, inp.length);
 	var ash = new AsyncHandler(function(){
-		cb(out);
+		cb({message: out});
 	});
 	for(var i = 0; i < inp.length; i++){
 		if(typeof(inp[i]) == "object" && inp[i].codec !== undefined && inp[i].codec.namespace == "com.alamod.github" && inp[i].codec.type == "issue"){
@@ -24,7 +25,7 @@ GithubIssueDecoder.prototype.decode = function(inp, cb){
 			}, [inp[i].content.owner, inp[i].content.repo, inp[i].content.issue], function(index){
 				return function(data){
 					if(data != null){
-						out[index] = new Handlebars.SafeString("<a href='" + data.html_url + "' target='_blank'><ala-github-issue " + data.state + ">#" + data.number + ": " + data.title + "</ala-github-issue></a>");
+						out[index] = {type: "SafeString", content: "<a href='" + data.html_url + "' target='_blank'><ala-github-issue " + data.state + ">#" + data.number + ": " + data.title + "</ala-github-issue></a>"};
 					} else {
 						out[index] = inp[i].fallback;
 					}
@@ -35,7 +36,7 @@ GithubIssueDecoder.prototype.decode = function(inp, cb){
 		}
 	}
 	ash.run();
-}
+});
 
 // AsyncHandler written by bluepichu.  May become an import at a later point, since this may be published as its own project.
 var AsyncHandler = function(done){

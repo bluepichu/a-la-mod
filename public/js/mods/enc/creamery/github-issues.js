@@ -1,8 +1,8 @@
-function CodeEncoder(){
-	this.searchPattern = /`(.*?)`/;
-}
+var searchPattern = /github:(.*?)\/(.*?)\s#?(\d+)/;
 
-CodeEncoder.prototype.encode = function(inp, cb){
+importScripts("/js/mods/utils/creamery/mod-base.js");
+
+registerMethod("encode", function(inp, cb){
 	var out = [];
 	for(var i = 0; i < inp.length; i++){
 		if(typeof(inp[i]) == "string"){
@@ -17,13 +17,15 @@ CodeEncoder.prototype.encode = function(inp, cb){
 				}
 				out.push({
 					codec: {
-						namespace: "com.alamod",
-						type: "code"
+						namespace: "com.alamod.github",
+						type: "issue"
 					},
 					content: {
-						code: match[1]
+						owner: match[1],
+						repo: match[2],
+						issue: parseInt(match[3])
 					},
-					fallback: match[1]
+					fallback: match[1] + "/" + match[2] + " #" + match[3]
 				});
 				str = str.substring(match.index + match[0].length);
 			}
@@ -35,4 +37,4 @@ CodeEncoder.prototype.encode = function(inp, cb){
 		}
 	}
 	cb(out);
-}
+});

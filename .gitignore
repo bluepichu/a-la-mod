@@ -2,3 +2,6 @@
 /site
 *.swp
 *.swo
+/site
+.brackets.json
+*.css.map
