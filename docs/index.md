@@ -18,6 +18,6 @@ When encoding is necessary, mods are called through Web Workers.  These run as p
 
 All mods in À la Mod are created as Web Workers, potentially with assocaited sandboxed UI content.  As the main thread can't call methods in these directly (and vice versa), a special communication protocol is used to obtain data.
 
-Commands are issued to Web Workers and iframes in the form of calls to the `postMessage()` function.  The passed argument is an object, containing two fields - `method` and `args`.  This is requesting that the given mod call the method specified in `method` with the arguments provided in `args` and return the result.  The worker may issue commands to the main thread by the same method.
-
+Commands are issued to Web Workers and iframes in the form of calls to the `postMessage()` function.  The passed argument is an object, containing two fields - `method` and `options`.  This is requesting that the given mod call the method specified in `method` with the arguments provided in `args` and return the result.  The worker may issue commands to the main thread by the same method.
+	
 When returning content, `method` should be specified as `return`.

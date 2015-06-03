@@ -1,11 +1,31 @@
 # Encoders
 
+## Required Methods
+
 The following methods must be implemented and accessible for all encoders.
 
-## `encode(part)`
-Added in Dark Chocolate (0.2)
+### encode(message)
+*Added in Dark Chocolate (0.2)*
 
-Encodes a single message part.
+Encodes a message.
 
-### Parameters
-- `part` - The message part to encode.
+#### Parameters
+- `message` - The message to encode, as an array of message parts.
+
+#### Returns
+The encoded message, as an array of message parts.
+
+## Optional Methods
+
+The following methods may be called but are not required.
+
+### init()
+*Added in Dark Chocolate (0.2)*
+
+Initializes the encoder.
+
+#### Parameters
+*None*
+
+#### Returns
+*None*
