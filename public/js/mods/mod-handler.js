@@ -1,6 +1,6 @@
 ala.mods = {};
-ala.mods.operationCounter = 0;
-ala.mods.operations = {};
+ala.mods.methodCounter = 0;
+ala.mods.methods = {};
 ala.mods.encoders = {};
 ala.mods.decoders = {};
 
@@ -74,11 +74,11 @@ ala.mods.initialize = function(mod, options){
 	}
 	addTo[mod] = new Worker("/js/mods/" + options.modType + "/" + mod + ".js");
 	delete options["modType"];
-	addTo[mod].postMessage({operation: "init", options: options});
+	addTo[mod].postMessage({method: "init", options: options});
 	addTo[mod].onmessage = ala.mods.messageHandler;
 }
 
-ala.mods.execute = function(mod, modType, operation, options, cb){
+ala.mods.execute = function(mod, modType, method, options, cb){
 	var searchIn;
 	switch(modType){
 		case "enc":
@@ -90,22 +90,22 @@ ala.mods.execute = function(mod, modType, operation, options, cb){
 		default:
 			throw "Mod Initialization Error: invalid modType.";
 	}
-	ala.mods.operations[ala.mods.operationCounter] = {
-		operation: operation,
+	ala.mods.methods[ala.mods.methodCounter] = {
+		method: method,
 		mod: mod,
 		modType: modType,
 		options: options,
 		callback: cb
 	}
 	searchIn[mod].postMessage({
-		operation: operation,
-		id: ala.mods.operationCounter++,
+		method: method,
+		id: ala.mods.methodCounter++,
 		options: options
 	});
 }
 
 ala.mods.messageHandler = function(ev){
 	var options = ev.data;
-	ala.mods.operations[options.requestId].callback(options.output);
-	delete ala.mods.operations[options.requestId];
+	ala.mods.methods[options.requestId].callback(options.output);
+	delete ala.mods.methods[options.requestId];
 }
