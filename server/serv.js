@@ -63,48 +63,6 @@ app.get("/", function(req, res){
 });
 
 /**
- * Serves the requested CSS file.
- */
-app.get("/css/:file", function(req, res){
-	res.sendFile("/css/" + req.params.file, {root: path.join(__dirname, "../public")});
-});
-
-/**
- * Serves the requested JS file.
- */
-app.get("/js/:file", function(req, res){
-	res.sendFile("/js/" + req.params.file, {root: path.join(__dirname, "../public")});
-});
-
-/**
- * Serves the requested JS mod enconder file.
- */
-app.get("/js/mods/enc/:file", function(req, res){
-	res.sendFile("/js/mods/enc/" + req.params.file, {root: path.join(__dirname, "../public")});
-});
-
-/**
- * Serves the requested JS mod decoder file.
- */
-app.get("/js/mods/dec/:file", function(req, res){
-	res.sendFile("/js/mods/dec/" + req.params.file, {root: path.join(__dirname, "../public")});
-});
-
-/**
- * Serves the requested image file.
- */
-app.get("/images/:file", function(req, res){
-	res.sendFile("/images/" + req.params.file, {root: path.join(__dirname, "../public")});
-});
-
-/**
- * Serves the requested static file.
- */
-app.get("/static/:file", function(req, res){
-	res.sendFile("/static/" + req.params.file, {root: path.join(__dirname, "../public")});
-});
-
-/**
  * Returns the public data about a user.
  */
 app.get("/user/:email", function(req, res){
@@ -627,6 +585,11 @@ app.post("/chat/history", function(req, res){
 		});
 	});
 });
+
+/**
+ * Serves all other files.
+ */
+app.use(express.static("public"));
 
 http.listen(PORT, function(){
 	console.log("listening on *:" + PORT);
