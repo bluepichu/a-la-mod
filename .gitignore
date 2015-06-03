@@ -3,3 +3,4 @@
 *.swo
 /site
 .brackets.json
+*.css.map
