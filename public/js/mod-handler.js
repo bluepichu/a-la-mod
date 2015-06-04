@@ -8,6 +8,9 @@ ala.mods.encode = function(message, mods, cb){
 	if(message.constructor !== Array){
 		message = [message]
 	}
+	for(var i = 0; i < mods.length; i++){
+		ala.mods.initializeEncoder(mods[i]);
+	}
 	var closure = function(ind){
 		return function(data){
 			if(ind >= mods.length){
@@ -24,6 +27,9 @@ ala.mods.encode = function(message, mods, cb){
 ala.mods.decode = function(message, mods, cb){
 	if(message.constructor !== Array){
 		message = [message]
+	}
+	for(var i = 0; i < mods.length; i++){
+		ala.mods.initializeDecoder(mods[i]);
 	}
 	var closure = function(ind){
 		return function(data){
@@ -70,14 +76,15 @@ ala.mods.initialize = function(mod, options){
 			throw "Mod Initialization Error: invalid modType.";
 	}
 	if(mod in addTo){
-		throw "Mod Initialization Error: mod is already initialized, or naming conflict exists.";
+		return false;
 	}
-	addTo[mod] = new Worker("/js/mods/" + options.modType + "/" + mod + ".js");
+	addTo[mod] = new Worker("/mods/" + options.modType + "/" + mod);
 	addTo[mod].modType = options.modType;
 	addTo[mod].name = mod;
 	delete options["modType"];
 	addTo[mod].postMessage({method: "init", options: options});
 	addTo[mod].onmessage = ala.mods.messageHandler;
+	return true;
 }
 
 ala.mods.execute = function(mod, modType, method, options, cb){

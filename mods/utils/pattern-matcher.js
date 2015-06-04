@@ -1,30 +1,29 @@
-var searchPattern = /`(.*?)`/;
+importScripts("/mods/utils/async-handler");
 
-importScripts("/js/mods/utils/creamery/mod-base.js");
-
-registerMethod("encode", function(inp, cb){
+matchPattern = function(inp, pattern, func, cb){
 	var out = [];
+	var ash = new AsyncHandler(function(){
+		cb(out);
+	});
+
 	for(var i = 0; i < inp.length; i++){
 		if(typeof(inp[i]) == "string"){
 			var str = inp[i];
 			while(str.length > 0){
-				var match = str.match(this.searchPattern);
+				var match = str.match(pattern);
 				if(match == null){
 					break;
 				}
 				if(match.index > 0){
 					out.push(str.substring(0, match.index));
 				}
-				out.push({
-					codec: {
-						namespace: "com.alamod",
-						type: "code"
-					},
-					content: {
-						code: match[1]
-					},
-					fallback: match[1]
-				});
+				out.push("");
+				ash.attach(func, [match], function(ind){
+					return function(data){
+						out[ind] = data;
+						this.next();
+					}
+				}(out.length-1));
 				str = str.substring(match.index + match[0].length);
 			}
 			if(str.length > 0){
@@ -34,5 +33,5 @@ registerMethod("encode", function(inp, cb){
 			out.push(inp[i]);
 		}
 	}
-	cb(out);
-});
+	ash.run();
+}
