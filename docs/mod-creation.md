@@ -10,14 +10,48 @@ Several common mod tools have been already written.  They can be found by import
 
 An encoding mod will usually take in strings and split them when a certain pattern satisfying the mod is found.  A shorthand form of this, found in the `pattern-matcher.js` utility, is useful for producing encoding mods for this reason.
 
-```
-// TODO: Sample code here
+Example:
+
+```js
+importScripts("/mods/utils/mod-base", "/mods/utils/pattern-matcher");
+
+registerMethod("encode", function(inp, cb){
+	matchPattern(inp.message, /<regex>/, function(match, cb){
+		cb({
+			codec: {
+				namespace: "<developer name>",
+				type: "<codec name>"
+			},
+			content: {
+				<content>
+			},
+			fallback: <fallback text content>
+		});
+	}, function(data){
+		cb({message: data});
+	});
+});
 ```
 
 ## Decoding
 
-An decoding mod will usually take in the message, search for pieces with a compatible codec, and decode them to strings.  A shorthand form of this, found in the `codec-matcher.js` utility, is useful for producing encoding mods for this reason.
+An decoding mod will usually take in the message, search for pieces with a compatible codec, and decode them to strings.
 
+Example:
+
+```js
+importScripts("/mods/utils/mod-base");
+
+registerMethod("decode", function(inp, cb){
+	inp = inp.message;
+	var out = inp.slice(0, inp.length);
+	for(var i = 0; i < inp.length; i++){
+		if(typeof(inp[i]) == "object" && inp[i].codec !== undefined && inp[i].codec.namespace == "<developer name>" && inp[i].codec.type == "<codec name>"){
+			out[i] = <text content>;
+		}
+	}
+	cb({message: out});
+});
 ```
-// TODO: Sample code here
-```
+
+Note that if the text content contains HTML, you must escape it in a SafeString.  You can do this by returning `{type: "SafeString", content: <content>}` instead of a string.
