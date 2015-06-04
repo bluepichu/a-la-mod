@@ -1,40 +1,20 @@
-var searchPattern = /github:(.*?)\/(.*?)\s#?(\d+)/;
-
-importScripts("/js/mods/utils/creamery/mod-base.js");
+importScripts("/js/mods/utils/creamery/mod-base.js", "/js/mods/utils/creamery/pattern-matcher.js");
 
 registerMethod("encode", function(inp, cb){
-	var out = [];
-	for(var i = 0; i < inp.length; i++){
-		if(typeof(inp[i]) == "string"){
-			var str = inp[i];
-			while(str.length > 0){
-				var match = str.match(this.searchPattern);
-				if(match == null){
-					break;
-				}
-				if(match.index > 0){
-					out.push(str.substring(0, match.index));
-				}
-				out.push({
-					codec: {
-						namespace: "com.alamod.github",
-						type: "issue"
-					},
-					content: {
-						owner: match[1],
-						repo: match[2],
-						issue: parseInt(match[3])
-					},
-					fallback: match[1] + "/" + match[2] + " #" + match[3]
-				});
-				str = str.substring(match.index + match[0].length);
-			}
-			if(str.length > 0){
-				out.push(str);
-			}
-		} else {
-			out.push(inp[i]);
-		}
-	}
-	cb(out);
+	matchPattern(inp.message, /github:(.*?)\/(.*?)\s#?(\d+)/, function(match, cb){
+		cb({
+			codec: {
+				namespace: "com.alamod.github",
+				type: "issue"
+			},
+			content: {
+				owner: match[1],
+				repo: match[2],
+				issue: parseInt(match[3])
+			},
+			fallback: match[1] + "/" + match[2] + " #" + match[3]
+		});
+	}, function(data){
+		cb({message: data});
+	});
 });

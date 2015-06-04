@@ -1,4 +1,4 @@
-importScripts("/js/mods/utils/creamery/mod-base.js");
+importScripts("/js/mods/utils/creamery/mod-base.js", "/js/mods/utils/creamery/async-handler.js");
 
 registerMethod("decode", function(inp, cb){
 	inp = inp.message;
@@ -37,30 +37,3 @@ registerMethod("decode", function(inp, cb){
 	}
 	ash.run();
 });
-
-// AsyncHandler written by bluepichu.  May become an import at a later point, since this may be published as its own project.
-var AsyncHandler = function(done){
-	this.asyncCount = 0;
-	this.running = false;
-
-	this.run = function(){
-		this.running = true;
-		if(this.asyncCount == 0){
-			done();
-		}
-	}
-
-	this.attach = function(func, args, cb){
-		this.asyncCount++;
-		cb = cb.bind({next: this.next.bind(this)});
-		args.push(cb);
-		func.apply(this, args);
-	}
-
-	this.next = function(){
-		this.asyncCount--;
-		if(this.asyncCount == 0 && this.running){
-			done();
-		}
-	}
-}
