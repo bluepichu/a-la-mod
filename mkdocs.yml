@@ -4,4 +4,5 @@ pages:
 - [types.md, Types]
 - [encoders.md, Encoders]
 - [decoders.md, Decoders]
+- [mod-creation.md, Mod Creation Guide]
 theme: readthedocs
