@@ -1,10 +1,10 @@
-importScripts("/js/mods/utils/creamery/mod-base.js", "/js/mods/utils/creamery/pattern-matcher.js");
+importScripts("/mods/utils/mod-base", "/mods/utils/pattern-matcher");
 
 registerMethod("encode", function(inp, cb){
 	matchPattern(inp.message, /github:(.*?)\/(.*?)\s#?(\d+)/, function(match, cb){
 		cb({
 			codec: {
-				namespace: "com.alamod.github",
+				namespace: "creamery.github",
 				type: "issue"
 			},
 			content: {

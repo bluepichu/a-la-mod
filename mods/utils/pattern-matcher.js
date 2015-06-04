@@ -1,4 +1,4 @@
-importScripts("/js/mods/utils/creamery/async-handler.js");
+importScripts("/mods/utils/async-handler");
 
 matchPattern = function(inp, pattern, func, cb){
 	var out = [];

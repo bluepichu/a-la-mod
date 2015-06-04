@@ -1,4 +1,4 @@
-importScripts("/js/mods/utils/creamery/mod-base.js", "/js/mods/utils/creamery/async-handler.js");
+importScripts("/mods/utils/mod-base", "/mods/utils/async-handler");
 
 registerMethod("decode", function(inp, cb){
 	inp = inp.message;
@@ -7,7 +7,7 @@ registerMethod("decode", function(inp, cb){
 		cb({message: out});
 	});
 	for(var i = 0; i < inp.length; i++){
-		if(typeof(inp[i]) == "object" && inp[i].codec !== undefined && inp[i].codec.namespace == "com.alamod.github" && inp[i].codec.type == "issue"){
+		if(typeof(inp[i]) == "object" && inp[i].codec !== undefined && inp[i].codec.namespace == "creamery.github" && inp[i].codec.type == "issue"){
 			ash.attach(function(owner, repo, issue, cb){
 				var xhr = new XMLHttpRequest();
 

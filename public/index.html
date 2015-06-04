@@ -30,37 +30,21 @@
 			var ala = {};
 		</script>
 
-		<script src="js/mods/mod-handler.js"></script>
+		<script src="js/mod-handler.js"></script>
 		<script src="templates/templates.js"></script>
 
 		<script>
 			ala.chats = {};
 			ala.spark = new Spark(Handlebars);
-			ala.modsList = {};
-			ala.modsList.encoding = ["creamery/code", "creamery/github-issues", "creamery/latex", "creamery/links"];
-			ala.modsList.decoding = ["creamery/code", "creamery/github-issues", "creamery/latex", "creamery/links"];
 			ala.messageCounter = 0;
 
-			if(!$.cookie("mods")){
-				$.cookie("mods", JSON.stringify({
-					encoding: [true, true, true, true],
-					decoding: [true, true, true, true]
-				}));
+			if(!$.cookie("mods-enc")){
+				$.cookie("mods-enc", "");
 			}
 
-			ala.modSelection = JSON.parse($.cookie("mods"));
-
-			ala.mods.initializeEncoder("creamery/code");
-			ala.mods.initializeDecoder("creamery/code");
-
-			ala.mods.initializeEncoder("creamery/github-issues");
-			ala.mods.initializeDecoder("creamery/github-issues");
-
-			ala.mods.initializeEncoder("creamery/latex");
-			ala.mods.initializeDecoder("creamery/latex");
-
-			ala.mods.initializeEncoder("creamery/links");
-			ala.mods.initializeDecoder("creamery/links");
+			if(!$.cookie("mods-dec")){
+				$.cookie("mods-dec", "");
+			}
 
 			moment.locale("en", {
 				calendar: {
@@ -259,16 +243,9 @@
 				});
 
 				$("#dropdown-mods").click(function(){
-					ala.updateMods();
 					ala.lightbox("form-mods", true);
-					$("#code-enc").prop("checked", ala.modSelection.encoding[0]);
-					$("#git-enc").prop("checked", ala.modSelection.encoding[1]);
-					$("#latex-enc").prop("checked", ala.modSelection.encoding[2]);
-					$("#links-enc").prop("checked", ala.modSelection.encoding[3]);
-					$("#code-dec").prop("checked", ala.modSelection.decoding[0]);
-					$("#git-dec").prop("checked", ala.modSelection.decoding[1]);
-					$("#latex-dec").prop("checked", ala.modSelection.decoding[2]);
-					$("#links-dec").prop("checked", ala.modSelection.decoding[3]);
+					$("#mods-enc").val($.cookie("mods-enc") || "");
+					$("#mods-dec").val($.cookie("mods-dec") || "");
 				});
 
 				$("#dropdown-log-out").click(function(){
@@ -478,22 +455,8 @@
 						e.preventDefault();
 						return false;
 					} else if($(this).attr("id") == "form-mods"){
-						ala.modSelection = {
-							encoding: [
-								$("#code-enc").prop("checked"),
-								$("#git-enc").prop("checked"),
-								$("#latex-enc").prop("checked"),
-								$("#links-enc").prop("checked")
-							],
-							decoding: [
-								$("#code-dec").prop("checked"),
-								$("#git-dec").prop("checked"),
-								$("#latex-dec").prop("checked"),
-								$("#links-dec").prop("checked")
-							]
-						};
-						$.cookie("mods", JSON.stringify(ala.modSelection));
-						ala.updateMods();
+						$.cookie("mods-enc", $("#mods-enc").val());
+						$.cookie("mods-dec", $("#mods-dec").val());
 						ala.lightbox("");
 						return false;
 					}
@@ -643,17 +606,16 @@
 				var data = $("#chat-input").val();
 				$("#chat-input").val("");
 
-				var encodeOrder = [];
+				var encodeOrder = ($.cookie("mods-enc") || "").split(/\s+/);
 
-				for(var i = 0; i < ala.modsList.encoding.length; i++){
-					if(ala.modSelection.encoding[i]){
-						encodeOrder.push(ala.modsList.encoding[i]);
-					}
+				if(encodeOrder.length == 1 && encodeOrder[0] == ""){
+					encodeOrder = [];
 				}
 
 				ala.mods.encode(data, encodeOrder, function(data){
 					ala.socket.emit("message", ala.currentChat, data);
 				});
+				return false;
 				return false;
 			}
 
@@ -733,12 +695,10 @@
 				newMessage.attr("message-id", ala.messageCounter);
 				ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
 
-				var decodeOrder = [];
+				var decodeOrder = ($.cookie("mods-dec") || "").split(/\s+/);
 
-				for(var i = 0; i < ala.modsList.decoding.length; i++){
-					if(ala.modSelection.decoding[i]){
-						decodeOrder.push(ala.modsList.decoding[i]);
-					}
+				if(decodeOrder.length == 1 && decodeOrder[0] == ""){
+					decodeOrder = [];
 				}
 
 				ala.mods.decode(data.message, decodeOrder, function(id, sender){
@@ -902,18 +862,6 @@
 				$("form#" + formId + " input").val("");
 				$("form#" + formId + " ala-user-list").empty().append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, removable: false}));
 			}
-
-			ala.updateMods = function(){
-				var lstEnc = [$("#code-enc"), $("#git-enc"), $("#latex-enc"), $("#links-enc")];
-				var lstDec = [$("#code-dec"), $("#git-dec"), $("#latex-dec"), $("#links-dec")];
-
-				ala.mods.encoding = [];
-				ala.mods.decoding = [];
-
-				$("#form-mods input[type=checkbox]").prop("checked", false);
-			}
-
-			ala.updateMods();
 
 			Handlebars.registerHelper("gravatar", function(email, size){
 				return new Handlebars.SafeString("<img class='icon icon-" + size + "' src='https://www.gravatar.com/avatar/" + (email && typeof(email) == "string" ? md5(email.trim().toLowerCase()) : "") + "?s=" + size + "&d=identicon' />");
@@ -1081,40 +1029,16 @@
 					<form id="form-mods" novalidate>
 						<h3>Mods</h3>
 						<ala-input>
-							<input type="checkbox" id="links-enc" name="links-enc" class="dark" />
-							<label for="links-enc">Links Encoder</label>
+							<h5>Encoding Mods</h5>
+							<textarea id="mods-enc" class="dark"></textarea>
 						</ala-input>
 						<ala-input>
-							<input type="checkbox" id="code-enc" name="code-enc" class="dark" />
-							<label for="code-enc">Code Encoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="git-enc" name="git-enc" class="dark" />
-							<label for="git-enc">Github Issues Encoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="latex-enc" name="latex-enc" class="dark" />
-							<label for="latex-enc">Latex Encoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="links-dec" name="links-dec" class="dark" />
-							<label for="links-dec">Links Decoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="code-dec" name="code-dec" class="dark" />
-							<label for="code-dec">Code Decoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="git-dec" name="git-dec" class="dark" />
-							<label for="git-dec">Github Issues Decoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="latex-dec" name="latex-dec" class="dark" />
-							<label for="latex-dec">Latex Decoder</label>
+							<h5>Decoding Mods</h5>
+							<textarea id="mods-dec"></textarea>
 						</ala-input>
 						<ala-input class="align-right spinner-target">
 							<button id="cancel" class="raised">Cancel</button>
-							<button type="submit" id="mods-submit" class="raised ok">Update</button>
+							<button type="submit" id="mods-submit" class="raised ok">Submit</button>
 						</ala-input>
 					</form>
 				</ala-lightbox>
