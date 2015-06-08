@@ -17,6 +17,9 @@ var emailValidator = require("email-validator");
 var cryptoString = require("random-crypto-string");
 var mkdirp = require("mkdirp");
 
+var nconf = require("nconf");
+nconf.argv().env();
+
 var connect_handlebars = require("connect-handlebars");
 app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/templates", {
 	exts: ["hbs"]
@@ -27,7 +30,7 @@ var PAGE_SIZE = 40;  // Number of chat results to return in a single request.
 
 var SOCKETS = {}; // Stores currently authorized sockets, as {<user id>: [<list of connected sockets authorized with user id>]}
 
-var PORT = process.env.PORT || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
+var PORT = nconf.get("port") || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
 
 var sendgridlogin = require("sendgrid");
 var sendgrid = undefined;
@@ -38,19 +41,15 @@ var email = require("./email");
 
 var stub;
 fs.readFile(__dirname + "/templates/notif-stubs.template", function(err, buff) {
-	if (err) {
+	if(err){
 		console.log(err);
 	} else {
 		stub = buff.toString();
 	}
 })
 
-if (process.argv[2] == "-l") {
-	local = true;
-}
-
-if (process.env.SGPASS) {
-	sendgrid = sendgridlogin("a-la-mod",process.env.SGPASS);
+if(nconf.get("SGPASS")){
+	sendgrid = sendgridlogin("a-la-mod", nconf.get("SGPASS"));
 
 } else {
 	console.log("Missing SGPASS environment variable. Will not be able to verify email addresses");

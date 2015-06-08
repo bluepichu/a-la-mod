@@ -14,6 +14,7 @@
     "sendgrid": "^1.6.0",
     "socket.io": "^1.3.2",
     "random-crypto-string": "^0.9.0",
-    "mkdirp": "^0.5.1"
+    "mkdirp": "^0.5.1",
+    "nconf": "^0.7.1"
   }
 }
