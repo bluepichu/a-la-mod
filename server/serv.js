@@ -17,6 +17,9 @@ var emailValidator = require("email-validator");
 var cryptoString = require("random-crypto-string");
 var mkdirp = require("mkdirp");
 
+var morgan = require("morgan");
+app.use(morgan("dev"));
+
 var nconf = require("nconf");
 nconf.argv().env();
 
