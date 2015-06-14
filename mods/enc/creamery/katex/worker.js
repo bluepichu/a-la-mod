@@ -1,16 +1,17 @@
 importScripts("/mods/utils/mod-base", "/mods/utils/pattern-matcher");
 
 registerMethod("encode", function(inp, cb){
-	matchPattern(inp.message, /(img|image):(.*?)\s?/, function(match, cb){
+	matchPattern(inp.message, /\$(.*?)\$|\\\((.*?)\\\)/, function(match, cb){
+		var eq = match[1] || match[2];
 		cb({
 			codec: {
 				namespace: "creamery",
-				type: "image"
+				type: "katex"
 			},
 			content: {
-				url: match[2]
+				equation: eq
 			},
-			fallback: "[image:" + match[2] + "]";
+			fallback: eq
 		});
 	}, function(data){
 		cb({message: data});
