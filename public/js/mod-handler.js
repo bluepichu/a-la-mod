@@ -78,7 +78,7 @@ ala.mods.initialize = function(mod, options){
 	if(mod in addTo){
 		return false;
 	}
-	addTo[mod] = new Worker("/mods/" + options.modType + "/" + mod);
+	addTo[mod] = new Worker("/mods/" + options.modType + "/" + mod + "/worker");
 	addTo[mod].modType = options.modType;
 	addTo[mod].name = mod;
 	delete options["modType"];

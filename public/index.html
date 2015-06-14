@@ -21,10 +21,12 @@
 		<script src="js/md5.min.js"></script>
 		<script src="js/spark.js"></script>
 		<script src="js/moment.js"></script>
-
-		<script type="text/javascript"
-				src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default">
-		</script>
+		
+<!--
+		<style>
+			@import url("/mods/dec/creamery/katex/styles");
+		</style>
+-->
 
 		<script>
 			var ala = {};
@@ -706,15 +708,16 @@
 						for(var i = 0; i < data.length; i++){
 							if(data[i].fallback !== undefined){
 								data[i] = data[i].fallback;
-							} else if(data[i].type == "SafeString"){
-								data[i] = new Handlebars.SafeString(data[i].content);
+							}
+							if(data[i].type == "SafeString"){
+								data[i] = {content: new Handlebars.SafeString(data[i].content), decoder: data[i].decoder};
 							}
 						}
-
-						$("[message-id=" + id + "]").replaceWith(Handlebars.templates["chat-message"]({
+						var message = $(Handlebars.templates["chat-message"]({
 							message: data,
 							sender: sender
 						}));
+						$("[message-id=" + id + "]").replaceWith(message);
 					}
 				}(ala.messageCounter, data.sender));
 			}
@@ -1066,5 +1069,6 @@
 			</ala-flex>
 		</ala-app>
 		<ala-snack-bar></ala-snack-bar>
+		<script src="js/scoped.js"></script>
 	</body>
 </html>

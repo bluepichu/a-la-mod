@@ -16,6 +16,7 @@ var moment = require("moment");
 var emailValidator = require("email-validator");
 var cryptoString = require("random-crypto-string");
 var mkdirp = require("mkdirp");
+var sass = require("node-sass");
 
 var morgan = require("morgan");
 app.use(morgan("dev"));
@@ -593,7 +594,7 @@ app.get("/mods/utils/:file", function(req, res){
 	res.sendFile("/utils/" + req.params.file + ".js", {root: path.join(__dirname, "../mods")});
 });
 
-app.get("/mods/:type/:dev/:name", function(req, res){
+app.get("/mods/:type/:dev/:name/*", function(req, res){
 	db.query("mods", {
 		type: req.params.type,
 		developer: req.params.dev,
@@ -607,7 +608,37 @@ app.get("/mods/:type/:dev/:name", function(req, res){
 			res.status(404).send();
 			return;
 		}
-		res.sendFile("/" + req.params.type + "/" + req.params.dev + "/" + req.params.name + ".js", {root: path.join(__dirname, "../mods")});
+		var file = req.params[0];
+		if(file == "worker"){
+			res.sendFile(path.join(req.params.type, req.params.dev, req.params.name, data[0].worker), {root: path.join(__dirname, "../mods")});
+			return;
+		}
+		if(file == "styles"){
+			if(data[0].styles){
+				fs.readFile(path.join(__dirname, "../mods", req.params.type, req.params.dev, req.params.name, data[0].styles), "utf8", function(er, dat){
+					if(er || !dat){
+						res.status(500).send();
+						return;
+					}
+					console.log(dat);
+					dat = "[decoder='" + req.params.dev + "/" + req.params.name + "'] {" + dat + "}";
+					sass.render({
+						data: dat,
+						includePaths: [path.join(__dirname, "../mods", req.params.type, req.params.dev, req.params.name)]
+					}, function(err, result){
+//						console.log(result.css);
+						res.setHeader("Content-Type", "text/css");
+						res.status(200).send(result.css);
+					});
+				});
+				return;
+			} else {
+				res.status(404).send();
+				return;
+			}
+		}
+		res.sendFile(path.join(req.params.type, req.params.dev, req.params.name, file), {root: path.join(__dirname, "../mods")});
+		return;
 	});
 });
 
