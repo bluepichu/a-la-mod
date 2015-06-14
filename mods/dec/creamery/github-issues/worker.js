@@ -27,7 +27,7 @@ registerMethod("decode", function(inp, cb){
 					if(data != null){
 						out[index] = {type: "SafeString", content: "<a href='" + data.html_url + "' target='_blank'><ala-github-issue " + data.state + ">#" + data.number + ": " + data.title + "</ala-github-issue></a>", decoder: "creamery/github-issues"};
 					} else {
-						out[index] = inp[i].fallback;
+						out[index] = inp[index].fallback;
 					}
 					this.next();
 				};
