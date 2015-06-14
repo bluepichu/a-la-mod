@@ -28,7 +28,6 @@ $warning: #ff5252;
 
 // Fonts
 $font-primary: Basic, sans-serif;
-$font-mono: Share Tech Mono, monospace;
 
 // Transforms
 $translate-minus-half: translate(-50%, 0);
@@ -961,31 +960,6 @@ a {
 		color: inherit;
 	}
 }
-ala-github-issue {
-	display: inline-block;
-	padding: .4em .8em;
-	border: 1px solid $black-border;
-	border-radius: 1.4em;
-	background: $gray-light-2;
-	color: $gray-dark-1;
-	padding-left: 2.4em;
-	position: relative;
-	&:before {
-		content: "";
-		height: 1.9em;
-		width: 1.9em;
-		border-radius: 1em;
-		position: absolute;
-		left: .1em;
-		top: .1em;
-		display: inline-block;
-	}
-}
-code {
-	font-family: $font-mono;
-	background: $white-overlay;
-	padding: .2em .4em;
-}
 ala-color-swatch {
 	border: 1px solid $black-border;
 	height: 1em;
@@ -1033,12 +1007,6 @@ ala-message-group[direction="left"] ala-timestamp {
 }
 ala-message-group[direction="right"] ala-timestamp {
 	right: 44px;
-}
-ala-github-issue[open]:before {
-	background-color: $ok;
-}
-ala-github-issue[closed]:before {
-	background-color: $warning;
 }
 input[type="checkbox"] + label {
 	left: 1em;

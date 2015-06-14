@@ -620,13 +620,11 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 						res.status(500).send();
 						return;
 					}
-					console.log(dat);
 					dat = "[decoder='" + req.params.dev + "/" + req.params.name + "'] {" + dat + "}";
 					sass.render({
 						data: dat,
 						includePaths: [path.join(__dirname, "../mods", req.params.type, req.params.dev, req.params.name)]
 					}, function(err, result){
-//						console.log(result.css);
 						res.setHeader("Content-Type", "text/css");
 						res.status(200).send(result.css);
 					});
