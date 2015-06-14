@@ -1,0 +1,29 @@
+$ok: #4caf50;
+$warning: #ff5252;
+
+ala-github-issue {
+	display: inline-block;
+	padding: .4em .8em;
+	border: 1px solid rgba(0, 0, 0, .12);
+	border-radius: 1.4em;
+	background: #f0f0f0;
+	color: #222222;
+	padding-left: 2.4em;
+	position: relative;
+	&:before {
+		content: "";
+		height: 1.9em;
+		width: 1.9em;
+		border-radius: 1em;
+		position: absolute;
+		left: .1em;
+		top: .1em;
+		display: inline-block;
+	}
+}
+ala-github-issue[open]:before {
+	background-color: $ok;
+}
+ala-github-issue[closed]:before {
+	background-color: $warning;
+}

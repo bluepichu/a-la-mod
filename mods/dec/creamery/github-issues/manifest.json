@@ -1,0 +1,8 @@
+{
+	name: "github-issues",
+	developer: "creamery",
+	description: "Decodes github issues.",
+	tags: ["github", "git", "issue"],
+	worker: "worker.js",
+	styles: "styles.scss"
+}

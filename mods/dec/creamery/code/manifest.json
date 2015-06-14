@@ -1,0 +1,8 @@
+{
+	name: "code",
+	developer: "creamery",
+	description: "Decodes code strings.",
+	tags: ["code"],
+	worker: "worker.js",
+	styles: "styles.css"
+}
