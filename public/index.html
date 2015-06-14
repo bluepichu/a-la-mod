@@ -20,11 +20,12 @@
 		<script src="js/md5.min.js"></script>
 		<script src="js/spark.js"></script>
 		<script src="js/moment.js"></script>
-		
-<!--
-		<style>
-			@import url("/mods/dec/creamery/katex/styles");
-		</style>
+		<script src="js/welcome.js"></script>
+
+		<!--
+<style>
+@import url("/mods/dec/creamery/katex/styles");
+</style>
 -->
 
 		<script>
@@ -470,6 +471,8 @@
 					$("#button-bar").addClass("skip-animation-out");
 					ala.chatInit();
 				}
+
+				welcome($("#welcome-message"));
 			});
 
 			ala.clearSnack = function(){
@@ -659,6 +662,7 @@
 							$("ala-message-list-viewport").removeClass("gone");
 
 							ala.lockOpenChat = false;
+							$("ala-input-area").removeClass("out");
 						}, 800);
 					}, (ala.currentChat ? 200 : 0));
 				}
@@ -1055,11 +1059,15 @@
 					</ala-chats-list>
 				</ala-sidebar>
 				<ala-chat-area-container>
+					<ala-start-message>
+						<h2 id="welcome-message"></h2>
+						<p>Ready to chat?  Choose a chat to the left, or click the button below to start a new one.</p>
+					</ala-start-message>
 					<ala-chat-area>
 						<ala-message-list-viewport class="gone">
 							<ala-message-list></ala-message-list>
 						</ala-message-list-viewport>
-						<ala-input-area>
+						<ala-input-area class="out">
 							<textarea id="chat-input" name="send" placeholder="Message..."></textarea>
 							<button id="chat-submit-button" class="raised ok">Submit</button>
 						</ala-input-area>

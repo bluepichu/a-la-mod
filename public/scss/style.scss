@@ -465,9 +465,9 @@ ala-flex {
 ala-sidebar {
 	height: 100%;
 	width: 240px;
-	background: $gray-light-1;
+//	background: $gray-light-1;
 	padding: 0 8px;
-	border-right: 1px solid $black-border;
+//	border-right: 1px solid $black-border;
 }
 ala-chat-area {
 	flex-grow: 1;
@@ -807,10 +807,37 @@ ala-input-area {
 	border-radius: $border-radius-small;
 	z-index: 5;
 	position: relative;
+	top: 0px;
+	transition: top $speed-slow $speed-medium ease-out;
+	
+	&.out {
+		top: 8vh;
+	}
 }
 ala-chat-area-container {
 	position: relative;
 	flex-grow: 1;
+}
+ala-start-message {
+	position: absolute;
+	left: 0px;
+	right: 0px;
+	top: 0px;
+	bottom: 10%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	
+	h2 {
+		color: $gray-light-4;
+		margin: 0px;
+	}
+	
+	p {
+		color: $gray-light-4;
+//		margin-bottom: 10em;
+	}
 }
 h4 {
 	font-size: 2em;
