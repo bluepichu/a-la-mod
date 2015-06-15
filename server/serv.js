@@ -11,6 +11,8 @@ var path = require("path");
 var fs = require("fs");
 var crypto = require("crypto");
 var db = require("./db");
+var pushObj = require("./notifs");
+var push = new pushObj(db.db);
 var ObjectId = db.ObjectId;
 var moment = require("moment");
 var emailValidator = require("email-validator");
@@ -58,12 +60,67 @@ if(nconf.get("SGPASS")){
 } else {
 	console.log("Missing SGPASS environment variable. Will not be able to verify email addresses");
 }
-
+app.get("/push/:email/:title/:body", function(req, res) {
+	push.sendMessage(req.params.email, {title: req.params.title, body: req.params.body}, function() {console.log(arguments)})
+	res.send("Tried");
+})
+app.get("/push/get/:subId", function(req, res) {
+	push.getMessage(req.params.subId, function(err, response) {
+		console.log(arguments)
+		res.type("application/json")
+		res.send(JSON.stringify(response))
+	})
+})
 /**
  * Serves the À la Mod page.
  */
 app.get("/", function(req, res){
 	res.sendFile("/index.html", {root: path.join(__dirname, "../public")});
+});
+
+/**
+ * Serves the requested CSS file.
+ */
+app.get("/css/:file", function(req, res){
+	res.sendFile("/css/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+/**
+ * Serves the requested JS file.
+ */
+app.get("/js/:file", function(req, res){
+	res.sendFile("/js/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+app.get("/service-worker.js", function(req, res) {
+	res.sendFile("/service-worker.js", {root: path.join(__dirname, "../public")})
+})
+/**
+ * Serves the requested JS mod enconder file.
+ */
+app.get("/js/mods/enc/:file", function(req, res){
+	res.sendFile("/js/mods/enc/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+/**
+ * Serves the requested JS mod decoder file.
+ */
+app.get("/js/mods/dec/:file", function(req, res){
+	res.sendFile("/js/mods/dec/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+/**
+ * Serves the requested image file.
+ */
+app.get("/images/:file", function(req, res){
+	res.sendFile("/images/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+/**
+ * Serves the requested static file.
+ */
+app.get("/static/:file", function(req, res){
+	res.sendFile("/static/" + req.params.file, {root: path.join(__dirname, "../public")});
 });
 
 /**
@@ -155,6 +212,41 @@ app.get("/user/reset/:resetID", function(req, res) {
 				db.update("users",{resID: req.params.resetID}, {$unset:{resID: ""}}, function(){});
 			});
 		});
+	})
+
+})
+app.post("/user/notifs/register", function(req, res) {
+	var chk = argCheck(req.body, {email: "string", auth: "string", subscriptionId: "string", shouldAdd: "boolean"})
+	if (!chk.valid) {
+		res.status(400);
+		res.send("Request failed: "+JSON.stringify(chk))
+		return;
+	}
+	db.query("users", {
+		email: req.body.email, 
+		authTokens: {
+			$in: [req.body.auth]
+		}}, function(err, data) {
+		if (err) {
+			res.status(500);
+			res.send("Request failed: Server error.")
+			return;
+		}
+		if (data.length != 1) {
+			res.status(400);
+			res.send("Request failed: Unauthorized user");
+			return;
+		}
+		if (!data[0].verified) {
+			res.status(400);
+			res.send("Request failed: User not verified");
+			return;
+		}
+		if (req.body.shouldAdd) {
+			push.addKey(req.body.email, req.body.subscriptionId)
+		} else {
+			push.removeKey(req.body.email, req.body.subscriptionId)
+		}
 	})
 })
 /**
@@ -920,7 +1012,7 @@ var argCheck = function(args, type){
 		}
 	}
 	for(kT in type) {
-		if(!args[kT] && !(typeof type[kT] == "object" && type[kT].optional)) {
+		if(!(kT in args) && !(typeof type[kT] == "object" && type[kT].optional)) {
 			return {valid: false, missing: kT};
 		}
 	}

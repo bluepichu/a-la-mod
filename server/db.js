@@ -1,6 +1,6 @@
 var mjs = require("mongojs");
 var dbPath = "mongodb://localhost:27017/a-la-mod";
-var db = mjs.connect(dbPath, ["users", "chats", "mods", "developers"]);
+var db = mjs.connect(dbPath, ["users", "chats", "mods", "developers", "push"]);
 var ObjectId = mjs.ObjectId;
 
 console.log("DB connected @ " + dbPath);
@@ -78,5 +78,6 @@ module.exports = {
     insert: insert,
     update: update,
     project: project,
-    ObjectId: ObjectId
+    ObjectId: ObjectId,
+    db: db,
 }

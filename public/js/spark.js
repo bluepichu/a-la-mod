@@ -1,6 +1,6 @@
 //A lightweight Handlebars live rendering system similar to ember and blaze
 //Written 2015 by zwade
-
+args = null;
 Spark = function(hb) {
 	this._hb = hb;
 	this._kvp = {};
@@ -10,6 +10,7 @@ Spark = function(hb) {
 	hb.registerHelper("spark", function() {
 		var hbstr = "{{";
 		var params = [];
+		args = arguments
 		for (var i = 0; i < arguments.length - 1; i++) {
 			if (typeof arguments[i] == "string") {
 				var cmd = arguments[i].charAt(0);
@@ -32,15 +33,19 @@ Spark = function(hb) {
 		}
 		hbstr = hbstr.slice(0,-1)+"}}"
 		var id = Math.floor(Math.random()*100000000).toString()
-		var upFunc = function (str, params, spark) {  //uptown func you up
+		var upFunc = function (str, fn, params, spark) {  //uptown func you up
 			return function() {
 				var cont = {}
 				for (var p = 0; p < params.length; p++) {
 					cont[params[p]] = spark._kvp[params[p]];
 				}
-				return spark._hb.compile(str)(cont);
+				if (!fn) {
+					return spark._hb.compile(str)(cont);
+				} else {
+					return fn(cont);
+				}
 			}
-		}(hbstr, params, that)
+		}(hbstr, arguments[arguments.length-1].fn, params, that)
 		for (var p = 0; p < params.length; p++) {
 			that._upd[params[p]].push({funct: upFunc, id: id})
 		}
