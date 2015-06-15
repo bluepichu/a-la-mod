@@ -808,10 +808,10 @@ ala-input-area {
 	z-index: 5;
 	position: relative;
 	top: 0px;
-	transition: top $speed-slow $speed-medium ease-out;
+	transition: top $speed-vslow ease-out;
 	
 	&.out {
-		top: 8vh;
+		top: 100vh;
 	}
 }
 ala-chat-area-container {
