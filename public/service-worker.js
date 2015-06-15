@@ -10,8 +10,11 @@ self.addEventListener('push', function(event) {
 
 	event.waitUntil(
 		registration.pushManager.getSubscription().then(function(ps) {
-			console.log(ps.subscriptionId)
-			fetch("/push/get/"+ps.subscriptionId).then(function(res) {
+			var sId = ps.subscriptionId
+			if (!sId) {
+				sId = ps.endpoint.split("/gcm/send/")[1]
+			}
+			fetch("/push/get/"+sId).then(function(res) {
 				res.json().then(function(data) {
 						self.registration.showNotification(data.title || title, {
 						body: data.body || body,
@@ -20,7 +23,6 @@ self.addEventListener('push', function(event) {
 					})
 				 })
 			})
-
 		})
 	);
 });

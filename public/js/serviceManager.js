@@ -91,14 +91,18 @@ window.pushInst = null;
 	pushManager.prototype.subscribe = function() {
 		var that = this;
 		navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
-			serviceWorkerRegistration.pushManager.subscribe()
+			serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly:true})
 				.then(function(subscription) {
 					// The subscription was successful
 					that.enabled = true;
-					if (that.onSubscribe) that.onSubscribe(null, subscription)
 					that.subscription = subscription;
 					that.endpoint = subscription.endpoint;
 					that.subscriptionId = subscription.subscriptionId;
+					if (!that.subscriptionId) {
+						that.subscriptionId = that.endpoint.split("/gcm/send/")[1]
+					}
+					console.log(that.subscriptionId)
+					if (that.onSubscribe) that.onSubscribe(null, subscription)
 
 					// TODO: Send the subscription.subscriptionId and 
 					// subscription.endpoint to your server
@@ -164,7 +168,12 @@ window.pushInst = null;
 					}
 					that.subscription = subscription;
 					that.endpoint = subscription.endpoint;
+
 					that.subscriptionId = subscription.subscriptionId;
+					if (!subscription.subscriptionId) {
+						that.subscriptionId = that.endpoint.split("/gcm/send/")[1]
+					}
+					console.log(that.subscriptionId)
 					that.state = 5;
 					// Keep your server in sync with the latest subscriptionId
 					that.sendSubscriptionToServer(subscription);

@@ -85,6 +85,7 @@
 			});
 
 			var sendToServer = function(subId, add) {
+				console.log(">>> ",subId)
 				var xhr = new XMLHttpRequest()
 				xhr.open("POST","/user/notifs/register")
 				xhr.setRequestHeader("Content-Type","application/json")
@@ -132,7 +133,7 @@
 				ala.pushInst.onSubscribe = function(err, sub) {
 					console.log("Sub>>",arguments, ala.pushInst)
 					ala.spark.set("enabled", ala.pushInst.enabled)
-					sendToServer(arguments[1].subscriptionId, true)
+					sendToServer(ala.pushInst.subscriptionId, true)
 					$("#notification").click(notifFunc)
 				}
 				ala.pushInst.onUnsubscribe = function() {
