@@ -17,6 +17,14 @@ var ObjectId = db.ObjectId;
 var moment = require("moment");
 var emailValidator = require("email-validator");
 var cryptoString = require("random-crypto-string");
+var mkdirp = require("mkdirp");
+var sass = require("node-sass");
+
+var morgan = require("morgan");
+app.use(morgan("dev"));
+
+var nconf = require("nconf");
+nconf.argv().env();
 
 var connect_handlebars = require("connect-handlebars");
 app.use("/templates/templates.js", connect_handlebars(__dirname + "/../public/templates", {
@@ -28,7 +36,7 @@ var PAGE_SIZE = 40;  // Number of chat results to return in a single request.
 
 var SOCKETS = {}; // Stores currently authorized sockets, as {<user id>: [<list of connected sockets authorized with user id>]}
 
-var PORT = process.env.PORT || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
+var PORT = nconf.get("port") || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
 
 var sendgridlogin = require("sendgrid");
 var sendgrid = undefined;
@@ -39,19 +47,15 @@ var email = require("./email");
 
 var stub;
 fs.readFile(__dirname + "/templates/notif-stubs.template", function(err, buff) {
-	if (err) {
+	if(err){
 		console.log(err);
 	} else {
 		stub = buff.toString();
 	}
 })
 
-if (process.argv[2] == "-l") {
-	local = true;
-}
-
-if (process.env.SGPASS) {
-	sendgrid = sendgridlogin("a-la-mod",process.env.SGPASS);
+if(nconf.get("SGPASS")){
+	sendgrid = sendgridlogin("a-la-mod", nconf.get("SGPASS"));
 
 } else {
 	console.log("Missing SGPASS environment variable. Will not be able to verify email addresses");
@@ -678,6 +682,97 @@ app.post("/chat/history", function(req, res){
 	});
 });
 
+app.get("/mods/utils/:file", function(req, res){
+	res.sendFile("/utils/" + req.params.file + ".js", {root: path.join(__dirname, "../mods")});
+});
+
+app.get("/mods/:type/:dev/:name/*", function(req, res){
+	db.query("mods", {
+		type: req.params.type,
+		developer: req.params.dev,
+		name: req.params.name
+	}, function(err, data){
+		if(err || !data){
+			res.status(500).send();
+			return;
+		}
+		if(data.length != 1){
+			res.status(404).send();
+			return;
+		}
+		var file = req.params[0];
+		if(file == "worker"){
+			res.sendFile(path.join(req.params.type, req.params.dev, req.params.name, data[0].worker), {root: path.join(__dirname, "../mods")});
+			return;
+		}
+		if(file == "styles"){
+			if(data[0].styles){
+				fs.readFile(path.join(__dirname, "../mods", req.params.type, req.params.dev, req.params.name, data[0].styles), "utf8", function(er, dat){
+					if(er || !dat){
+						res.status(500).send();
+						return;
+					}
+					dat = "[decoder='" + req.params.dev + "/" + req.params.name + "'] {" + dat + "}";
+					sass.render({
+						data: dat,
+						includePaths: [path.join(__dirname, "../mods", req.params.type, req.params.dev, req.params.name)]
+					}, function(err, result){
+						res.setHeader("Content-Type", "text/css");
+						res.status(200).send(result.css);
+					});
+				});
+				return;
+			} else {
+				res.status(404).send();
+				return;
+			}
+		}
+		res.sendFile(path.join(req.params.type, req.params.dev, req.params.name, file), {root: path.join(__dirname, "../mods")});
+		return;
+	});
+});
+
+app.post("/mods/new", function(req, res){ // TODO: any type of security, input validation
+	if(!(argCheck(req.body, {type: "string", developer: "string", name: "string", content: "string"}).valid && /^[A-Za-z\-0-9]*$/.test(req.body.developer) && /^[A-Za-z\-0-9]*$/.test(req.body.name) && (req.body.type == "enc" || req.body.type == "dec"))){
+		res.status(400).send();
+		return;
+	}
+	db.query("mods", {
+		type: req.body.type,
+		developer: req.body.developer,
+		name: req.body.name
+	}, function(err, data){
+		if(err || !data){
+			res.status(500).send();
+			return;
+		}
+
+		if(data.length > 0){
+			res.status(400).send();
+			return;
+		}
+
+		mkdirp(path.join(__dirname, "../mods") + "/" + req.body.type + "/" + req.body.developer, function(er){
+			if(er){
+				res.status(500).send(er);
+				return;
+			}
+			fs.writeFile(path.join(__dirname, "../mods") + "/" + req.body.type + "/" + req.body.developer + "/" + req.body.name + ".js", req.body.content, function(e){
+				if(e){
+					res.status(500).send(e);
+					return;
+				}
+				res.status(200).send();
+			});
+		});
+	});
+});
+
+/**
+ * Serves all other files.
+ */
+app.use(express.static("public"));
+
 http.listen(PORT, function(){
 	console.log("listening on *:" + PORT);
 });
@@ -758,8 +853,7 @@ io.on("connection", function(socket){
 
 			db.query("chats", {
 
-			},
-					 function(er, dat){
+			}, function(er, dat){
 				if(!er){
 					for(var i = 0; i < dat.length; i++){
 						socket.join(dat[i]._id);
@@ -814,7 +908,7 @@ io.on("connection", function(socket){
 					io.to(socket.id).emit("error", {description: "Request failed: server error."});
 					return;
 				}
-				
+
 				var sender = {
 					email: socket.email,
 					_id: socket.userId,

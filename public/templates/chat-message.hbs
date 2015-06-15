@@ -1,1 +1,16 @@
-<ala-chat-message style="background: {{sender.color}}; border-color: {{sender.color}};" >{{#each message}}{{this}}{{/each}}</ala-chat-message>
+<ala-chat-message style="background: {{sender.color}}; border-color: {{sender.color}};" >
+	{{#each message}}
+		<span {{#if decoder}}decoder="{{decoder}}"{{/if}}>
+			{{#if decoder}}
+				<style>
+					@import url("/mods/dec/{{decoder}}/styles");
+				</style>
+			{{/if}}
+			{{#if content}}
+				{{content}}
+			{{else}}
+				{{this}}
+			{{/if}}
+		</span>
+	{{/each}}
+</ala-chat-message>

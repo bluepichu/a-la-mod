@@ -3,6 +3,7 @@ $primary: #1565c0;
 $primary-dark: #0d47a1;
 
 $white: #ffffff;
+
 $gray-light-1: #f8f8f8;
 $gray-light-2: #f0f0f0;
 $gray-light-3: #d8d8d8;
@@ -27,7 +28,6 @@ $warning: #ff5252;
 
 // Fonts
 $font-primary: Basic, sans-serif;
-$font-mono: Share Tech Mono, monospace;
 
 // Transforms
 $translate-minus-half: translate(-50%, 0);
@@ -293,7 +293,7 @@ button {
 	}
 	&.floating-action {
 		@include shadow(3);
-		
+
 		@extend %circle;
 		transition: box-shadow $speed-medium;
 		width: 56px;
@@ -465,9 +465,9 @@ ala-flex {
 ala-sidebar {
 	height: 100%;
 	width: 240px;
-	background: $gray-light-1;
+//	background: $gray-light-1;
 	padding: 0 8px;
-	border-right: 1px solid $black-border;
+//	border-right: 1px solid $black-border;
 }
 ala-chat-area {
 	flex-grow: 1;
@@ -733,7 +733,7 @@ h3 {
 }
 ala-remove-button {
 	@extend .no-select;
-	
+
 	width: 12px;
 	height: 12px;
 	background: $gray-light-3;
@@ -754,7 +754,7 @@ ala-remove-button {
 }
 .icon {
 	@extend %circle;
-	
+
 	.icon-24 {
 		width: 24px;
 		height: 24px;
@@ -807,10 +807,37 @@ ala-input-area {
 	border-radius: $border-radius-small;
 	z-index: 5;
 	position: relative;
+	top: 0px;
+	transition: top $speed-vslow ease-out;
+	
+	&.out {
+		top: 100vh;
+	}
 }
 ala-chat-area-container {
 	position: relative;
 	flex-grow: 1;
+}
+ala-start-message {
+	position: absolute;
+	left: 0px;
+	right: 0px;
+	top: 0px;
+	bottom: 10%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	
+	h2 {
+		color: $gray-light-4;
+		margin: 0px;
+	}
+	
+	p {
+		color: $gray-light-4;
+//		margin-bottom: 10em;
+	}
 }
 h4 {
 	font-size: 2em;
@@ -821,7 +848,7 @@ h4 {
 }
 ala-dropdown-toggle {
 	@extend .no-select;
-	
+
 	font-size: 1.4em;
 	float: right;
 	display: inline-block;
@@ -960,31 +987,6 @@ a {
 		color: inherit;
 	}
 }
-ala-github-issue {
-	display: inline-block;
-	padding: .4em .8em;
-	border: 1px solid $black-border;
-	border-radius: 1.4em;
-	background: $gray-light-2;
-	color: $gray-dark-1;
-	padding-left: 2.4em;
-	position: relative;
-	&:before {
-		content: "";
-		height: 1.9em;
-		width: 1.9em;
-		border-radius: 1em;
-		position: absolute;
-		left: .1em;
-		top: .1em;
-		display: inline-block;
-	}
-}
-code {
-	font-family: $font-mono;
-	background: $white-overlay;
-	padding: .2em .4em;
-}
 ala-color-swatch {
 	border: 1px solid $black-border;
 	height: 1em;
@@ -1033,15 +1035,87 @@ ala-message-group[direction="left"] ala-timestamp {
 ala-message-group[direction="right"] ala-timestamp {
 	right: 44px;
 }
-ala-github-issue[open]:before {
-	background-color: $ok;
-}
-ala-github-issue[closed]:before {
-	background-color: $warning;
-}
 input[type="checkbox"] + label {
 	left: 1em;
 	bottom: 0;
 	pointer-events: all;
 	color: $text-primary;
+}
+
+
+
+ala-dot-loader {
+	position: relative;
+	width: 4em;
+	height: 1em;
+	display: inline-block;
+	font-size: .8em;
+}
+
+ala-dot {
+	width: 1em;
+	height: 1em;
+	border-radius: 0.5em;
+	background: $white;
+	position: absolute;
+	-webkit-animation-duration: 0.5s;
+	animation-duration: 0.5s;
+	-webkit-animation-timing-function: ease;
+	animation-timing-function: ease;
+	-webkit-animation-iteration-count: infinite;
+	animation-iteration-count: infinite;
+}
+
+.dot1, .dot2 {
+	left: 0;
+}
+
+.dot3 { left: 1.5em; }
+
+.dot4 { left: 3em; }
+
+@-webkit-keyframes reveal {
+	from { -webkit-transform: scale(0.001); transform: scale(0.001); }
+	to { -webkit-transform: scale(1); transform: scale(1); }
+}
+
+@keyframes reveal {
+	from { -webkit-transform: scale(0.001); transform: scale(0.001); }
+	to { -webkit-transform: scale(1); transform: scale(1); }
+}
+
+@-webkit-keyframes slide {
+	to { -webkit-transform: translateX(1.5em); transform: translateX(1.5em) }
+}
+
+@keyframes slide {
+	to { -webkit-transform: translateX(1.5em); transform: translateX(1.5em) }
+}
+
+.dot1 {
+	-webkit-animation-name: reveal;
+	animation-name: reveal;
+}
+
+.dot2, .dot3 {
+	-webkit-animation-name: slide;
+	animation-name: slide;
+}
+
+.dot4 {
+	-webkit-animation-name: reveal;
+	animation-name: reveal;
+	-webkit-animation-direction: reverse;
+	animation-direction: reverse;
+}
+
+h5 {
+	font-size: 1em;
+}
+
+#mods-enc,
+#mods-dec {
+	width: 100%;
+	height: 100px;
+	resize: none;
 }

@@ -1,0 +1,7 @@
+{
+	name: "links",
+	developer: "creamery",
+	description: "Decodes links.",
+	tags: ["links", "link", "hyperlink", "url"],
+	worker: "worker.js"
+}

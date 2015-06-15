@@ -24,40 +24,33 @@
 		<script src="js/md5.min.js"></script>
 		<script src="js/spark.js"></script>
 		<script src="js/moment.js"></script>
+		<script src="js/welcome.js"></script>
 
-		<script type="text/javascript"
-				src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default">
-		</script>
-
-		<script src="js/mods/enc/links-endocer.js"></script>
-		<script src="js/mods/dec/links-decoder.js"></script>
-		<script src="js/mods/enc/github-issue-encoder.js"></script>
-		<script src="js/mods/dec/github-issue-decoder.js"></script>
-		<script src="js/mods/enc/code-encoder.js"></script>
-		<script src="js/mods/dec/code-decoder.js"></script>
-		<script src="js/mods/enc/latex-encoder.js"></script>
-		<script src="js/mods/dec/latex-decoder.js"></script>
-
-		<script src="templates/templates.js"></script>
+		<!--
+<style>
+@import url("/mods/dec/creamery/katex/styles");
+</style>
+-->
 
 		<script>
 			var ala = {};
+		</script>
+
+		<script src="js/mod-handler.js"></script>
+		<script src="templates/templates.js"></script>
+
+		<script>
 			ala.chats = {};
 			ala.spark = new Spark(Handlebars);
-			ala.mods = {encoding: [], decoding: []};
-			ala.modsList = {};
-			ala.modsList.encoding = [new LinksEncoder(), new CodeEncoder(), new GithubIssueEncoder(), new LatexEncoder()];
-			ala.modsList.decoding = [new LinksDecoder(), new CodeDecoder(), new GithubIssueDecoder(), new LatexDecoder()];
 			ala.messageCounter = 0;
 
-			if(!$.cookie("mods")){
-				$.cookie("mods", JSON.stringify({
-					encoding: [true, true, true, true],
-					decoding: [true, true, true, true]
-				}));
+			if(!$.cookie("mods-enc")){
+				$.cookie("mods-enc", "");
 			}
 
-			ala.modSelection = JSON.parse($.cookie("mods"));
+			if(!$.cookie("mods-dec")){
+				$.cookie("mods-dec", "");
+			}
 
 			moment.locale("en", {
 				calendar: {
@@ -234,7 +227,7 @@
 				var renderFunc = function(suggestion){
 					return "<ala-email-suggestion>" + suggestion + "</ala-email-suggestion>"
 				}
-				
+
 				$("ala-color-swatch").click(function(){
 					$(this).parent().children().removeClass("active");
 					$(this).addClass("active");
@@ -312,8 +305,9 @@
 				});
 
 				$("#dropdown-mods").click(function(){
-					ala.updateMods();
 					ala.lightbox("form-mods", true);
+					$("#mods-enc").val($.cookie("mods-enc") || "");
+					$("#mods-dec").val($.cookie("mods-dec") || "");
 				});
 
 				$("#dropdown-log-out").click(function(){
@@ -507,7 +501,7 @@
 						if($("#new-password").val() != ""){
 							updates.password = $("#new-password").val();
 						}
-						
+
 						if($("ala-color-swatch.active").size() == 1){
 							updates.color = $("ala-color-swatch.active").attr("color");
 						}
@@ -523,22 +517,8 @@
 						e.preventDefault();
 						return false;
 					} else if($(this).attr("id") == "form-mods"){
-						ala.modSelection = {
-							encoding: [
-								$("#links-enc").prop("checked"),
-								$("#code-enc").prop("checked"),
-								$("#git-enc").prop("checked"),
-								$("#latex-enc").prop("checked")
-							],
-							decoding: [
-								$("#links-dec").prop("checked"),
-								$("#code-dec").prop("checked"),
-								$("#git-dec").prop("checked"),
-								$("#latex-dec").prop("checked")
-							]
-						};
-						$.cookie("mods", JSON.stringify(ala.modSelection));
-						ala.updateMods();
+						$.cookie("mods-enc", $("#mods-enc").val());
+						$.cookie("mods-dec", $("#mods-dec").val());
 						ala.lightbox("");
 						return false;
 					}
@@ -551,6 +531,8 @@
 					$("#button-bar").addClass("skip-animation-out");
 					ala.chatInit();
 				}
+
+				welcome($("#welcome-message"));
 			});
 
 			ala.clearSnack = function(){
@@ -597,7 +579,7 @@
 				$("ala-user-list").niceScroll();
 				$("ala-scroll-overlay").niceScroll();
 
-				autosize($("#chat-input"));
+				autosize($("#chat-input")); 
 
 				$("#chat-input").keydown(function(e){
 					if(e.keyCode == 13 && !e.shiftKey){
@@ -623,7 +605,7 @@
 					$(el).trigger(e);
 				});
 
-				ala.socket = io();
+				ala.socket = io((window.location.hostname == "a-la-mod.com" || window.location.hostname == "beta.a-la-mod.com") ? "socket.a-la-mod.com" : undefined);
 
 				ala.socket.on("message", function(chatId, message){
 					ala.chats[chatId].listing.find("ala-most-recent").text(message.sender.screenName + ": " + message.message);
@@ -685,21 +667,19 @@
 			}
 
 			ala.submit = function(){
-				var data = [$("#chat-input").val()];
+				var data = $("#chat-input").val();
 				$("#chat-input").val("");
 
-				var closure = function(ind){
-					return function(data){
-						if(ind >= ala.mods.encoding.length){
-							ala.socket.emit("message", ala.currentChat, data);
-						} else {
-							ala.mods.encoding[ind].encode(data, closure(ind+1));
-						}
-					};
-				};
+				var encodeOrder = ($.cookie("mods-enc") || "").split(/\s+/);
 
-				closure(0)(data);
+				if(encodeOrder.length == 1 && encodeOrder[0] == ""){
+					encodeOrder = [];
+				}
 
+				ala.mods.encode(data, encodeOrder, function(data){
+					ala.socket.emit("message", ala.currentChat, data);
+				});
+				return false;
 				return false;
 			}
 
@@ -742,6 +722,7 @@
 							$("ala-message-list-viewport").removeClass("gone");
 
 							ala.lockOpenChat = false;
+							$("ala-input-area").removeClass("out");
 						}, 800);
 					}, (ala.currentChat ? 200 : 0));
 				}
@@ -772,32 +753,36 @@
 					}));
 				}
 				var newMessage = $(Handlebars.templates["chat-message"]({
-					message: ["Loading..."]
+					message: [new Handlebars.SafeString("<ala-dot-loader><ala-dot class='dot1'></ala-dot><ala-dot class='dot2'></ala-dot><ala-dot class='dot3'></ala-dot><ala-dot class='dot4'></ala-dot></ala-dot-loader>")],
+					sender: data.sender
 				}));
 				$("ala-message-list").children().last().append(newMessage);
 				newMessage.attr("message-id", ala.messageCounter);
 				ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
 
-				var closure = function(ind, id, sender){
+				var decodeOrder = ($.cookie("mods-dec") || "").split(/\s+/);
+
+				if(decodeOrder.length == 1 && decodeOrder[0] == ""){
+					decodeOrder = [];
+				}
+
+				ala.mods.decode(data.message, decodeOrder, function(id, sender){
 					return function(data){
-						if(ind >= ala.mods.decoding.length){
-							for(var i = 0; i < data.length; i++){
-								if(data[i].fallback !== undefined){
-									data[i] = data[i].fallback;
-								}
+						for(var i = 0; i < data.length; i++){
+							if(data[i].fallback !== undefined){
+								data[i] = data[i].fallback;
 							}
-
-							$("[message-id=" + id + "]").replaceWith(Handlebars.templates["chat-message"]({
-								message: data,
-								sender: sender
-							}));
-						} else {
-							ala.mods.decoding[ind].decode(data, closure(ind+1, id, sender));
+							if(data[i].type == "SafeString"){
+								data[i] = {content: new Handlebars.SafeString(data[i].content), decoder: data[i].decoder};
+							}
 						}
-					};
-				};
-
-				closure(0, ala.messageCounter, data.sender)(data.message);
+						var message = $(Handlebars.templates["chat-message"]({
+							message: data,
+							sender: sender
+						}));
+						$("[message-id=" + id + "]").replaceWith(message);
+					}
+				}(ala.messageCounter, data.sender));
 			}
 
 			ala.prependMessage = function(msg){
@@ -943,32 +928,6 @@
 				$("form#" + formId + " input").val("");
 				$("form#" + formId + " ala-user-list").empty().append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, removable: false}));
 			}
-
-			ala.updateMods = function(){
-				var lstEnc = [$("#links-enc"), $("#code-enc"), $("#git-enc"), $("#latex-enc")];
-				var lstDec = [$("#links-dec"), $("#code-dec"), $("#git-dec"), $("#latex-dec")];
-
-				ala.mods.encoding = [];
-				ala.mods.decoding = [];
-
-				$("#form-mods input[type=checkbox]").prop("checked", false);
-
-				for(var i = 0; i < ala.modsList.encoding.length; i++){
-					if(ala.modSelection.encoding[i]){
-						ala.mods.encoding.push(ala.modsList.encoding[i]);
-						lstEnc[i].prop("checked", true);
-					}
-				}
-
-				for(var i = 0; i < ala.modsList.decoding.length; i++){
-					if(ala.modSelection.decoding[i]){
-						ala.mods.decoding.push(ala.modsList.decoding[i]);
-						lstDec[i].prop("checked", true);
-					}
-				}
-			}
-
-			ala.updateMods();
 
 			Handlebars.registerHelper("gravatar", function(email, size){
 				return new Handlebars.SafeString("<img class='icon icon-" + size + "' src='https://www.gravatar.com/avatar/" + (email && typeof(email) == "string" ? md5(email.trim().toLowerCase()) : "") + "?s=" + size + "&d=identicon' />");
@@ -1139,40 +1098,16 @@
 					<form id="form-mods" novalidate>
 						<h3>Mods</h3>
 						<ala-input>
-							<input type="checkbox" id="links-enc" name="links-enc" class="dark" />
-							<label for="links-enc">Links Encoder</label>
+							<h5>Encoding Mods</h5>
+							<textarea id="mods-enc" class="dark"></textarea>
 						</ala-input>
 						<ala-input>
-							<input type="checkbox" id="code-enc" name="code-enc" class="dark" />
-							<label for="code-enc">Code Encoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="git-enc" name="git-enc" class="dark" />
-							<label for="git-enc">Github Issues Encoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="latex-enc" name="latex-enc" class="dark" />
-							<label for="latex-enc">Latex Encoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="links-dec" name="links-dec" class="dark" />
-							<label for="links-dec">Links Decoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="code-dec" name="code-dec" class="dark" />
-							<label for="code-dec">Code Decoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="git-dec" name="git-dec" class="dark" />
-							<label for="git-dec">Github Issues Decoder</label>
-						</ala-input>
-						<ala-input>
-							<input type="checkbox" id="latex-dec" name="latex-dec" class="dark" />
-							<label for="latex-dec">Latex Decoder</label>
+							<h5>Decoding Mods</h5>
+							<textarea id="mods-dec"></textarea>
 						</ala-input>
 						<ala-input class="align-right spinner-target">
 							<button id="cancel" class="raised">Cancel</button>
-							<button type="submit" id="mods-submit" class="raised ok">Update</button>
+							<button type="submit" id="mods-submit" class="raised ok">Submit</button>
 						</ala-input>
 					</form>
 				</ala-lightbox>
@@ -1187,11 +1122,15 @@
 					</ala-chats-list>
 				</ala-sidebar>
 				<ala-chat-area-container>
+					<ala-start-message>
+						<h2 id="welcome-message"></h2>
+						<p>Ready to chat?  Choose a chat to the left, or click the button below to start a new one.</p>
+					</ala-start-message>
 					<ala-chat-area>
 						<ala-message-list-viewport class="gone">
 							<ala-message-list></ala-message-list>
 						</ala-message-list-viewport>
-						<ala-input-area>
+						<ala-input-area class="out">
 							<textarea id="chat-input" name="send" placeholder="Message..."></textarea>
 							<button id="chat-submit-button" class="raised ok">Submit</button>
 						</ala-input-area>
@@ -1200,5 +1139,6 @@
 			</ala-flex>
 		</ala-app>
 		<ala-snack-bar></ala-snack-bar>
+		<script src="js/scoped.js"></script>
 	</body>
 </html>
