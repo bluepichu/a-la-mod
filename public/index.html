@@ -605,7 +605,7 @@
 					$(el).trigger(e);
 				});
 
-				ala.socket = io((window.location.hostname == "a-la-mod.com" || window.location.hostname == "beta.a-la-mod.com") ? "socket.a-la-mod.com" : undefined);
+				ala.socket = io((window.location.hostname == "a-la-mod.com" || window.location.hostname == "beta.a-la-mod.com") ? "a-la-mod.com" : undefined);
 
 				ala.socket.on("message", function(chatId, message){
 					ala.chats[chatId].listing.find("ala-most-recent").text(message.sender.screenName + ": " + message.message);
