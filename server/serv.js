@@ -908,6 +908,24 @@ io.on("connection", function(socket){
 					io.to(socket.id).emit("error", {description: "Request failed: server error."});
 					return;
 				}
+				var title = data[0].title
+				var body = msg
+				db.query("users", {
+					_id: {$in: data[0].users}
+				}, function(err, data) {
+					if (err) {
+						console.log(err)
+						return;
+					}
+					for (var i in data) {
+						push.sendMessage(data[i].email, {
+							title: title,
+							body: body,
+						}, function(err) {
+							console.log(err)
+						})
+					}
+				})
 
 				var sender = {
 					email: socket.email,

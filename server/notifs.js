@@ -45,7 +45,7 @@ function sendMessage(email, message, cb) {
 			cb(false);
 			return;
 		}
-		var keys = JSON.stringify(docs[0].subId)
+		var keys = JSON.stringify(docs[0].subId);
 		that._db.update({email: email}, {$set: {message: message}}, function(err, docs) {
 			if (err) {
 				cb(err);
