@@ -921,7 +921,7 @@ io.on("connection", function(socket){
 						push.sendMessage(data[i].email, {
 							title: title,
 							body: body,
-							icon: "https://a-la-mod.com/images/app-icon-48.png",
+							icon: "https://a-la-mod.com/images/app-icon-72.png",
 						}, function(err) {
 							console.log(err)
 						})
