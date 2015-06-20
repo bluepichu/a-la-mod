@@ -908,26 +908,12 @@ io.on("connection", function(socket){
 					io.to(socket.id).emit("error", {description: "Request failed: server error."});
 					return;
 				}
-				var title = data[0].title
-				var body = msg
-				db.query("users", {
-					_id: {$in: data[0].users}
-				}, function(err, data) {
-					if (err) {
-						console.log(err)
-						return;
-					}
-					for (var i in data) {
-						push.sendMessage(data[i].email, {
-							title: title,
-							body: body,
-							icon: "https://a-la-mod.com/images/app-icon-72.png",
-						}, function(err) {
-							console.log(err)
-						})
-					}
-				})
-
+				var packet = {
+					chat: data[0],
+					msg: msg,
+					socket: socket,
+				}
+				sendNotifs(packet)
 				var sender = {
 					email: socket.email,
 					_id: socket.userId,
@@ -980,6 +966,33 @@ io.on("connection", function(socket){
 		});
 	});
 });
+
+//Determines to whom notifications ought to be sent
+function sendNotifs(data) {
+	var title = data.chat.title
+	var body = data.msg
+	var p = data;
+	db.query("users", {
+		_id: {$in: data.chat.users}
+	}, function(err, data) {
+		if (err) {
+			console.log(err)
+			return;
+		}
+		for (var i in data) {
+			if (data[i].email == p.socket.email) {
+				continue;
+			}
+			push.sendMessage(data[i].email, {
+				title: title,
+				body: body,
+				icon: "https://a-la-mod.com/images/app-icon-72.png",
+			}, function(err) {
+				console.log(err)
+			})
+		}
+	})
+}
 
 // AsyncHandler written by bluepichu.  May become an import at a later point, since this may be published as its own project.
 var AsyncHandler = function(done){
