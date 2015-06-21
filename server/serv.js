@@ -88,8 +88,8 @@ app.get("/css/:file", function(req, res){
 /**
  * Serves the requested JS file.
  */
-app.get("/js/:file", function(req, res){
-	res.sendFile("/js/" + req.params.file, {root: path.join(__dirname, "../public")});
+app.get("/js/*", function(req, res){
+	res.sendFile("/js/" + req.params[0], {root: path.join(__dirname, "../public")});
 });
 
 app.get("/service-worker.js", function(req, res) {

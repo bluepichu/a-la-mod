@@ -6,11 +6,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
 		<link rel="manifest" href="static/manifest.json">
 
+		<!--		<link rel="stylesheet" href="css/textext.css" type="text/css" />-->
 		<link rel="stylesheet" href="css/style.css" type="text/css" />
 		<link rel="stylesheet" href="css/sass-free.css" type="text/css" />
 		<link rel="stylesheet" href="css/mobile.css" type="text/css" media="only screen and (max-device-width: 800px)" />
 		<link href='https://fonts.googleapis.com/css?family=Basic' rel='stylesheet' type='text/css'>
 		<link href='https://fonts.googleapis.com/css?family=Share+Tech+Mono' rel='stylesheet' type='text/css'>
+
 		<script src="js/serviceManager.js"></script>
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
@@ -19,12 +21,16 @@
 		<script src="js/autosize.js"></script>
 		<script src="js/handlebars-v1.3.0.js"></script>
 		<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-		<script src="js/textext.core.js"></script>
-		<script src="js/textext.plugin.autocomplete.js"></script>
 		<script src="js/md5.min.js"></script>
 		<script src="js/spark.js"></script>
 		<script src="js/moment.js"></script>
 		<script src="js/welcome.js"></script>
+
+		<script src="js/textext/textext.core.js"></script>
+		<script src="js/textext/textext.plugin.autocomplete.js"></script>
+		<script src="js/textext/textext.plugin.filter.js"></script>
+		<script src="js/textext/textext.plugin.suggestions.js"></script>
+		<script src="js/textext/textext.plugin.tags.js"></script>
 
 		<!--
 <style>
@@ -187,52 +193,26 @@
 					return false;
 				});
 
-				$("#form-new-chat #email-entry").keydown(function(e){
-					if(e.keyCode == 13){
-						if($("#form-new-chat ala-user[email='" + $("#form-new-chat #email-entry").val().trim() + "']").size() > 0){
-							$("#form-new-chat #email-entry").val("");
-							e.stopPropagation();
-							e.preventDefault();
-							return false;
-						}
-						var xhr = new XMLHttpRequest();
-						xhr.open("GET", "/user/" + encodeURI($("#form-new-chat #email-entry").val().trim()), true);
-
-						xhr.onload = function(){
-							$("#form-new-chat #email-entry").prop("disabled", false);
-							if(this.status == 200){
-								var data = JSON.parse(this.responseText);
-								data.removable = true;
-								$("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"](data));
-								$("#form-new-chat #email-entry").val("").focus();
-							} else {
-								ala.snack(this.responseText);
-							}
-						};
-
-						xhr.send();
-
-						$("#form-new-chat #email-entry").prop("disabled", true);
-
-						e.stopPropagation();
-						e.preventDefault();
-						return false;
-					}
-				});
-
 				$("ala-user-list").on("click", "ala-remove-button", function(e){
 					$(e.target).parent().remove();
 				});
-
-				var renderFunc = function(suggestion){
-					return "<ala-email-suggestion>" + suggestion + "</ala-email-suggestion>"
-				}
 
 				$("ala-color-swatch").click(function(){
 					$(this).parent().children().removeClass("active");
 					$(this).addClass("active");
 				});
 
+				var renderFunc = function(suggestion){
+					return "<ala-email-suggestion>" + suggestion + "</ala-email-suggestion>"
+				}
+
+				var userRenderFunction = function(email){
+					Handlebars.templates["user-listing"]({
+						removable: true,
+						email: email,
+						screenName: "test"
+					});
+				}
 
 				$("#email-entry").textext({
 					plugins: "autocomplete",
@@ -250,6 +230,48 @@
 					var query = (data ? data.query : "") || "";
 
 					$(this).trigger("setSuggestions", {result: te.itemManager().filter(list, query)});
+				});
+
+				var pushEmailEntry = function(){
+					if($("#form-new-chat #email-entry").val() == ""){
+						return;
+					}
+
+					if($("#form-new-chat ala-user[email='" + $("#form-new-chat #email-entry").val().trim() + "']").size() > 0){
+						$("#form-new-chat #email-entry").val("");
+						e.stopPropagation();
+						e.preventDefault();
+						return false;
+					}
+
+					var xhr = new XMLHttpRequest();
+					xhr.open("GET", "/user/" + encodeURI($("#form-new-chat #email-entry").val().trim()), true);
+
+					xhr.onload = function(){
+						$("#form-new-chat #email-entry").prop("disabled", false);
+						if(this.status == 200){
+							var data = JSON.parse(this.responseText);
+							data.removable = true;
+							$("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"](data));
+							$("#form-new-chat #email-entry").val("").focus();
+						} else {
+							ala.snack(this.responseText);
+						}
+					};
+
+					xhr.send();
+
+					$("#form-new-chat #email-entry").prop("disabled", true);
+				}
+
+				$("#form-new-chat #email-entry").keydown(function(e){
+					if(e.keyCode == 13){
+						setTimeout(pushEmailEntry, 100); // oh dear, someone please find something better
+
+						e.stopPropagation();
+						e.preventDefault();
+						return false;
+					}
 				});
 
 				$("ala-lightbox").on("click", "form #cancel", function(e){
@@ -437,6 +459,8 @@
 							e.preventDefault();
 							return false;
 						}
+
+						pushEmailEntry();
 
 						var xhr = new XMLHttpRequest();
 						xhr.open("POST", "/chat/new", true);
@@ -1035,8 +1059,8 @@
 							<input type="text" class="dark" id="title" name="title" required />
 							<label>Title</label>
 						</ala-input>
-						<ala-input>
-							<input type="text" class="dark disable-enter-submission" id="email-entry" name="email-entry" placeholder="Enter emails to join chat..." />
+						<ala-input style="z-index: 4;">
+							<input type="text" class="dark disable-enter-submission" id="email-entry" name="email-entry" rows="1"  placeholder="Enter emails to add to the chat..." autocomplete="off" />
 						</ala-input>
 						<ala-input>
 							<ala-user-list></ala-user-list>
