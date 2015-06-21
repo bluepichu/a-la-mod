@@ -1035,7 +1035,7 @@ var sendVerEmail = function(verID, emailaddr, username) {
 		sendgrid,
 		emailaddr,
 		{
-			html: email.createEmail(emailaddr.split("@")[0], "Welcome to &Agrave; la Mod!<br>Before you can start using A la Mod, we ask that you verify your email. Click <a href='http://a-la-mod.herokuapp.com/user/verify/"+verID+"'>here</a> to verify."),
+			html: email.createEmail(emailaddr.split("@")[0], "Welcome to &Agrave; la Mod!<br>Before you can start using A la Mod, we ask that you verify your email. Click <a style='color: #ccc' href='https://a-la-mod.com/user/verify/"+verID+"'>here</a> to verify."),
 			subject: "Verify Your Email"
 		}
 	)
