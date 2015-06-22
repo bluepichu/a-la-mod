@@ -988,7 +988,7 @@ var sendNotifs = function(data) {
 			}
 			//Second case - if they have no open browsers, send them a notification
 			if (!(data[i].email in socketList)) {
-				sendNotif(email, title, body) 	
+				castNotif(email, title, body) 	
 				continue
 			}
 		}
@@ -996,7 +996,7 @@ var sendNotifs = function(data) {
 }
 	
 //Super short helper method for sending a notif to a user
-var sendNotif(email, title, body) {
+var castNotif = function(email, title, body) {
 	push.sendMessage(email, {
 		title: title,
 		body: body,
