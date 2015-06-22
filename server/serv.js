@@ -968,9 +968,10 @@ io.on("connection", function(socket){
 });
 
 //Determines to whom notifications ought to be sent
-function sendNotifs(data) {
+var sendNotifs = function(data) {
+	console.error(getRoom(data.chat._id))
 	var title = data.chat.title
-	var body = data.msg
+	var body = data.socket.email + ": " + data.msg
 	var p = data;
 	db.query("users", {
 		_id: {$in: data.chat.users}
@@ -992,6 +993,23 @@ function sendNotifs(data) {
 			})
 		}
 	})
+}
+
+//gets all of the sockets in a room, organized by email
+//TODO: we really need to spend like a couple days looking at how we can cache a lot of this stuff. 
+//Not like its that hard to calculate, but we don't want to have to run this every time someone sends a message
+var getRoom = function(room) {
+	var ret = {}
+	for (var sId in io.nsps["/"].adapter.rooms[room]) {
+		var sock = io.sockets.connected[sId]
+		console.error(sock)
+		if (!ret[sock.email]) {
+			ret[sock.email] = []
+		}
+		ret[sock.email].push(sock)
+	}
+	return ret
+
 }
 
 // AsyncHandler written by bluepichu.  May become an import at a later point, since this may be published as its own project.
