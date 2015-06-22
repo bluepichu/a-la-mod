@@ -969,7 +969,6 @@ io.on("connection", function(socket){
 
 //Determines to whom notifications ought to be sent
 var sendNotifs = function(data) {
-	console.error(getRoom(data.chat._id))
 	var title = data.chat.title
 	var body = data.socket.email + ": " + data.msg
 	var p = data;
@@ -983,15 +982,19 @@ var sendNotifs = function(data) {
 		}
 		var socketList = getRoom(chat._id)
 		for (var i in data) {
+			console.log(">> "+Object.keys(socketList))
 			//First case - do not send notification to sender
 			if (data[i].email == p.socket.email) {
+				console.log("Not sending to owner")
 				continue;
 			}
 			//Second case - if they have no open browsers, send them a notification
 			if (!(data[i].email in socketList)) {
 				castNotif(email, title, body) 	
+				console.log("Attempting to send to closed client")
 				continue
 			}
+			console.log("Client open, not sending");
 		}
 	})
 }
@@ -1014,7 +1017,6 @@ var getRoom = function(room) {
 	var ret = {}
 	for (var sId in io.nsps["/"].adapter.rooms[room]) {
 		var sock = io.sockets.connected[sId]
-		console.error(sock)
 		if (!ret[sock.email]) {
 			ret[sock.email] = []
 		}
