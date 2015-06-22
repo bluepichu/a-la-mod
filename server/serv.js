@@ -990,7 +990,7 @@ var sendNotifs = function(data) {
 			}
 			//Second case - if they have no open browsers, send them a notification
 			if (!(data[i].email in socketList)) {
-				castNotif(email, title, body) 	
+				castNotif(data[i].email, title, body) 	
 				console.log("Attempting to send to closed client")
 				continue
 			}
