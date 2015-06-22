@@ -27,6 +27,12 @@ registerMethod("decode", function(inp, cb){
 					case "issue":
 						xhr.open("GET", "https://api.github.com/repos/" + inp.content.owner + "/" + inp.content.repo + "/issues/" + inp.content.issue, true);
 						break;
+					case "branch":
+						xhr.open("GET", "https://api.github.com/repos/" + inp.content.owner + "/" + inp.content.repo + "/branches/" + inp.content.branch, true);
+						break;
+					case "commit":
+						xhr.open("GET", "https://api.github.com/repos/" + inp.content.owner + "/" + inp.content.repo + "/commits/" + inp.content.hash, true);
+						break;
 					default:
 						cb(null, inp.codec.type);
 						return;
@@ -42,6 +48,12 @@ registerMethod("decode", function(inp, cb){
 								break;
 							case "issue":
 								out[index] = {type: "SafeString", content: "<a href='" + data.html_url + "' target='_blank'><ala-github type='issue' " + data.state + ">#" + data.number + ": " + data.title + "</ala-github>", decoder: "creamery/github"};
+								break;
+							case "branch":
+								out[index] = {type: "SafeString", content: "<a href='" + data.html_url + "' target='_blank'><ala-github type='branch'>" + data.name + "</ala-github>", decoder: "creamery/github"};
+								break;
+							case "commit":
+								out[index] = {type: "SafeString", content: "<a href='" + data.html_url + "' target='_blank'><ala-github type='commit'>" + data.commit.message + " <span class='hash'>(" + data.sha.substring(0, 7) + ")</span></ala-github>", decoder: "creamery/github"};
 								break;
 						}
 					} else {
