@@ -1013,6 +1013,7 @@ var sendNotifs = function(data) {
 			}
 			if (shouldContinue) {
 				castNotif(data[i].email, title, body)
+				console.log("Attempting to send to hidden client")
 				continue;
 			}
 			//Default case - the clients are opened and being viewed, so no notification is necessary
