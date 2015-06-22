@@ -1006,7 +1006,7 @@ var castNotif = function(email, title, body) {
 		body: body,
 		icon: "https://a-la-mod.com/images/app-icon-72.png",
 	}, function(err) {
-		console.log(err)
+		console.log("Error in sending notif: "+err)
 	})
 }
 
