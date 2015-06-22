@@ -970,7 +970,7 @@
 			input     = self.input(),
 			wrap      = self.wrapElement(),
 			container = wrap.parent(),
-			width     = self.originalWidth + 'px',
+			width     = "100%",
 			height
 			;
 

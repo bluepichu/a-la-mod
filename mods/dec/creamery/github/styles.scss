@@ -1,6 +1,6 @@
 @import url("https://cdnjs.cloudflare.com/ajax/libs/octicons/2.4.1/octicons.min.css");
 
-ala-github-issue {
+ala-github {
 	display: inline-block;
 	padding: .1em 1em .1em .1em;
 	border: 1px solid rgba(0, 0, 0, .12);
@@ -24,11 +24,19 @@ ala-github-issue {
 		margin-right: .2em;
 	}
 }
-ala-github-issue[open]:before {
+
+ala-github[type=repo]:before {
+	content: "\f001";
+	background-color: #ffffff;
+	color: #333333;
+}
+
+ala-github[type=issue][open]:before {
 	content: "\f026";
 	background-color: #6cc644;
 }
-ala-github-issue[closed]:before {
+
+ala-github[type=issue][closed]:before {
 	content: "\f028";
 	background-color: #bd2c00;
 }
