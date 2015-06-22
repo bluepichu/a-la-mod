@@ -37,6 +37,7 @@ function addKey(email, subId, cb) {
 function sendMessage(email, message, cb) {
 	var that = this;
 	this._db.find({email: email}, function(err, docs) {
+		console.log(docs)
 		if (err) {
 			cb(err);
 			return;
