@@ -134,6 +134,11 @@
 					sendToServer(ala.pushInst.subscriptionId, true)
 					$("#notification").click(notifFunc)
 				}
+				$(document).on("visibilitychange", function(e) {
+					ala.socket.emit("hidden", document.hidden)
+
+				})
+	
 				ala.pushInst.onUnsubscribe = function() {
 					console.log("Unsub>>",arguments,ala.pushInst)
 					console.log(ala.pushInst)
@@ -630,6 +635,11 @@
 
 				//ala.socket = io((window.location.hostname == "a-la-mod.com" || window.location.hostname == "beta.a-la-mod.com") ? "a-la-mod.com" : undefined);
 				ala.socket = io()
+
+				ala.socket.on("connect", function() {
+					console.log("Socket connected")
+					ala.socket.on("hidden",false)
+				})
 
 				ala.socket.on("message", function(chatId, message){
 					ala.chats[chatId].listing.find("ala-most-recent").text(message.sender.screenName + ": " + message.message);

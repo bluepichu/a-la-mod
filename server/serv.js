@@ -965,6 +965,14 @@ io.on("connection", function(socket){
 			}, function(){});
 		});
 	});
+
+	/**
+	* Lets the server know the client's hidden state
+	*/
+
+	socket.on("hidden", function(hidden) {
+		socket.hidden = hidden
+	})
 });
 
 //Determines to whom notifications ought to be sent
@@ -994,6 +1002,20 @@ var sendNotifs = function(data) {
 				console.log("Attempting to send to closed client")
 				continue
 			}
+			//Third case - if all their clients are hidden, send them a notification
+			var sockets = socketList[data[i].email]
+			var shouldContinue = true;
+			for (var s in sockets) {
+				if (!sockets[s].hidden) {  //this will also catch the case where no hidden event was emitted, and thus the client is still open
+					shouldContinue = false;
+					break;
+				}
+			}
+			if (shouldContinue) {
+				castNotif(data[i].email, title, body)
+				continue;
+			}
+			//Default case - the clients are opened and being viewed, so no notification is necessary
 			console.log("Client open, not sending");
 		}
 	})
