@@ -8,13 +8,12 @@ ala-github {
 	background: #f0f0f0;
 	color: #222222;
 	position: relative;
-	
+
 	&:before {
 		content: "";
 		height: 1.6em;
 		width: 1.6em;
 		border-radius: 1em;
-		color: #FFFFFF;
 		font-family: octicons;
 		display: inline-flex;
 		text-align: center;
@@ -31,12 +30,32 @@ ala-github[type=repo]:before {
 	color: #333333;
 }
 
+ala-github[type=branch]:before {
+	content: "\f020";
+	background-color: #ffffff;
+	color: #333333;
+}
+
+ala-github[type=commit] {
+	.hash {
+		color: rgba(0, 0, 0, .54);
+	}
+
+	&:before {
+		content: "\f01f";
+		background-color: #ffffff;
+		color: #333333;
+	}
+}
+
 ala-github[type=issue][open]:before {
 	content: "\f026";
 	background-color: #6cc644;
+	color: #ffffff;
 }
 
 ala-github[type=issue][closed]:before {
 	content: "\f028";
 	background-color: #bd2c00;
+	color: #ffffff;
 }

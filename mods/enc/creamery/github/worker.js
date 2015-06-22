@@ -6,6 +6,7 @@ var repo = null;
 var regexes = {
 	repo: /^\s*([A-Za-z0-9_\.-]*?)\/([A-Za-z0-9_\.-]*?)\s*$/,
 	issue: /^\s*(([A-Za-z0-9_\.-]*?)\/([A-Za-z0-9_\.-]*?))?\s*#?(\d*)\s*$/,
+	commit: /^\s*(([A-Za-z0-9_\.-]*?)\/([A-Za-z0-9_\.-]*?))?\s*([0-9a-f]+)\s*$/,
 	branch: /^\s*(([A-Za-z0-9_\.-]*?)\/([A-Za-z0-9_\.-]*?))?\s*([A-Za-z0-9_\.-]*?)\s*$/
 };
 
@@ -31,7 +32,7 @@ registerMethod("encode", function(inp, cb){
 						owner: owner,
 						repo: repo
 					};
-					fallback = typeMatch[1] + "/" + typeMatch[2];
+					fallback = owner + "/" + repo + "/" + typeMatch[2];
 					break;
 				case "issue":
 					owner = typeMatch[2] || owner;
@@ -41,7 +42,7 @@ registerMethod("encode", function(inp, cb){
 						repo: repo,
 						issue: typeMatch[4]
 					};
-					fallback = typeMatch[1] + " #" + typeMatch[4];
+					fallback = owner + "/" + repo + " #" + typeMatch[4];
 					break;
 				case "branch":
 					owner = typeMatch[2] || owner;
@@ -51,7 +52,17 @@ registerMethod("encode", function(inp, cb){
 						repo: repo,
 						branch: typeMatch[4]
 					};
-					fallback = typeMatch[1] + " " + typeMatch[4];
+					fallback = owner + "/" + repo + " " + typeMatch[4];
+					break;
+				case "commit":
+					owner = typeMatch[2] || owner;
+					repo = typeMatch[3] || repo;
+					content = {
+						owner: owner,
+						repo: repo,
+						hash: typeMatch[4]
+					};
+					fallback = owner + "/" + repo + " " + typeMatch[4];
 					break;
 			}
 
