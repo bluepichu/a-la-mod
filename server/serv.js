@@ -973,6 +973,7 @@ var sendNotifs = function(data) {
 	var title = data.chat.title
 	var body = data.socket.email + ": " + data.msg
 	var p = data;
+	var chat = data.chat;
 	db.query("users", {
 		_id: {$in: data.chat.users}
 	}, function(err, data) {
@@ -980,7 +981,7 @@ var sendNotifs = function(data) {
 			console.log(err)
 			return;
 		}
-		var socketList = getRoom(data.chat._id)
+		var socketList = getRoom(chat._id)
 		for (var i in data) {
 			//First case - do not send notification to sender
 			if (data[i].email == p.socket.email) {
