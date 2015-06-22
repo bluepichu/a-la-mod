@@ -980,18 +980,29 @@ var sendNotifs = function(data) {
 			console.log(err)
 			return;
 		}
+		var socketList = getRoom(data.chat._id)
 		for (var i in data) {
+			//First case - do not send notification to sender
 			if (data[i].email == p.socket.email) {
 				continue;
 			}
-			push.sendMessage(data[i].email, {
-				title: title,
-				body: body,
-				icon: "https://a-la-mod.com/images/app-icon-72.png",
-			}, function(err) {
-				console.log(err)
-			})
+			//Second case - if they have no open browsers, send them a notification
+			if (!(data[i].email in socketList)) {
+				sendNotif(email, title, body) 	
+				continue
+			}
 		}
+	})
+}
+	
+//Super short helper method for sending a notif to a user
+var sendNotif(email, title, body) {
+	push.sendMessage(email, {
+		title: title,
+		body: body,
+		icon: "https://a-la-mod.com/images/app-icon-72.png",
+	}, function(err) {
+		console.log(err)
 	})
 }
 
