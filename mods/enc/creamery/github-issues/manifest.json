@@ -1,7 +1,0 @@
-{
-	name: "github-issues",
-	developer: "creamery",
-	description: "Encodes github issues, input as \"github:<owner>/<repo> #<issue>\".",
-	tags: ["github", "git", "issue"],
-	worker: "worker.js"
-}

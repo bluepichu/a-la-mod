@@ -1139,3 +1139,15 @@ h5 {
 #email-entry {
 	width: 100% !important;
 }
+
+#notification {
+	width: 32px;
+	height: 32px;
+	fill: white;
+	float: right;
+	margin-right: 10px;
+}
+
+#notification:active {
+	fill: #ccc;
+}
