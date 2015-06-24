@@ -331,6 +331,7 @@ button {
 		border-radius: $border-radius-small;
 		background: $white;
 		color: $text-primary;
+		z-index: 1;
 		&:active {
 		}
 		&.warning {
@@ -473,7 +474,7 @@ ala-app {
 	height: 100vh;
 
 	& > header {
-		@include shadow(3);
+		@include shadow(2);
 
 		background: $primary;
 		color: $white;
@@ -1287,7 +1288,7 @@ ala-active-chat {
 			max-height: 400px;
 			resize: none;
 			width: calc(100% - 20px);
-			height: 60px;
+			min-height: 60px;
 			font-size: .8em;
 		}
 
@@ -1322,8 +1323,16 @@ ala-active-mod-ui {
 	flex-wrap: wrap;
 	justify-content: space-around;
 	width: 50%;
-	height: 100%;
+	height: calc(100% + 32px);
 	padding: 16px 16px 16px 8px;
+	margin-top: -16px;
+	margin-bottom: -16px;
+	overflow-y: auto;
+	
+	&::-webkit-scrollbar-button {
+		height: 8px;
+		pointer-events: none;
+	}
 }
 
 ala-mod-ui {
@@ -1356,8 +1365,9 @@ ala-mod-ui {
 			align-items: flex-start;
 
 			ala-icon.mdi {
-				width: 32px;
-				height: 32px;
+				width: 24px;
+				height: 24px;
+				margin: 12px 4px 12px 0px;
 			}
 		}
 	}
