@@ -63,14 +63,6 @@ var sendToServer = function(subId, add) {
 }
 
 $(document).ready(function(){
-	$("form:not(.disable-enter-submission) input[type=text]:not(.disable-enter-submission), form:not(.disable-enter-submission) input[type=password]:not(.disable-enter-submission)").keydown(function(e){
-		if(e.keyCode == 13){
-			$(this).parent().submit();
-			e.stopPropagation();
-			return false;
-		}
-	});
-
 	ala.clearSnack = function(){
 		if(ala.currentSnackTimeout){
 			clearTimeout(ala.currentSnackTimeout);
@@ -89,8 +81,9 @@ $(document).ready(function(){
 		}, 10);
 	}
 
-	autosize($("ala-input-card textarea")); 
-	$("#ala-input-card textarea").keydown(function(e){
+	autosize($("ala-input-card textarea"));
+
+	$("ala-input-card textarea").keydown(function(e){
 		if(e.keyCode == 13 && !e.shiftKey){
 			if($(this).val().match(/^\s*$/)){
 				$(this).val("");
@@ -131,19 +124,19 @@ $(document).ready(function(){
 	ala.socket.on("new chat", function(dat){
 		// TODO
 	});
-	
+
 	ala.socket.on("message", function(chatId, message){
 		var unprocessed = "";
-		for(var i = 0; i < message.length; i++){
-			var val = message[i]
+		for(var i = 0; i < message.message.length; i++){
+			var val = message.message[i];
 			while(val.fallback){
-				val += val.fallback;
+				val = val.fallback;
 			}
 			unprocessed += val;
 		}
-		ala.chats[chatId].listing.find("ala-last-message .message").text(unprocessed);
+		ala.chats[chatId].listing.find("ala-last-message .message").removeClass("hint").text(unprocessed);
 		// TODO: user list order
-		
+
 		if(ala.currentChat == chatId){
 			ala.appendMessage(message);
 			ala.socket.emit("up to date", chatId);
@@ -163,6 +156,15 @@ $(document).ready(function(){
 	}
 
 	ala.openChat = function(chatId){
+		if(!chatId){
+			ala.currentChat = null;
+			$("ala-chat-card").capturePosition();
+			$("main").attr("state", "list");
+			$("#back").addClass("gone");
+			$("ala-chat-list").prepend($("ala-active-chat ala-chat-card").detach());
+			$("ala-chat-card").animateReposition();
+			return;
+		}
 		var xhr = new XMLHttpRequest();
 		xhr.open("POST", "/chat/history", true);
 		ala.lockOpenChat = true;
@@ -190,13 +192,16 @@ $(document).ready(function(){
 		ala.currentChat = chatId;
 		ala.chatGroupCounter = [0, 0];
 		ala.spark.reset();
+		$("ala-chat-card").capturePosition();
 		$("main").attr("state", "chat-active");
+		$("#back").removeClass("gone");
 		$("ala-active-chat").prepend($("ala-chat-card[chat-id='" + chatId + "']").detach());
+		$("ala-chat-card").animateReposition();
 	}
 
 	ala.appendMessage = function(data){
 		ala.messageCounter[0]++;
-		
+
 		var atBottom = ($("ala-messages-list").scrollTop() >= $("ala-messages-list")[0].scrollHeight - $("ala-messages-list").height());
 		if($("ala-messages-list").children().last().attr("sender") != data.sender._id){
 			ala.chatGroupCounter[0]++;
@@ -333,6 +338,15 @@ $(document).ready(function(){
 			ala.chatCount = 0;
 
 			for(var i = 0; i < chats.length; i++){
+				var unprocessed = "";
+				for(var j = 0; j < chats[i].messages[0].message.length; j++){
+					var val = chats[i].messages[0].message[j];
+					while(val.fallback){
+						val = val.fallback;
+					}
+					unprocessed += val;
+				}
+				chats[i].messages[0].message = unprocessed;
 				ala.chats[chats[i]._id] = {
 					users: chats[i].users,
 					unread: chats[i].messageCount - chats[i].lastRead[ala.user._id],
@@ -358,7 +372,7 @@ $(document).ready(function(){
 	}
 
 	ala.lightbox = function(formId, doNotClear){
-		if(formId != ""){
+		if(formId){
 			if(!doNotClear){
 				ala.clearForm(formId);
 			}
@@ -369,6 +383,7 @@ $(document).ready(function(){
 			$("ala-lightbox-container").removeClass("active");
 		}
 	}
+	
 	ala.clearForm = function(formId){
 		$("form#" + formId + " input").val("");
 	}
@@ -390,6 +405,7 @@ $(document).ready(function(){
 		} else {
 			$("ala-entrance").addClass("authorized");
 			ala.clearSnack();
+			ala.socket.emit("login", $.cookie("email"), $.cookie("authToken"));
 			setTimeout(function(){
 				ala.snack("Welcome back!");
 			}, 1000);
@@ -398,6 +414,10 @@ $(document).ready(function(){
 
 	$("ala-chat-list").on("click", "ala-chat-card", function(e){
 		ala.openChat($(this).attr("chat-id"));
+	});
+
+	$("#back").click(function(){
+		ala.openChat();
 	});
 });
 

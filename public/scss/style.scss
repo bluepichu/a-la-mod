@@ -19,6 +19,7 @@ $text-primary: rgba(0, 0, 0, .87);
 $text-mid: rgba(0, 0, 0, .76);
 $text-secondary: rgba(0, 0, 0, .54);
 $text-secondary-light: rgba(255, 255, 255, .54);
+$text-hint: rgba(0, 0, 0, .26);
 
 $black-border: rgba(0, 0, 0, .12);
 $white-border: rgba(255, 255, 255, .12);
@@ -46,8 +47,8 @@ $border-radius-xlarge: 16px;
 $speed-immediate: 0ms;
 $speed-fast: 200ms;
 $speed-medium: 400ms;
-$speed-slow: 600ms;
-$speed-vslow: 1000ms;
+$speed-slow: 800ms;
+$speed-vslow: 1200ms;
 
 // URLs
 $icon-dropdown: url(/images/ic-drop-down.svg);
@@ -592,6 +593,7 @@ ala-chat-message {
 	word-wrap: break-word;
 	display: block;
 	font-size: .8em;
+
 	&:last-child:before {
 		width: 0;
 		height: 0;
@@ -1103,7 +1105,6 @@ h5 {
 
 ala-header-icons {
 	display: flex;
-	float: right;
 	color: $white;
 	align-items: center;
 	height: 100%;
@@ -1158,7 +1159,16 @@ main {
 			position: absolute;
 			left: 0px;
 			top: 0px;
+
+			ala-chat-card {
+				transition: left $speed-slow .5*$speed-slow, top $speed-slow .5*$speed-slow, width $speed-slow .5*$speed-slow, height $speed-slow .5*$speed-slow, border-radius $speed-slow .5*$speed-slow;
+
+				&:after {
+					transition: border-radius $speed-slow .5*$speed-slow;
+				}
+			}
 		}
+
 		ala-active-mod-ui {
 			position: absolute;
 			left: 50%;
@@ -1184,6 +1194,13 @@ ala-chat-card {
 	flex-direction: column;
 	margin: 8px;
 	cursor: pointer;
+	transition: left $speed-slow .5*$speed-slow, top $speed-slow .5*$speed-slow, width $speed-slow .5*$speed-slow, height $speed-slow .5*$speed-slow;
+	animation: raise-lower 2*$speed-slow ease 1 forwards;
+	z-index: 2;
+
+	&:after {
+		animation: raise-lower-after 2*$speed-slow ease 1 forwards;
+	}
 
 	header {
 		margin-bottom: 16px;
@@ -1209,20 +1226,26 @@ ala-chat-card {
 		}
 	}
 
-	&[starred] #star {
-		color: $gold;
+	&[starred]{
+		order: -1;
+		#star {
+			color: $gold;
+		}
 	}
 
 
 	ala-last-message {
 		background: $gray-light-3;
 		color: $text-mid;
-		padding: 4px 16px;
+		padding: 0px;
 		border-radius: 100px;
 		display: flex;
 		justify-content: space-between;
 		position: relative;
-		margin-bottom: 24px;
+		margin-bottom: 0px;
+		opacity: 0;
+		height: 0px;
+		animation: fade-slide .5*$speed-slow 1.5*$speed-slow ease 1 reverse forwards;
 
 		&:before {
 			width: 0;
@@ -1263,13 +1286,17 @@ ala-chat-card {
 		border-radius: 4px 4px 0px 0px;
 		margin: 0px;
 		cursor: auto;
+		animation: raise-lower 2*$speed-slow ease 1;
+		z-index: 1;
 
 		&:after {
 			border-radius: 4px 4px 0px 0px;
+			animation: raise-lower-after 2*$speed-slow ease 1 forwards;
 		}
 
 		ala-last-message {
-			display: none;
+			opacity: 1;
+			animation: fade-slide .5*$speed-slow ease 1 forwards;
 		}
 
 		ala-user:first-child {
@@ -1279,12 +1306,56 @@ ala-chat-card {
 	}
 }
 
+@keyframes raise-lower {
+	0%, 100% {
+		z-index: 2;
+	}
+
+	25%, 75% {
+		z-index: 3;
+	}
+}
+
+@keyframes raise-lower-after {
+	0%, 100% {
+		box-shadow: bottom-shadow(1), top-shadow(1);
+	}
+
+	25%, 75% {
+		box-shadow: bottom-shadow(2), top-shadow(2);
+	}
+}
+
+@keyframes fade-slide {
+	0% {
+		opacity: 1;
+		height: auto;
+		padding: 4px 16px;
+		margin-bottom: 24px;
+	}
+
+	50% {
+		opacity: 0;
+		height: auto;
+		padding: 4px 16px;
+		margin-bottom: 24px;
+	}
+
+	100% {
+		opacity: 0;
+		height: 0px;
+		padding: 0px;
+		margin-bottom: 0px;
+	}
+}
+
 ala-active-chat {
 	display: flex;
 	flex-direction: column;
 	width: 50%;
 	height: calc(100% - 32px);
 	padding: 16px 8px 16px 16px;
+	transition: left $speed-slow .5*$speed-slow, top $speed-slow .5*$speed-slow, width $speed-slow .5*$speed-slow, height $speed-slow .5*$speed-slow;
 
 	ala-messages-card {
 		@extend %card;
@@ -1366,11 +1437,12 @@ ala-active-mod-ui {
 	flex-wrap: wrap;
 	justify-content: space-around;
 	width: calc(50% - 24px);
-	height: calc(100% + 32px);
+	height: calc(100%);
 	padding: 16px 16px 16px 8px;
 	margin-top: -16px;
 	margin-bottom: -16px;
 	overflow-y: auto;
+	transition: left $speed-slow .5*$speed-slow, top $speed-slow .5*$speed-slow, width $speed-slow .5*$speed-slow, height $speed-slow .5*$speed-slow;
 
 	&::-webkit-scrollbar-button {
 		height: 8px;
@@ -1439,6 +1511,7 @@ ala-user {
 	font-weight: 500;
 	padding-right: 16px;
 	margin: 0px 8px 8px 0px;
+	transition: background $speed-slow, color $speed-slow;
 
 	.grav {
 		margin-right: 8px;
@@ -1460,4 +1533,20 @@ img.grav {
 		width: 64px;
 		height: 64px;
 	}
+}
+
+[float="left"] {
+	float: left;
+}
+
+[float="right"] {
+	float: right;
+}
+
+#back {
+	transition: opacity $speed-slow $speed-slow;
+}
+
+.hint {
+	color: $text-hint;
 }
