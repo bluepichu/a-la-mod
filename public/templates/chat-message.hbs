@@ -1,16 +1,20 @@
 <ala-chat-message style="background: {{sender.color}}; border-color: {{sender.color}};" >
-	{{#each message}}
-		<span {{#if decoder}}decoder="{{decoder}}"{{/if}}>
-			{{#if decoder}}
-				<style>
-					@import url("/mods/dec/{{decoder}}/styles");
-				</style>
-			{{/if}}
-			{{#if content}}
-				{{content}}
-			{{else}}
-				{{this}}
-			{{/if}}
-		</span>
-	{{/each}}
+	{{#if message}}
+		{{#each message}}
+			<span {{#if decoder}}decoder="{{decoder}}"{{/if}}>
+				{{#if decoder}}
+					<style>
+						@import url("/mods/dec/{{decoder}}/styles");
+					</style>
+				{{/if}}
+				{{#if content}}
+					{{content}}
+				{{else}}
+					{{this}}
+				{{/if}}
+			</span>
+		{{/each}}
+	{{else}}
+		<ala-dot-loader><ala-dot class='dot1'></ala-dot><ala-dot class='dot2'></ala-dot><ala-dot class='dot3'></ala-dot><ala-dot class='dot4'></ala-dot></ala-dot-loader>
+	{{/if}}
 </ala-chat-message>

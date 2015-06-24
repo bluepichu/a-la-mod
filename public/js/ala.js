@@ -1,6 +1,6 @@
 ala.chats = {};
 ala.spark = new Spark(Handlebars);
-ala.messageCounter = 0;
+ala.messageCounter = [0, 0];
 
 if(!("recipes" in localStorage)){
 	localStorage.recipes = JSON.stringify({
@@ -111,7 +111,11 @@ $(document).ready(function(){
 
 	ala.socket.on("connect", function() {
 		console.log("Socket connected")
-		ala.socket.on("hidden",false)
+		ala.socket.on("hidden", false);
+
+		if($.cookie("email") && $.cookie("authToken")){
+			ala.socket.emit("login", $.cookie("email"), $.cookie("authToken"));
+		}
 	})
 
 	ala.socket.on("login", function(err, dat){
@@ -125,11 +129,32 @@ $(document).ready(function(){
 	});
 
 	ala.socket.on("new chat", function(dat){
-
+		// TODO
+	});
+	
+	ala.socket.on("message", function(chatId, message){
+		var unprocessed = "";
+		for(var i = 0; i < message.length; i++){
+			var val = message[i]
+			while(val.fallback){
+				val += val.fallback;
+			}
+			unprocessed += val;
+		}
+		ala.chats[chatId].listing.find("ala-last-message .message").text(unprocessed);
+		// TODO: user list order
+		
+		if(ala.currentChat == chatId){
+			ala.appendMessage(message);
+			ala.socket.emit("up to date", chatId);
+		} else {
+			ala.chats[chatId].unread++;
+			$("ala-chat-list").prepend(ala.chats[chatId].listing);
+		}
 	});
 
 	ala.submit = function(){
-		ala.mods.encode($("ala-input-card textarea").val(), ala.recipes.encoding.selected, function(data){
+		ala.mods.encode($("ala-input-card textarea").val(), ala.recipes.encoding.selected.mods, function(data){
 			ala.socket.emit("message", ala.currentChat, data);
 		});
 		$("ala-input-card textarea").val("");
@@ -142,7 +167,19 @@ $(document).ready(function(){
 		xhr.open("POST", "/chat/history", true);
 		ala.lockOpenChat = true;
 		xhr.onload = function(){
-			// TODO
+			if(this.status == 200){
+				var data = JSON.parse(this.responseText);
+				$("ala-messages-list").empty();
+				ala.chats[chatId].unread = 0;
+				ala.nextPage = 1;
+				ala.loadMorePages = true;
+
+				for(var i = 0; i < data.messages.length; i++){
+					ala.appendMessage(data.messages[i]);
+				}
+			} else {
+				ala.snack(this.responseText);
+			}
 		}
 		xhr.setRequestHeader("Content-Type", "application/json");
 		xhr.send(JSON.stringify({
@@ -151,17 +188,95 @@ $(document).ready(function(){
 			chatId: chatId
 		}));
 		ala.currentChat = chatId;
-		ala.chatGroupCounterStart = 0;
-		ala.chatGroupCounterEnd = 1e9;
+		ala.chatGroupCounter = [0, 0];
 		ala.spark.reset();
+		$("main").attr("state", "chat-active");
+		$("ala-active-chat").prepend($("ala-chat-card[chat-id='" + chatId + "']").detach());
 	}
 
 	ala.appendMessage = function(data){
-		//TODO
+		ala.messageCounter[0]++;
+		
+		var atBottom = ($("ala-messages-list").scrollTop() >= $("ala-messages-list")[0].scrollHeight - $("ala-messages-list").height());
+		if($("ala-messages-list").children().last().attr("sender") != data.sender._id){
+			ala.chatGroupCounter[0]++;
+			$("ala-messages-list").append(Handlebars.templates["chat-group"]({
+				sender: data.sender,
+				you: data.sender._id == ala.user._id,
+				timestamp: "|date-f" + ala.chatGroupCounter[0],
+			}));
+		}
+
+		var newMessage = $(Handlebars.templates["chat-message"]({
+			sender: data.sender
+		}));
+
+		$("ala-messages-list").children().last().append(newMessage);
+		if(atBottom){
+			$("ala-messages-list").scrollTop($("ala-messages-list")[0].scrollHeight);
+		}
+		newMessage.attr("message-id", "f" + ala.messageCounter[0]);
+		ala.spark.set("date-f" + ala.chatGroupCounter[0], data.timestamp);
+
+		ala.mods.decode(data.message, ala.recipes.decoding.selected.mods, function(id, sender){
+			return function(data){
+				for(var i = 0; i < data.length; i++){
+					if(data[i].fallback !== undefined){
+						data[i] = data[i].fallback;
+					}
+					if(data[i].type == "SafeString"){
+						data[i] = {content: new Handlebars.SafeString(data[i].content), decoder: data[i].decoder};
+					}
+				}
+				var message = $(Handlebars.templates["chat-message"]({
+					message: data,
+					sender: sender
+				}));
+				var atBottom = ($("ala-messages-list").scrollTop() >= $("ala-messages-list")[0].scrollHeight - $("ala-messages-list").height());
+				$("[message-id=" + id + "]").replaceWith(message);
+				if(atBottom){
+					$("ala-messages-list").scrollTop($("ala-messages-list")[0].scrollHeight);
+				}
+			}
+		}("f" + ala.messageCounter[0], data.sender));
 	}
 
 	ala.prependMessage = function(data){
-		//TODO
+		ala.messageCounter[1]++;
+
+		if($("ala-messages-list").children().first().attr("sender") != data.sender._id){
+			ala.chatGroupCounter[1]++;
+			$("ala-messages-list").prepend(Handlebars.templates["chat-group"]({
+				sender: data.sender,
+				you: data.sender._id == ala.user._id,
+				timestamp: "|date-b" + ala.chatGroupCounter[1],
+			}));
+		}
+
+		var newMessage = $(Handlebars.templates["chat-message"]({
+			sender: data.sender
+		}));
+		$("ala-message-list").children().first().prepend(newMessage);
+		newMessage.attr("message-id", "b" + ala.messageCounter[1]);
+		ala.spark.set("date-b" + ala.chatGroupCounter[1], data.timestamp);
+
+		ala.mods.decode(data.message, decodeOrder, function(id, sender){
+			return function(data){
+				for(var i = 0; i < data.length; i++){
+					if(data[i].fallback !== undefined){
+						data[i] = data[i].fallback;
+					}
+					if(data[i].type == "SafeString"){
+						data[i] = {content: new Handlebars.SafeString(data[i].content), decoder: data[i].decoder};
+					}
+				}
+				var message = $(Handlebars.templates["chat-message"]({
+					message: data,
+					sender: sender
+				}));
+				$("[message-id=" + id + "]").replaceWith(message);
+			}
+		}("b" + ala.messageCounter[1], data.sender));
 	}
 
 	ala.loadPreviousPage = function(){
@@ -171,7 +286,29 @@ $(document).ready(function(){
 		var xhr = new XMLHttpRequest();
 		xhr.open("POST", "/chat/history", true);
 		xhr.onload = function(){
-			// TODO
+			if(this.status == 200){
+				var data = JSON.parse(this.responseText);
+				var messages = data.messages;
+
+				var lastMessage = $("ala-message-list").children("ala-message-group").first().children("ala-chat-message").first();
+
+				for(var i = messages.length-1; i >= 0; i--){
+					ala.prependMessage(messages[i]);
+				}
+
+				if(lastMessage.position()){
+					$("ala-message-list-viewport").scrollTop(lastMessage.position().top);
+				}
+
+				if(messages.length == 0){
+					ala.loadMorePages = false;
+					$("ala-message-list").addClass("no-load");
+				}
+
+				ala.nextPage++;
+			} else {
+				ala.snack(this.responseText);
+			}
 		}
 		xhr.setRequestHeader("Content-Type", "application/json");
 		ala.loadingPage = true;
@@ -187,7 +324,31 @@ $(document).ready(function(){
 		var xhr = new XMLHttpRequest();
 		xhr.open("POST", "/chats", true);
 		xhr.onload = function(){
-			// TODO
+			var chats = JSON.parse(this.responseText);
+
+			chats.sort(function(a, b){
+				return (b.messages[0] ? b.messages[0].timestamp : b.creationTime) - (a.messages[0] ? a.messages[0].timestamp : b.creationTime);
+			});
+
+			ala.chatCount = 0;
+
+			for(var i = 0; i < chats.length; i++){
+				ala.chats[chats[i]._id] = {
+					users: chats[i].users,
+					unread: chats[i].messageCount - chats[i].lastRead[ala.user._id],
+					listing: $(Handlebars.templates["chat-card"]({
+						id: chats[i]._id,
+						title: chats[i].title,
+						members: chats[i].users,
+						lastMessage: chats[i].messages[0]
+					}))
+				};
+				ala.chats[chats[i]._id].listing.click(function(){
+					// TODO
+				});
+				$("ala-chat-list").append(ala.chats[chats[i]._id].listing);
+				ala.chatCount++;
+			}
 		};
 		xhr.setRequestHeader("Content-Type", "application/json");
 		xhr.send(JSON.stringify({
@@ -211,6 +372,33 @@ $(document).ready(function(){
 	ala.clearForm = function(formId){
 		$("form#" + formId + " input").val("");
 	}
+
+	ala.setLoading = function(loading){
+		if(loading){
+			$("ala-input-blocker").addClass("active");
+			$(".spinner-target").addClass("loading");
+		} else {
+			$("ala-input-blocker").removeClass("active");
+			$(".spinner-target").removeClass("loading");
+		}
+	}
+
+	ala.onLogin = function(err){
+		if(err){
+			ala.snack(err);
+			$.cookie("authToken", "");
+		} else {
+			$("ala-entrance").addClass("authorized");
+			ala.clearSnack();
+			setTimeout(function(){
+				ala.snack("Welcome back!");
+			}, 1000);
+		}
+	}
+
+	$("ala-chat-list").on("click", "ala-chat-card", function(e){
+		ala.openChat($(this).attr("chat-id"));
+	});
 });
 
 Handlebars.registerHelper("gravatar", function(email, size){

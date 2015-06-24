@@ -1,4 +1,4 @@
-<ala-message-group id="{{sender._id}}" direction="{{#if you}}right{{else}}left{{/if}}">
+<ala-message-group sender="{{sender._id}}" direction="{{#if you}}right{{else}}left{{/if}}">
     {{gravatar sender.email 32}}
     <ala-timestamp>{{spark ">date" timestamp "|seconds"}}</ala-timestamp>
 </ala-message-group>
