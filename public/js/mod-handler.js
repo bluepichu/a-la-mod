@@ -1,3 +1,4 @@
+var ala = ala || {}
 ala.mods = {};
 ala.mods.methodCounter = 0;
 ala.mods.methods = {};

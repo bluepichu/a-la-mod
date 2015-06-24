@@ -86,6 +86,13 @@ app.get("/css/:file", function(req, res){
 });
 
 /**
+ * Serves the requested font file.
+ */
+app.get("/fonts/:file", function(req, res){
+	res.sendFile("/fonts/" + req.params.file, {root: path.join(__dirname, "../public")});
+});
+
+/**
  * Serves the requested JS file.
  */
 app.get("/js/*", function(req, res){

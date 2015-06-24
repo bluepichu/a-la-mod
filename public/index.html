@@ -6,11 +6,11 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
 		<link rel="manifest" href="static/manifest.json">
 
-		<!--		<link rel="stylesheet" href="css/textext.css" type="text/css" />-->
-		<link rel="stylesheet" href="css/style.css" type="text/css" />
-		<link rel="stylesheet" href="css/mobile.css" type="text/css" media="only screen and (max-device-width: 800px)" />
-		<link href='https://fonts.googleapis.com/css?family=Basic' rel='stylesheet' type='text/css'>
-		<link href='https://fonts.googleapis.com/css?family=Share+Tech+Mono' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/mobile.css" media="only screen and (max-device-width: 800px)" />
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Basic" />
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" />
+		<link rel="stylesheet" href="css/materialdesignicons.min.css" />
 
 		<script src="js/serviceManager.js"></script>
 
@@ -31,940 +31,9 @@
 		<script src="js/textext/textext.plugin.suggestions.js"></script>
 		<script src="js/textext/textext.plugin.tags.js"></script>
 
-		<!--
-<style>
-@import url("/mods/dec/creamery/katex/styles");
-</style>
--->
-
-		<script>
-			var ala = {};
-		</script>
-
 		<script src="js/mod-handler.js"></script>
 		<script src="templates/templates.js"></script>
-
-		<script>
-			ala.chats = {};
-			ala.spark = new Spark(Handlebars);
-			ala.messageCounter = 0;
-
-			if(!$.cookie("mods-enc")){
-				$.cookie("mods-enc", "");
-			}
-
-			if(!$.cookie("mods-dec")){
-				$.cookie("mods-dec", "");
-			}
-
-			moment.locale("en", {
-				calendar: {
-					lastDay : "[Yesterday at] LT",
-					sameDay : function(){
-						if(moment().diff(this, "minute") == 0){
-							return "[Just now]";
-						}
-						if(moment().diff(this, "hour") == 0){
-							return moment().diff(this, "minute") + " [minutes ago]";
-						}
-						return "LT";
-					},
-					nextDay : "[Tomorrow at] LT",
-					lastWeek : "[Last] dddd [at] LT",
-					nextWeek : "dddd [at] LT",
-					sameElse : function(){
-						if(moment(this).startOf("year").isSame(moment().startOf("year"))){
-							return "MMMM D [at] LT";
-						} else {
-							return "MMMM D, YYYY [at] LT";
-						}
-					}
-				}
-			});
-
-			var sendToServer = function(subId, add) {
-				console.log(">>> ",subId)
-				var xhr = new XMLHttpRequest()
-				xhr.open("POST","/user/notifs/register")
-				xhr.setRequestHeader("Content-Type","application/json")
-				xhr.send(JSON.stringify({
-					subscriptionId: subId,
-					email: ala.user.email,
-					auth: $.cookie("authToken"),
-					shouldAdd: add
-				}))
-			}
-
-			$(document).ready(function(){
-				$("form:not(.disable-enter-submission) input[type=text]:not(.disable-enter-submission), form:not(.disable-enter-submission) input[type=password]:not(.disable-enter-submission)").keydown(function(e){
-					if(e.keyCode == 13){
-						$(this).parent().submit();
-						e.stopPropagation();
-						return false;
-					}
-				});
-
-				$("#log-in").click(function(){
-					$("#button-bar").removeClass("hidden fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
-					$("#form-login").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
-					setTimeout(function(){
-						$("#button-bar").addClass("hidden");
-					}, 800);
-				});
-				$("ala-notif-container").append(Handlebars.templates.bell())
-				ala.pushInst = new pushManager()
-				ala.pushInst.onLoad = function(err, sub) {
-					console.log("Load>>",arguments)
-					if (ala.pushInst.available) {
-						ala.spark.set("available",true)
-					} else {
-						ala.spark.set("available",false)
-						return
-					}
-					if (ala.pushInst.enabled) {
-						ala.spark.set("enabled",true)
-					} else {
-						ala.spark.set("enabled",false)
-					}
-					$("#notification").click(notifFunc)
-				}
-				ala.pushInst.onSubscribe = function(err, sub) {
-					console.log("Sub>>",arguments, ala.pushInst)
-					ala.spark.set("enabled", ala.pushInst.enabled)
-					sendToServer(ala.pushInst.subscriptionId, true)
-					$("#notification").click(notifFunc)
-				}
-				ala.pushInst.onUnsubscribe = function() {
-					console.log("Unsub>>",arguments,ala.pushInst)
-					console.log(ala.pushInst)
-					ala.spark.set("enabled", ala.pushInst.enabled)
-					sendToServer(ala.pushInst.subscriptionId, false)
-					$("#notification").click(notifFunc)
-				}
-				notifFunc = function() {
-					console.log("boo")
-					if (!ala.spark.get("available")) {
-						return
-					}
-					if (ala.spark.get("enabled")) {
-						ala.pushInst.unsubscribe()
-					} else {
-						ala.pushInst.subscribe()
-					}
-				}
-				$("#notification").click(notifFunc)
-
-				$("#register").click(function(){
-					$("#button-bar").removeClass("hidden fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
-					$("#form-register").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
-					setTimeout(function(){
-						$("#button-bar").addClass("hidden");
-					}, 800);
-				});
-
-				$("#login-back, #register-back").click(function(e){
-					$("ala-entrance form").removeClass("fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
-					$("#button-bar").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
-					setTimeout(function(){
-						$("ala-entrance form").addClass("hidden");
-					}, 800);
-					e.stopPropagation();
-					return false;
-				});
-
-				$("#recover-back").click(function(e){
-					$("#form-recover").removeClass("fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
-					$("#form-login").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
-					setTimeout(function(){
-						$("#form-recover").addClass("hidden");
-					}, 800);
-					e.stopPropagation();
-					return false;
-				});
-
-				$("#open-recover").click(function(e){
-					$("#form-login").removeClass("fade-in slide-up anim-delay skip-animation-in skip-animation-out").addClass("fade-out slide-down");
-					$("#form-recover").removeClass("hidden fade-out slide-down skip-animation-in skip-animation-out").addClass("fade-in slide-up");
-					setTimeout(function(){
-						$("#form-login").addClass("hidden");
-					}, 800);
-					e.stopPropagation();
-					return false;
-				});
-
-				$("ala-user-list").on("click", "ala-remove-button", function(e){
-					$(e.target).parent().remove();
-				});
-
-				$("ala-color-swatch").click(function(){
-					$(this).parent().children().removeClass("active");
-					$(this).addClass("active");
-				});
-
-				var renderFunc = function(suggestion){
-					return "<ala-email-suggestion>" + suggestion + "</ala-email-suggestion>"
-				}
-
-				var userRenderFunction = function(email){
-					Handlebars.templates["user-listing"]({
-						removable: true,
-						email: email,
-						screenName: "test"
-					});
-				}
-
-				$("#email-entry").textext({
-					plugins: "autocomplete",
-					autoComplete: {
-						dropdownMaxHeight: "200px",
-						render: renderFunc
-					},
-					html: {
-						dropdown: "<ala-suggestion-dropdown class='text-dropdown'><ala-suggestion-list class='text-list'/></ala-suggestion-dropdown>",
-						suggestion: "<ala-suggestion class='text-suggestion'><ala-suggestion-text class='text-label'/></ala-suggestion>"
-					}
-				}).bind("getSuggestions", function(e, data){
-					var list = ala.user.contacts;
-					var te = $(e.target).textext()[0];
-					var query = (data ? data.query : "") || "";
-
-					$(this).trigger("setSuggestions", {result: te.itemManager().filter(list, query)});
-				});
-
-				var pushEmailEntry = function(){
-					if($("#form-new-chat #email-entry").val() == ""){
-						return;
-					}
-
-					if($("#form-new-chat ala-user[email='" + $("#form-new-chat #email-entry").val().trim() + "']").size() > 0){
-						$("#form-new-chat #email-entry").val("");
-						e.stopPropagation();
-						e.preventDefault();
-						return false;
-					}
-
-					var xhr = new XMLHttpRequest();
-					xhr.open("GET", "/user/" + encodeURI($("#form-new-chat #email-entry").val().trim()), true);
-
-					xhr.onload = function(){
-						$("#form-new-chat #email-entry").prop("disabled", false);
-						if(this.status == 200){
-							var data = JSON.parse(this.responseText);
-							data.removable = true;
-							$("#form-new-chat ala-user-list").append(Handlebars.templates["user-listing"](data));
-							$("#form-new-chat #email-entry").val("").focus();
-						} else {
-							ala.snack(this.responseText);
-						}
-					};
-
-					xhr.send();
-
-					$("#form-new-chat #email-entry").prop("disabled", true);
-				}
-
-				$("#form-new-chat #email-entry").keydown(function(e){
-					if(e.keyCode == 13){
-						setTimeout(pushEmailEntry, 100); // oh dear, someone please find something better
-
-						e.stopPropagation();
-						e.preventDefault();
-						return false;
-					}
-				});
-
-				$("ala-lightbox").on("click", "form #cancel", function(e){
-					ala.lightbox("");
-					e.stopPropagation();
-					e.preventDefault();
-					return false;
-				});
-
-				$("#form-welcome #welcome-ok").click(function(e) {
-					ala.lightbox("");
-					e.stopPropagation();
-					e.preventDefault();
-					return false;
-				})
-
-				$("#new-chat").click(function(e){
-					ala.lightbox("form-new-chat");
-					e.stopPropagation();
-					e.preventDefault();
-					return false;
-				});
-
-				$("ala-scroll-overlay").scroll(function(e){
-					$("ala-chat-listing[order]").each(function(){
-						$(this).css("top", 120 * $(this).attr("order") - $("ala-scroll-overlay").scrollTop() + 8);
-					});
-				});
-
-				document.getElementById("chat-input").addEventListener("autosize.resized", function(){ // for some reason, the jQuery equivalent of this doesn't work
-					if($("ala-message-list").height() < $("ala-message-list-viewport").height()){
-						$("ala-message-list-viewport").scrollTop(0);
-						ala.chatScrollBottom = $("ala-message-list-viewport").height();
-					} else {
-						$("ala-message-list-viewport").scrollTop(ala.chatScrollBottom - $("ala-message-list-viewport").height());
-					}
-				});
-
-				$("ala-dropdown-toggle").click(function(e){
-					$("ala-dropdown-toggle").toggleClass("active");
-					e.stopPropagation();
-				});
-
-				$(":not(ala-dropdown-toggle)").click(function(){
-					$("ala-dropdown-toggle").removeClass("active");
-				});
-
-				$("#dropdown-settings").click(function(){
-					ala.lightbox("form-account-settings");
-					$("#screen-name").val(ala.user.screenName);
-					$("#color-picker").children().removeClass("active");
-					$("#color-picker").find("ala-color-swatch[color=" + ala.user.color + "]").addClass("active");
-				});
-
-				$("#dropdown-mods").click(function(){
-					ala.lightbox("form-mods", true);
-					$("#mods-enc").val($.cookie("mods-enc") || "");
-					$("#mods-dec").val($.cookie("mods-dec") || "");
-				});
-
-				$("#dropdown-log-out").click(function(){
-					$.cookie("email", "");
-					$.cookie("authToken", "");
-					ala.snack("Logged out.  Refreshing...");
-					setTimeout(function(){
-						location.reload();
-					}, 2000);
-				});
-
-				$("form").submit(function(e){
-					if($(this).attr("id") == "form-login"){
-						$("#form-login #login-submit").addClass("hidden");
-
-						var xhr = new XMLHttpRequest();
-						xhr.open("POST", "/user/auth", true);
-
-						xhr.onload = function(){
-							if(this.status == 200){
-								$.cookie("email", $("#form-login #email").val(), {expires: 30, path: "/"});
-								$.cookie("authToken", this.responseText, {expires: 30, path: "/"});
-								ala.chatInit();
-							} else {
-								$("#form-login #login-submit").removeClass("hidden");
-								ala.snack(this.responseText);
-							}
-							ala.setLoading(false);
-						}
-
-						xhr.setRequestHeader("Content-Type", "application/json");
-
-						xhr.send(JSON.stringify({
-							email: $("#form-login #email").val(),
-							password: $("#form-login #password").val()
-						}));
-
-						ala.setLoading(true);
-
-						e.stopPropagation();
-						e.preventDefault();
-					} else if($(this).attr("id") == "form-register"){
-						if($("#form-register #password").val() == ""){
-							ala.snack("Please enter a password.");
-						} else if($("#form-register #password").val() != $("#form-register #confirm-password").val()){
-							ala.snack("\"Password\" and \"Confirm Password\" fields don't match.");
-						}
-
-						$("#form-register #register-submit").addClass("hidden");
-
-						var xhr = new XMLHttpRequest();
-						xhr.open("POST", "/user/new", true);
-
-						xhr.onload = function(){
-							if(this.status == 200){
-								var xhr = new XMLHttpRequest();
-								xhr.open("POST", "/user/auth", true);
-
-								xhr.onload = function(){
-									if(this.status == 200){
-										$.cookie("email", $("#form-register #email").val(), {expires: 30, path: "/"});
-										$.cookie("authToken", this.responseText, {expires: 30, path: "/"});
-										$("ala-entrance").addClass("authorized");
-										ala.clearSnack();
-										ala.chatInit();
-										setTimeout(function(){
-											ala.lightbox("form-welcome");
-										}, 1000);
-									} else {
-										$("#form-register #register-submit").removeClass("hidden");
-										ala.snack(this.responseText);
-									}
-									ala.setLoading(false);
-								}
-
-								xhr.setRequestHeader("Content-Type", "application/json");
-
-								xhr.send(JSON.stringify({
-									email: $("#form-register #email").val(),
-									password: $("#form-register #password").val()
-								}));
-							} else {
-								$("#form-register #register-submit").removeClass("hidden");
-								ala.snack(this.responseText);
-								ala.setLoading(false);
-							}
-						}
-
-						xhr.setRequestHeader("Content-Type", "application/json");
-
-						xhr.send(JSON.stringify({
-							email: $("#form-register #email").val(),
-							password: $("#form-register #password").val()
-						}));
-
-						ala.setLoading(true);
-						e.stopPropagation();
-						e.preventDefault();
-					} else if($(this).attr("id") == "form-recover"){
-						var xhr = new XMLHttpRequest();
-						xhr.open("POST", "/user/reset-password", true);
-
-						xhr.onload = function(){
-							if(this.status == 200){
-								ala.snack("An email has been sent containing a temporary password.");
-							} else {
-								ala.snack(this.responseText);
-							}
-							ala.setLoading(false);
-						}
-
-						xhr.setRequestHeader("Content-Type", "application/json");
-
-						xhr.send(JSON.stringify({
-							email: $("#form-recover #email").val()
-						}));
-
-						ala.setLoading(true);
-						e.stopPropagation();
-						e.preventDefault();
-					} else if($(this).attr("id") == "form-new-chat"){
-						if($("#form-new-chat #title").val() == ""){
-							$("#form-new-chat #title").focus();
-							ala.snack("Enter a title for the new chat.");
-
-							e.stopPropagation();
-							e.preventDefault();
-							return false;
-						}
-
-						pushEmailEntry();
-
-						var xhr = new XMLHttpRequest();
-						xhr.open("POST", "/chat/new", true);
-
-						xhr.onload = function(){
-							if(this.status == 200){
-								ala.snack("Chat created.");
-								ala.lightbox("");
-							} else {
-								ala.snack(this.responseText);
-							}
-							ala.setLoading(false);
-						}
-
-						xhr.setRequestHeader("Content-Type", "application/json");
-
-						var users = [];
-
-						$("#form-new-chat ala-user-list ala-user").each(function(el, obj){
-							users.push($(obj).attr("email"));
-						});
-
-						xhr.send(JSON.stringify({
-							email: $.cookie("email"),
-							authToken: $.cookie("authToken"),
-							title: $("#form-new-chat #title").val(),
-							users: users
-						}));
-
-						ala.setLoading(true);
-						e.stopPropagation();
-						e.preventDefault();
-						return false;
-					} else if($(this).attr("id") == "form-account-settings"){
-						if($("#new-password").val() != $("#confirm-new-password").val()){
-							ala.snack("'New Password' and 'Confirm New Password' fields don't match.");
-							e.preventDefault();
-							e.stopPropagation();
-							return false;
-						}
-						var xhr = new XMLHttpRequest();
-						xhr.open("POST", "/user/update", true);
-
-						xhr.onload = function(){
-							if(this.status == 200){
-								ala.snack("Account updated succesfully.  Refreshing...");
-								setTimeout(function(){
-									location.reload();
-								}, 2000);
-							} else {
-								ala.snack(this.responseText);
-								ala.setLoading(false);
-							}
-						}
-
-						xhr.setRequestHeader("Content-Type", "application/json");
-
-						var updates = {
-							screenName: $("#screen-name").val()
-						};
-
-						if($("#new-password").val() != ""){
-							updates.password = $("#new-password").val();
-						}
-
-						if($("ala-color-swatch.active").size() == 1){
-							updates.color = $("ala-color-swatch.active").attr("color");
-						}
-
-						xhr.send(JSON.stringify({
-							email: $.cookie("email"),
-							password: $("#current-password").val(),
-							updates: updates
-						}));
-
-						ala.setLoading(true);
-						e.stopPropagation();
-						e.preventDefault();
-						return false;
-					} else if($(this).attr("id") == "form-mods"){
-						$.cookie("mods-enc", $("#mods-enc").val());
-						$.cookie("mods-dec", $("#mods-dec").val());
-						ala.lightbox("");
-						return false;
-					}
-				});
-
-				if($.cookie("email") && $.cookie("authToken")){
-					$("#form-login #email").val($.cookie("email"));
-					$("#log-in").trigger("click");
-					$("h1, h2, #form-login").addClass("skip-animation-in");
-					$("#button-bar").addClass("skip-animation-out");
-					ala.chatInit();
-				}
-
-				welcome($("#welcome-message"));
-			});
-
-			ala.clearSnack = function(){
-				if(ala.currentSnackTimeout){
-					clearTimeout(ala.currentSnackTimeout);
-				}
-				$("ala-snack-bar").removeClass("active gone");
-			}
-
-			ala.snack = function(text){
-				ala.clearSnack();
-				ala.currentSnackTimeout = setTimeout(function(){
-					$("ala-snack-bar").html(text);
-					$("ala-snack-bar").addClass("active");
-					ala.currentSnackTimeout = setTimeout(function(){
-						$("ala-snack-bar").addClass("gone");
-					}, 5000);
-				}, 10);
-			}
-
-			ala.onLogin = function(err){
-				if(err){
-					ala.snack(err);
-					$.cookie("authToken", "");
-				} else {
-					$("ala-entrance").addClass("authorized");
-					ala.clearSnack();
-					setTimeout(function(){
-						ala.snack("Welcome back!");
-					}, 1000);
-				}
-			}
-
-			ala.chatInit = function(){
-				$("ala-chats-list").niceScroll();
-				$("ala-message-list-viewport").niceScroll("ala-message-list");
-				$("ala-message-list-viewport").scroll(function(){
-					ala.chatScrollBottom = $("ala-message-list-viewport").scrollTop() + $("ala-message-list-viewport").height();
-
-					if($("ala-message-list-viewport").scrollTop() < 16){
-						ala.loadPreviousPage();
-					}
-				});
-				$("ala-user-list").niceScroll();
-				$("ala-scroll-overlay").niceScroll();
-
-				autosize($("#chat-input")); 
-
-				$("#chat-input").keydown(function(e){
-					if(e.keyCode == 13 && !e.shiftKey){
-						if($("#chat-input").val().match(/^\s*$/)){
-							$("#chat-input").val("");
-						} else {
-							ala.submit();
-						}
-						e.stopPropagation();
-						e.preventDefault();
-						return false;
-					}
-				});
-
-				$("#chat-submit-button").click(function(){
-					ala.submit();
-				});
-
-				$("ala-scroll-overlay").click(function(e){
-					$(this).css("display", "none");
-					var el = document.elementFromPoint(e.pageX, e.pageY);
-					$(this).css("display", "block");
-					$(el).trigger(e);
-				});
-
-				ala.socket = io((window.location.hostname == "a-la-mod.com" || window.location.hostname == "beta.a-la-mod.com") ? "a-la-mod.com" : undefined);
-
-				ala.socket.on("message", function(chatId, message){
-					ala.chats[chatId].listing.find("ala-most-recent").text(message.sender.screenName + ": " + message.message);
-					ala.chats[chatId].listing.insertAfter("ala-search-chats");
-					if(ala.currentChat == chatId){
-						ala.appendMessage(message);
-						ala.socket.emit("up to date", chatId);
-					} else {
-						ala.chats[chatId].unread++;
-						ala.chats[chatId].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[chatId].unread);
-						ala.moveChatListingToTop(ala.chats[chatId].listing);
-					}
-				});
-
-				ala.socket.on("error", function(descr){
-					ala.snack(descr.description);
-				});
-
-				ala.socket.on("login", function(err, dat){
-					if(err){
-						ala.snack(err);
-					} else {
-						ala.user = dat;
-						$("ala-dropdown-toggle").text(ala.user.screenName);
-						ala.loadChats();
-						ala.onLogin(err);
-					}
-				});
-
-				ala.socket.on("new chat", function(dat){
-					ala.chats[dat._id] = {
-						users: dat.users,
-						unread: 0,
-						listing: $(Handlebars.templates["chat-listing"]({
-							id: dat._id,
-							title: dat.title,
-							members: dat.users,
-							mostRecent: undefined
-						}))
-					}
-					ala.chatCount++;
-					ala.chats[dat._id].listing.click(function(){
-						if(!$(this).hasClass("active") && !ala.lockOpenChat){
-							ala.openChat($(this).attr("chat-id"));
-						}
-					});
-					ala.moveChatListingToTop(ala.chats[dat._id].listing.attr("order", ala.chatCount).css("left", -480));
-					setTimeout(function(){
-						ala.chats[dat._id].listing.css("left", "");
-					}, 600);
-					$("ala-chats-list").append(ala.chats[dat._id].listing);
-					$("ala-scroll-overlay-content").css("height", 120*ala.chatCount + 8);
-					if(ala.chats[dat._id].unread > 0){
-						ala.chats[dat._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[dat._id].unread);
-					}
-				});
-
-				ala.socket.emit("login", $.cookie("email"), $.cookie("authToken"));
-			}
-
-			ala.submit = function(){
-				var data = $("#chat-input").val();
-				$("#chat-input").val("");
-
-				var encodeOrder = ($.cookie("mods-enc") || "").split(/\s+/);
-
-				if(encodeOrder.length == 1 && encodeOrder[0] == ""){
-					encodeOrder = [];
-				}
-
-				ala.mods.encode(data, encodeOrder, function(data){
-					ala.socket.emit("message", ala.currentChat, data);
-				});
-				return false;
-				return false;
-			}
-
-			ala.openChat = function(chatId){
-				var xhr = new XMLHttpRequest();
-				xhr.open("POST", "/chat/history", true);
-
-				ala.lockOpenChat = true;
-
-				xhr.onload = function(){
-					var data = JSON.parse(this.responseText);
-
-					$("ala-message-list-viewport").addClass("gone");
-
-					setTimeout(function(){
-						$("ala-message-list").empty();
-
-						for(var i = 0; i < data.messages.length; i++){
-							data.messages[i].you = data.messages[i].sender == ala.user._id;
-							ala.appendMessage(data.messages[i]);
-						}
-
-						ala.chats[chatId].listing.find("ala-unread-count").css({visibility: "hidden"});
-						ala.chats[chatId].unread = 0;
-						ala.nextPage = 1;
-						ala.loadMorePages = true;
-						$("ala-message-list").removeClass("no-load");
-
-						ala.moveChatListingToTop($("ala-chat-listing.active").removeClass("active").attr("order", ala.chatCount));
-
-						for(var i = ala.chats[chatId].listing.attr("order"); i < ala.chatCount; i++){
-							$("ala-chat-listing[order=" + i +"]").attr("order", i-1).css("top", 120 * i - 104 - $("ala-scroll-overlay").scrollTop());
-						}
-						ala.chats[chatId].listing.addClass("active").removeAttr("order").css("top", "");
-
-						$("ala-message-list-viewport").scrollTop(Math.max($("ala-message-list").height() - $("ala-message-list-viewport").height(), 0));
-						ala.chatScrollBottom = $("ala-message-list-viewport").scrollTop() + $("ala-message-list-viewport").height();
-
-						setTimeout(function(){
-							$("ala-message-list-viewport").removeClass("gone");
-
-							ala.lockOpenChat = false;
-							$("ala-input-area").removeClass("out");
-						}, 800);
-					}, (ala.currentChat ? 200 : 0));
-				}
-
-				xhr.setRequestHeader("Content-Type", "application/json");
-
-				xhr.send(JSON.stringify({
-					email: $.cookie("email"),
-					authToken: $.cookie("authToken"),
-					chatId: chatId
-				}));
-
-				ala.currentChat = chatId;
-				ala.chatGroupCounterStart = 0;
-				ala.chatGroupCounterEnd = 1e9;
-				ala.spark.reset();
-			}
-
-			ala.appendMessage = function(data){
-				ala.messageCounter++;
-
-				if($("ala-message-list").children().last().attr("id") != data.sender._id){
-					ala.chatGroupCounterStart++;
-					$("ala-message-list").append(Handlebars.templates["chat-group"]({
-						sender: data.sender,
-						you: data.sender._id == ala.user._id,
-						timestamp: "|date" + ala.chatGroupCounterStart,
-					}));
-				}
-				var newMessage = $(Handlebars.templates["chat-message"]({
-					message: [new Handlebars.SafeString("<ala-dot-loader><ala-dot class='dot1'></ala-dot><ala-dot class='dot2'></ala-dot><ala-dot class='dot3'></ala-dot><ala-dot class='dot4'></ala-dot></ala-dot-loader>")],
-					sender: data.sender
-				}));
-				$("ala-message-list").children().last().append(newMessage);
-				newMessage.attr("message-id", ala.messageCounter);
-				ala.spark.set("date" + ala.chatGroupCounterStart, data.timestamp);
-
-				var decodeOrder = ($.cookie("mods-dec") || "").split(/\s+/);
-
-				if(decodeOrder.length == 1 && decodeOrder[0] == ""){
-					decodeOrder = [];
-				}
-
-				ala.mods.decode(data.message, decodeOrder, function(id, sender){
-					return function(data){
-						for(var i = 0; i < data.length; i++){
-							if(data[i].fallback !== undefined){
-								data[i] = data[i].fallback;
-							}
-							if(data[i].type == "SafeString"){
-								data[i] = {content: new Handlebars.SafeString(data[i].content), decoder: data[i].decoder};
-							}
-						}
-						var message = $(Handlebars.templates["chat-message"]({
-							message: data,
-							sender: sender
-						}));
-						$("[message-id=" + id + "]").replaceWith(message);
-					}
-				}(ala.messageCounter, data.sender));
-			}
-
-			ala.prependMessage = function(msg){
-				if($("ala-message-list").children().first().attr("id") != msg.sender._id){
-					ala.chatGroupCounterEnd++;
-					$("ala-message-list").prepend(Handlebars.templates["chat-group"]({
-						sender: msg.sender,
-						you: msg.sender._id == ala.user._id,
-						timestamp: "|date" + ala.chatGroupCounterStart,
-					}));
-					ala.spark.set("date" + ala.chatGroupCounterEnd, msg.timestamp);
-				}
-				$("ala-message-list").children().first().prepend(Handlebars.templates["chat-message"]({
-					message: msg.message
-				}));
-			}
-
-			ala.setLoading = function(loading){
-				if(loading){
-					$("ala-input-blocker").addClass("active");
-					$(".spinner-target").addClass("loading");
-				} else {
-					$("ala-input-blocker").removeClass("active");
-					$(".spinner-target").removeClass("loading");
-				}
-			}
-
-			ala.loadPreviousPage = function(){
-				if(ala.loadingPage || !ala.loadMorePages){
-					return;
-				}
-
-				var xhr = new XMLHttpRequest();
-				xhr.open("POST", "/chat/history", true);
-
-				xhr.onload = function(){
-					ala.loadingPage = false;
-					if(this.status == 200){
-						var data = JSON.parse(this.responseText);
-						var messages = data.messages;
-
-						var lastMessage = $("ala-message-list").children("ala-message-group").first().children("ala-chat-message").first();
-
-						for(var i = messages.length-1; i >= 0; i--){
-							ala.prependMessage(messages[i]);
-						}
-
-						if(lastMessage.position()){
-							$("ala-message-list-viewport").scrollTop(lastMessage.position().top);
-						}
-
-						if(messages.length == 0){
-							ala.loadMorePages = false;
-							$("ala-message-list").addClass("no-load");
-						}
-
-						ala.nextPage++;
-					} else {
-						ala.snack(this.responseText);
-					}
-				}
-
-				xhr.setRequestHeader("Content-Type", "application/json");
-
-				xhr.send(JSON.stringify({
-					email: $.cookie("email"),
-					authToken: $.cookie("authToken"),
-					chatId: ala.currentChat,
-					page: ala.nextPage
-				}));
-
-				ala.loadingPage = true;
-			}
-
-			ala.loadChats = function(){
-				var xhr = new XMLHttpRequest();
-				xhr.open("POST", "/chats", true);
-
-				xhr.onload = function(){
-					chats = JSON.parse(this.responseText);
-
-					chats.sort(function(a, b){
-						return (b.messages[0] ? b.messages[0].timestamp : b.creationTime) - (a.messages[0] ? a.messages[0].timestamp : b.creationTime);
-					});
-
-					ala.chatCount = 0;
-
-					for(var i = 0; i < chats.length; i++){
-						ala.chats[chats[i]._id] = {
-							users: chats[i].users,
-							unread: chats[i].messageCount - chats[i].lastRead[ala.user._id],
-							listing: $(Handlebars.templates["chat-listing"]({
-								id: chats[i]._id,
-								title: chats[i].title,
-								members: chats[i].users,
-								mostRecent: chats[i].messages[0]
-							}))
-						}
-						ala.chats[chats[i]._id].listing.click(function(){
-							if(!$(this).hasClass("active") && !ala.lockOpenChat){
-								ala.openChat($(this).attr("chat-id"));
-							}
-						});
-						$("ala-chats-list").append(ala.chats[chats[i]._id].listing);
-						if(ala.chats[chats[i]._id].unread > 0){
-							ala.chats[chats[i]._id].listing.find("ala-unread-count").css({visibility: "visible"}).text(ala.chats[chats[i]._id].unread);
-						}
-						ala.chats[chats[i]._id].listing.attr("order", ala.chatCount).css("top", 120 * ala.chatCount + 16);
-						ala.chatCount++;
-						$("ala-scroll-overlay-content").css("height", 120*ala.chatCount + 8);
-					}
-				};
-
-				xhr.setRequestHeader("Content-Type", "application/json");
-
-				xhr.send(JSON.stringify({
-					email: $.cookie("email"),
-					authToken: $.cookie("authToken")
-				}));
-			}
-
-			ala.moveChatListingToTop = function(listing){
-				for(var i = listing.attr("order")-1; i >= 0; i--){
-					$("ala-chat-listing[order=" + i +"]").attr("order", i+1).css("top", 120 * i + 136 - $("ala-scroll-overlay").scrollTop());
-				}
-				listing.attr("order", 0).css("top", 16 - $("ala-scroll-overlay").scrollTop());
-			}
-
-			ala.lightbox = function(formId, doNotClear){
-				if(formId != ""){
-					if(!doNotClear){
-						ala.clearForm(formId);
-					}
-					$("ala-lightbox-container").addClass("active");
-					$("ala-lightbox-container form").addClass("hidden");
-					$("ala-lightbox-container form#" + formId).removeClass("hidden");
-				} else {
-					$("ala-lightbox-container").removeClass("active");
-				}
-			}
-
-			ala.clearForm = function(formId){
-				$("form#" + formId + " input").val("");
-				$("form#" + formId + " ala-user-list").empty().append(Handlebars.templates["user-listing"]({_id: ala.user._id, email: ala.user.email, screenName: ala.user.screenName, removable: false}));
-			}
-
-			Handlebars.registerHelper("gravatar", function(email, size){
-				return new Handlebars.SafeString("<img class='icon icon-" + size + "' src='https://www.gravatar.com/avatar/" + (email && typeof(email) == "string" ? md5(email.trim().toLowerCase()) : "") + "?s=" + size + "&d=identicon' />");
-			});
-
-			Handlebars.registerHelper("date", function(date, aux) {
-				return moment.unix(date).calendar();
-			});
-
-			ala.spark.set("seconds", 0);
-			setInterval(function() {
-				ala.spark.set("seconds", ala.spark.get("seconds") + 1)
-			}, 1000);
-		</script>
+		<script src="js/ala.js"></script>
 	</head>
 	<body>
 		<ala-input-blocker></ala-input-blocker>
@@ -1030,19 +99,6 @@
 			<ala-version-number>French Vanilla &middot; 0.1.0</ala-version-number>
 		</ala-entrance>
 		<ala-app>
-			<header>
-				<img src="images/app-icon-48.png" class="header-icon" />
-				<h4>&Agrave; la Mod</h4>
-
-				<ala-dropdown-toggle></ala-dropdown-toggle>
-				<ala-dropdown>
-					<ala-dropdown-item id="dropdown-settings">Settings</ala-dropdown-item>
-					<ala-dropdown-item id="dropdown-mods">Mods</ala-dropdown-item>
-					<ala-dropdown-item id="dropdown-log-out">Log Out</ala-dropdown-item>
-				</ala-dropdown>
-				<ala-notif-container>
-				</ala-notif-container>
-			</header>
 			<ala-lightbox-container>
 				<ala-lightbox>
 					<form id="form-welcome">
@@ -1135,33 +191,521 @@
 					</form>
 				</ala-lightbox>
 			</ala-lightbox-container>
-			<ala-flex id="app-container">
-				<ala-sidebar>
-					<ala-scroll-overlay>
-						<ala-scroll-overlay-content></ala-scroll-overlay-content>
-					</ala-scroll-overlay>
-					<ala-chats-list>
-						<button class="floating-action ok" id="new-chat"><img width="24" height="24" src="images/ic-add.svg" /></button>
-					</ala-chats-list>
-				</ala-sidebar>
-				<ala-chat-area-container>
-					<ala-start-message>
-						<h2 id="welcome-message"></h2>
-						<p>Ready to chat?  Choose a chat to the left, or click the button below to start a new one.</p>
-					</ala-start-message>
-					<ala-chat-area>
-						<ala-message-list-viewport class="gone">
-							<ala-message-list></ala-message-list>
-						</ala-message-list-viewport>
-						<ala-input-area class="out">
-							<textarea id="chat-input" name="send" placeholder="Message..."></textarea>
-							<button id="chat-submit-button" class="raised ok">Submit</button>
-						</ala-input-area>
-					</ala-chat-area>
-				</ala-chat-area-container>
-			</ala-flex>
+			<header>
+				<img src="images/app-icon-48.png" class="header-icon" />
+				<h4>&Agrave; la Mod</h4>
+				<ala-header-icons>
+					<ala-icon id="search" class="mdi mdi-magnify"></ala-icon>
+					<ala-icon id="mods" class="mdi mdi-view-dashboard"></ala-icon>
+					<ala-icon id="account" class="mdi mdi-account"></ala-icon>
+					<ala-icon id="more" class="mdi mdi-dots-vertical"></ala-icon>
+				</ala-header-icons>
+			</header>
+			<main>
+				<ala-chat-list>
+				</ala-chat-list>
+				<ala-active-chat class="active">
+					<ala-chat-card starred>
+						<header>
+							<h2>The Chat Title</h2>
+							<ala-header-icons>
+								<ala-icon id="star" class="mdi mdi-star"></ala-icon>
+							</ala-header-icons>
+						</header>
+						<ala-last-message>
+							<span class="message">What's the deal with that airline food?</span>
+							<span class="timestamp">7:42 PM</span>
+						</ala-last-message>
+						<ala-user-list>
+							<ala-user><img class="grav grav-32" src="http://gravatar.com/avatar/69ff77344256ee27af75e03df9e5372d?s=128&d=identicon" />Matthew Savage</ala-user>
+							<ala-user><img class="grav grav-32" src="http://gravatar.com/avatar/38f6ed5c7d8cb24230feacdf441478e8?s=128&d=identicon" />Zachary Wade</ala-user>
+							<ala-user><img class="grav grav-32" src="http://gravatar.com/avatar/22f060b76647e1d3ca9f4406491503a8?s=128&d=identicon" />Kyle Herndon</ala-user>
+							<ala-user><img class="grav grav-32" src="http://gravatar.com/avatar/86aa4244dc31ed4f5dc84a39711c7bd6?s=128&d=identicon" />Danial Hussain</ala-user>
+							<ala-user><img class="grav grav-32" src="http://gravatar.com/avatar/c467a9e2e29755552b9da765eed54462?s=128&d=identicon" />Ashley Kim</ala-user>
+						</ala-user-list>
+					</ala-chat-card>
+					<ala-messages-card>
+						<ala-messages-list>
+							<ala-message-group id="557987e2e9c5624732f58d08" direction="right">
+								<img class="grav grav-32" src="https://www.gravatar.com/avatar/c612da2dba8fc89a6577324e21f71676?s=32&amp;d=identicon">
+								<ala-timestamp><spark-block id="spark-40098981">Yesterday at 10:26 PM</spark-block></ala-timestamp>
+								<ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+									<span>
+
+
+										a
+
+									</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message><ala-chat-message style="background: #F44336; border-color: #F44336;">
+
+								<span>
+
+
+									a
+
+								</span>
+
+								</ala-chat-message></ala-message-group>
+						</ala-messages-list>
+					</ala-messages-card>
+					<ala-input-card>
+						<textarea placeholder="Enter a message..."></textarea>
+						<button id="recipe-select" class="floating-action">
+							<ala-icon class="mdi mdi-view-list"></ala-icon>
+						</button>
+						<button id="send" class="raised ok">Send</button>
+					</ala-input-card>
+				</ala-active-chat>
+				<ala-active-mod-ui>
+					<ala-mod-ui>
+						<header>
+							<h2>The Mod Title</h2>
+							<ala-header-icons>
+								<ala-icon id="expand" class="mdi mdi-expand"></ala-icon>
+								<ala-icon id="close" class="mdi mdi-close"></ala-icon>
+							</ala-header-icons>
+						</header>
+						<iframe sandbox>
+							<html>
+								<head></head>
+								<body>
+									<div style="background: #dddddd; width: 100%; height: 100%;"></div>
+								</body>
+							</html>
+						</iframe>
+					</ala-mod-ui>
+					<ala-mod-ui>
+						<header>
+							<h2>The Mod Title</h2>
+							<ala-header-icons>
+								<ala-icon id="expand" class="mdi mdi-expand"></ala-icon>
+								<ala-icon id="close" class="mdi mdi-close"></ala-icon>
+							</ala-header-icons>
+						</header>
+						<iframe sandbox>
+							<html>
+								<head></head>
+								<body>
+									<div style="background: #dddddd; width: 100%; height: 100%;"></div>
+								</body>
+							</html>
+						</iframe>
+					</ala-mod-ui>
+					<ala-mod-ui>
+						<header>
+							<h2>The Mod Title</h2>
+							<ala-header-icons>
+								<ala-icon id="expand" class="mdi mdi-expand"></ala-icon>
+								<ala-icon id="close" class="mdi mdi-close"></ala-icon>
+							</ala-header-icons>
+						</header>
+						<iframe sandbox>
+							<html>
+								<head></head>
+								<body>
+									<div style="background: #dddddd; width: 100%; height: 100%;"></div>
+								</body>
+							</html>
+						</iframe>
+					</ala-mod-ui>
+					<ala-mod-ui>
+						<header>
+							<h2>The Mod Title</h2>
+							<ala-header-icons>
+								<ala-icon id="expand" class="mdi mdi-expand"></ala-icon>
+								<ala-icon id="close" class="mdi mdi-close"></ala-icon>
+							</ala-header-icons>
+						</header>
+						<iframe sandbox>
+							<html>
+								<head></head>
+								<body>
+									<div style="background: #dddddd; width: 100%; height: 100%;"></div>
+								</body>
+							</html>
+						</iframe>
+					</ala-mod-ui>
+					<ala-mod-ui>
+						<header>
+							<h2>The Mod Title</h2>
+							<ala-header-icons>
+								<ala-icon id="expand" class="mdi mdi-expand"></ala-icon>
+								<ala-icon id="close" class="mdi mdi-close"></ala-icon>
+							</ala-header-icons>
+						</header>
+						<iframe sandbox>
+							<html>
+								<head></head>
+								<body>
+									<div style="background: #dddddd; width: 100%; height: 100%;"></div>
+								</body>
+							</html>
+						</iframe>
+					</ala-mod-ui>
+					<ala-mod-ui>
+						<header>
+							<h2>The Mod Title</h2>
+							<ala-header-icons>
+								<ala-icon id="expand" class="mdi mdi-expand"></ala-icon>
+								<ala-icon id="close" class="mdi mdi-close"></ala-icon>
+							</ala-header-icons>
+						</header>
+						<iframe sandbox>
+							<html>
+								<head></head>
+								<body>
+									<div style="background: #dddddd; width: 100%; height: 100%;"></div>
+								</body>
+							</html>
+						</iframe>
+					</ala-mod-ui>
+				</ala-active-mod-ui>
+			</main>
 		</ala-app>
 		<ala-snack-bar></ala-snack-bar>
-		<script src="js/scoped.js"></script>
 	</body>
 </html>

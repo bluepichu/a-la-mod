@@ -10,11 +10,13 @@ $gray-light-2: #f0f0f0;
 $gray-light-3: #d8d8d8;
 $gray-light-4: #c0c0c0;
 
+$gray-dark-4: #404040;
 $gray-dark-3: #323232;
 $gray-dark-2: #282828;
 $gray-dark-1: #222222;
 
 $text-primary: rgba(0, 0, 0, .87);
+$text-mid: rgba(0, 0, 0, .76);
 $text-secondary: rgba(0, 0, 0, .54);
 $text-secondary-light: rgba(255, 255, 255, .54);
 
@@ -26,6 +28,7 @@ $black-overlay: rgba(0, 0, 0, .62);
 
 $ok: #4caf50;
 $warning: #ff5252;
+$gold: #FFD600;
 
 // Fonts
 $font-primary: Basic, sans-serif;
@@ -53,12 +56,26 @@ $spinner-color: url(/images/spinner.svg);
 $spinner-white: url(/images/spinner-white.svg);
 
 @mixin shadow($depth) {
+	position: relative;
+	&:after {
+		content: "";
+		z-index: -1;
+		position: absolute;
+		left: 0px;
+		top: 0px;
+		bottom: 0px;
+		right: 0px;
+	}
 	@if $depth < 1 {
-		box-shadow: none;
+		&:after {
+			box-shadow: none;
+		}
 	} @else if $depth > 5 {
-		@warn "Invalid $depth `#{$depth}` for mixin `card`.";
+		@warn "Invalid $depth `#{$depth}` for mixin `shadow`.";
 	} @else {
-		box-shadow: bottom-shadow($depth), top-shadow($depth);  
+		&:after {
+			box-shadow: bottom-shadow($depth), top-shadow($depth);
+		}
 	}
 }
 
@@ -92,6 +109,36 @@ $spinner-white: url(/images/spinner-white.svg);
 
 %circle {
 	border-radius: 50%;
+
+	&:after {
+		border-radius: 50%;
+	}
+}
+
+%card {
+	background: $white;
+	border-radius: 4px;
+	padding: 8px;
+	z-index: 1;
+
+	&:after {
+		border-radius: 4px;
+	}
+}
+
+::-webkit-scrollbar {
+    width: 4px;
+}
+::-webkit-scrollbar-track {
+    width: 1px;
+	background: $gray-light-2;
+	border: 1.5px solid transparent;
+	-webkit-background-clip: content-box;
+	background-clip: content-box;
+}
+::-webkit-scrollbar-thumb {
+	border-radius: 4px;
+    background: $gray-dark-4;
 }
 
 * {
@@ -121,6 +168,9 @@ ala-entrance {
 		position: absolute;
 		left: calc(50% - 120px);
 	}
+
+
+	display: none; // testing
 }
 @-webkit-keyframes fade-in {
 	from {
@@ -229,6 +279,9 @@ ala-entrance {
 	top: 0;
 }
 .no-select {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
 	user-select: none;
 }
 h1 {
@@ -293,9 +346,9 @@ button {
 		outline: none;
 	}
 	&.floating-action {
-		@include shadow(3);
-
+		@include shadow(2);
 		@extend %circle;
+
 		transition: box-shadow $speed-medium;
 		width: 56px;
 		height: 56px;
@@ -418,17 +471,20 @@ ala-app {
 	top: 0;
 	width: 100vw;
 	height: 100vh;
-}
-header {
-	@include shadow(3);
 
-	background: $primary;
-	color: $white;
-	padding: 16px 48px;
-	height: 64px;
-	z-index: 10;
-	position: relative;
+	& > header {
+		@include shadow(3);
+
+		background: $primary;
+		color: $white;
+		padding: 16px 48px;
+		height: 64px;
+		z-index: 10;
+		position: relative;
+		width: 100%;
+	}
 }
+
 ala-snack-bar {
 	display: block;
 	position: fixed;
@@ -466,9 +522,9 @@ ala-flex {
 ala-sidebar {
 	height: 100%;
 	width: 240px;
-//	background: $gray-light-1;
+	//	background: $gray-light-1;
 	padding: 0 8px;
-//	border-right: 1px solid $black-border;
+	//	border-right: 1px solid $black-border;
 }
 ala-chat-area {
 	flex-grow: 1;
@@ -482,90 +538,12 @@ ala-chat-area {
 	top: 88px;
 	bottom: 16px;
 }
-ala-chat-listing {
-	@extend .no-select;
-	@include shadow(1);
-
-	background: $white;
-	padding: 8px;
-	overflow: hidden;
-	cursor: pointer;
-	border-radius: $border-radius-small;
-	margin-bottom: 4px;
-	z-index: 2;
-	height: 112px;
-	display: flex;
-	flex-direction: column;
-	position: absolute;
-	left: 8px;
-	width: 224px;
-	transition: $speed-medium top ease, $speed-medium height ease, $speed-medium left ease $speed-medium, $speed-medium width ease $speed-medium;
-	&.active {
-		@include shadow(2);
-
-		position: absolute;
-		left: 248px;
-		top: 8px;
-		width: calc(100% - 256px);
-		height: calc(100% - 16px);
-		transition: $speed-medium left ease, $speed-medium width ease, $speed-medium top ease $speed-medium, $speed-medium height ease $speed-medium;
-		z-index: 3;
-		cursor: default;
-		ala-most-recent {
-			opacity: 0;
-		}
-		ala-members-list {
-			border-bottom-color: $black-border;
-			height: 42px;
-		}
-	}
-}
-ala-chat-title {
-	display: block;
-	font-size: 1.6em;
-	color: $text-primary;
-}
-ala-members-list {
-	display: flex;
-	color: $text-primary;
-	align-items: center;
-	flex-direction: row;
-	height: 32px;
-	border-bottom: 1px solid rgba(0, 0, 0, 0);
-	.icon:not(:first-child) {
-		margin-left: 4px;
-	}
-}
-ala-most-recent {
-	display: block;
-	color: $text-secondary;
-	font-style: italic;
-	font-size: .8em;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	width: 100%;
-	overflow: hidden;
-	flex-grow: 1;
-	opacity: 1;
-	transition: $speed-medium opacity;
-}
-ala-unread-count {
-	position: absolute;
-	right: 4px;
-	top: 4px;
-	font-size: .8em;
-	background: $warning;
-	color: $white;
-	padding: 0 4px;
-	border-radius: $border-radius-medium;
-	visibility: hidden;
-}
 ala-message-group {
 	position: relative;
 	padding-bottom: 52px;
 	width: 88%;
 	display: block;
-	.icon {
+	.grav {
 		position: absolute;
 		bottom: 4px;
 	}
@@ -579,7 +557,7 @@ ala-message-group {
 ala-message-group[direction=left] {
 	padding-left: 40px;
 	margin-right: 12%;
-	.icon {
+	.grav {
 		left: 4px;
 	}
 	ala-chat-message {
@@ -594,7 +572,7 @@ ala-message-group[direction=left] {
 ala-message-group[direction=right] {
 	padding-right: 40px;
 	margin-left: 12%;
-	.icon {
+	.grav {
 		right: 4px;
 	}
 	ala-chat-message {
@@ -716,18 +694,6 @@ ala-email-suggestion {
 	display: block;
 	font-size: 1.2em;
 }
-ala-user-list {
-	display: block;
-	height: 200px;
-	overflow-y: scroll;
-}
-ala-user {
-	display: flex;
-	height: 48px;
-	flex-direction: row;
-	align-items: center;
-	background: $white;
-}
 h3 {
 	padding: 0;
 	margin: 4px 12px 8px;
@@ -751,22 +717,6 @@ ala-remove-button {
 	}
 	&:hover {
 		background: $gray-light-4;
-	}
-}
-.icon {
-	@extend %circle;
-
-	.icon-24 {
-		width: 24px;
-		height: 24px;
-	}
-	.icon-32 {
-		width: 32px;
-		height: 32px;
-	}
-	.icon-64 {
-		width: 64px;
-		height: 64px;
 	}
 }
 ala-user-info {
@@ -810,7 +760,7 @@ ala-input-area {
 	position: relative;
 	top: 0px;
 	transition: top $speed-vslow ease-out;
-	
+
 	&.out {
 		top: 100vh;
 	}
@@ -829,20 +779,20 @@ ala-start-message {
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
-	
+
 	h2 {
 		color: $gray-light-4;
 		margin: 0px;
 	}
-	
+
 	p {
 		color: $gray-light-4;
-//		margin-bottom: 10em;
+		//		margin-bottom: 10em;
 	}
 }
 h4 {
-	font-size: 2em;
-	margin: 0 0 0 8px;
+	font-size: 1.8em;
+	margin: 0 0 0 16px;
 	padding: 0;
 	display: inline-block;
 	font-weight: 400;
@@ -979,7 +929,7 @@ ala-suggestion-list {
 }
 ala-suggestion {
 	@include shadow(1);
-	
+
 	margin: .1em 0px;
 	display: block;
 	font-size: 1em;
@@ -987,10 +937,10 @@ ala-suggestion {
 	background: $white;
 	border-radius: .2em;
 	transition-duration: $speed-fast;
-	
+
 	&.text-selected {
 		@include shadow(2);
-		
+
 		background: $primary-light;
 		color: $white;
 	}
@@ -1150,4 +1100,311 @@ h5 {
 
 #notification:active {
 	fill: #ccc;
+}
+
+ala-header-icons {
+	display: flex;
+	float: right;
+	color: $white;
+	align-items: center;
+	height: 100%;
+	font-size: 2em;
+}
+
+ala-icon.mdi {
+	width: 48px;
+	height: 48px;
+	margin: 4px 4px 4px 0px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	cursor: pointer;
+}
+
+main {
+	width: 100vw;
+	height: calc(100vh - 64px);
+	padding: 16px;
+	background: $gray-light-1;
+	display: flex;
+}
+
+ala-chat-list {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+}
+
+ala-chat-card {
+	@extend .no-select;
+	@extend %card;
+	@include shadow(1);
+
+	width: 400px;
+	height: 236px;
+	display: flex;
+	flex-direction: column;
+	margin: 8px;
+	cursor: pointer;
+
+	header {
+		margin-bottom: 16px;
+		height: 32px;
+
+		h2 {
+			font-size: 1.4em;
+			color: $text-primary;
+			float: left;
+			max-width: calc(100% - 48px);
+			margin: 8px 0px 0px 8px;
+		}
+
+		ala-header-icons {
+			font-size: 1em;
+			color: $text-primary;
+			align-items: flex-start;
+
+			ala-icon.mdi {
+				width: 32px;
+				height: 32px;
+			}
+		}
+	}
+
+	&[starred] #star {
+		color: $gold;
+	}
+
+
+	ala-last-message {
+		background: $gray-light-3;
+		color: $text-mid;
+		padding: 4px 16px;
+		border-radius: 100px;
+		display: flex;
+		justify-content: space-between;
+		position: relative;
+		margin-bottom: 24px;
+
+		&:before {
+			width: 0;
+			height: 0;
+			content: "";
+			position: absolute;
+			bottom: -18px;
+			z-index: -1;
+			border: 12px solid transparent;
+			border-left-color: $gray-light-3;
+			border-top-color: $gray-light-3;
+			left: 24px;
+		}
+
+		.message {
+			flex-grow: 1;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+			flex-basis: 0px;
+		}
+
+		.timestamp {
+			color: $text-secondary;
+			margin-left: 8px;
+			white-space: nowrap;
+		}
+	}
+
+	ala-user:first-child {
+		background: $gray-light-3;
+		color: $text-primary;
+	}
+
+	ala-active-chat & {
+		width: 100%;
+		height: auto;
+		border-radius: 4px 4px 0px 0px;
+		margin: 0px;
+		cursor: auto;
+
+		&:after {
+			border-radius: 4px 4px 0px 0px;
+		}
+
+		ala-last-message {
+			display: none;
+		}
+		
+		ala-user:first-child {
+			background: $gray-light-2;
+			color: $text-secondary;
+		}
+	}
+}
+
+ala-active-chat {
+	display: flex;
+	flex-direction: column;
+	width: 50%;
+	height: 100%;
+	padding: 16px 8px 16px 16px;
+
+	ala-messages-card {
+		@extend %card;
+		@include shadow(1);
+
+		display: flex;
+		flex-direction: column;
+		flex-basis: 0px;
+		flex-grow: 1;
+		border-radius: 0px;
+
+		&:after {
+			border-radius: 0px;
+		}
+
+		ala-messages-list {
+			height: 100%;
+			width: 100%;
+			display: block;
+			overflow-y: scroll;
+			padding-right: 8px;
+		}
+	}
+
+	ala-input-card {
+		@extend %card;
+		@include shadow(1);
+
+		border-radius: 0px 0px 4px 4px;
+
+		&:after {
+			border-radius: 0px 0px 4px 4px;
+		}
+
+		textarea {
+			border: $black-border;
+			font-family: $font-primary;
+			max-height: 400px;
+			resize: none;
+			width: calc(100% - 20px);
+			height: 60px;
+			font-size: .8em;
+		}
+
+		button#recipe-select {
+			background: #0097A7;
+			position: absolute;
+			right: 16px;
+			top: -28px;
+			color: $white;
+			z-index: 3;
+
+			ala-icon {
+				display: block;
+				width: auto;
+				height: auto;
+				margin: 0px;
+				font-size: 24px;
+			}
+		}
+
+		button#send {
+			position: absolute;
+			right: 8px;
+			bottom: 8px;
+			z-index: 2;
+		}
+	}
+}
+
+ala-active-mod-ui {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	width: 50%;
+	height: 100%;
+	padding: 16px 16px 16px 8px;
+}
+
+ala-mod-ui {
+	@extend .no-select;
+	@extend %card;
+	@include shadow(1);
+
+	width: 260px;
+	height: 240px;
+	display: flex;
+	flex-direction: column;
+	margin: 8px;
+	cursor: pointer;
+
+	header {
+		margin-bottom: 16px;
+		height: 32px;
+
+		h2 {
+			font-size: 1.4em;
+			color: $text-primary;
+			float: left;
+			max-width: calc(100% - 48px);
+			margin: 8px 0px 0px 8px;
+		}
+
+		ala-header-icons {
+			font-size: 1em;
+			color: $text-primary;
+			align-items: flex-start;
+
+			ala-icon.mdi {
+				width: 32px;
+				height: 32px;
+			}
+		}
+	}
+
+	iframe {
+		border: none;
+		width: 100%;
+		flex-basis: 0px;
+		flex-grow: 1;
+		background: #dddddd;
+	}
+}
+
+ala-user-list {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+ala-user {
+	display: inline-flex;
+	align-items: center;
+	background: $gray-light-2;
+	color: $text-secondary;
+	font-size: .8em;
+	border-radius: 100px;
+	font-weight: 500;
+	padding-right: 16px;
+	margin: 0px 8px 8px 0px;
+
+	.grav {
+		margin-right: 8px;
+	}
+}
+
+img.grav {
+	@extend %circle;
+
+	&.grav-24 {
+		width: 24px;
+		height: 24px;
+	}
+	&.grav-32 {
+		width: 32px;
+		height: 32px;
+	}
+	&.grav-64 {
+		width: 64px;
+		height: 64px;
+	}
 }
