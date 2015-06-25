@@ -924,7 +924,12 @@ io.on("connection", function(socket){
 					io.to(socket.id).emit("error", {description: "Request failed: server error."});
 					return;
 				}
-
+				var packet = {
+					chat: data[0],
+					msg: msg,
+					socket: socket,
+				}
+				sendNotifs(packet)
 				var sender = {
 					email: socket.email,
 					_id: socket.userId,
@@ -998,7 +1003,89 @@ io.on("connection", function(socket){
 			}, function(){});
 		}
 	});
+
+	/**
+	 * Lets the server know the client's hidden state
+	 */
+
+	socket.on("hidden", function(hidden) {
+		socket.hidden = hidden
+	})
 });
+
+//Determines to whom notifications ought to be sent
+var sendNotifs = function(data) {
+	var title = data.chat.title
+	var body = data.socket.email + ": " + data.msg
+	var p = data;
+	var chat = data.chat;
+	db.query("users", {
+		_id: {$in: data.chat.users}
+	}, function(err, data) {
+		if (err) {
+			console.log(err)
+			return;
+		}
+		var socketList = getRoom(chat._id)
+		for (var i in data) {
+			console.log(">> "+Object.keys(socketList))
+			//First case - do not send notification to sender
+			if (data[i].email == p.socket.email) {
+				console.log("Not sending to owner")
+				continue;
+			}
+			//Second case - if they have no open browsers, send them a notification
+			if (!(data[i].email in socketList)) {
+				castNotif(data[i].email, title, body) 	
+				console.log("Attempting to send to closed client")
+				continue
+			}
+			//Third case - if all their clients are hidden, send them a notification
+			var sockets = socketList[data[i].email]
+			var shouldContinue = true;
+			for (var s in sockets) {
+				if (!sockets[s].hidden) {  //this will also catch the case where no hidden event was emitted, and thus the client is still open
+					shouldContinue = false;
+					break;
+				}
+			}
+			if (shouldContinue) {
+				castNotif(data[i].email, title, body)
+				console.log("Attempting to send to hidden client")
+				continue;
+			}
+			//Default case - the clients are opened and being viewed, so no notification is necessary
+			console.log("Client open, not sending");
+		}
+	})
+}
+
+//Super short helper method for sending a notif to a user
+var castNotif = function(email, title, body) {
+	push.sendMessage(email, {
+		title: title,
+		body: body,
+		icon: "https://a-la-mod.com/images/app-icon-72.png",
+	}, function(err) {
+		console.log("Error in sending notif: "+err)
+	})
+}
+
+//gets all of the sockets in a room, organized by email
+//TODO: we really need to spend like a couple days looking at how we can cache a lot of this stuff. 
+//Not like its that hard to calculate, but we don't want to have to run this every time someone sends a message
+var getRoom = function(room) {
+	var ret = {}
+	for (var sId in io.nsps["/"].adapter.rooms[room]) {
+		var sock = io.sockets.connected[sId]
+		if (!ret[sock.email]) {
+			ret[sock.email] = []
+		}
+		ret[sock.email].push(sock)
+	}
+	return ret
+
+}
 
 // AsyncHandler written by bluepichu.  May become an import at a later point, since this may be published as its own project.
 var AsyncHandler = function(done){
