@@ -1432,6 +1432,27 @@ ala-active-chat {
 	}
 }
 
+ala-fullscreen-mod {
+	position: absolute;
+	left: calc(50% + 8px);
+	top: 8px;
+	width: calc(50% - 64px);
+	height: calc(100% - 64px);
+
+	ala-mod-card {
+		width: 100%;
+		height: 100%;
+
+		#expand {
+			display: none;
+		}
+
+		#collapse {
+			display: block;
+		}
+	}
+}
+
 ala-active-mod-ui {
 	display: flex;
 	flex-wrap: wrap;
@@ -1448,9 +1469,14 @@ ala-active-mod-ui {
 		height: 8px;
 		pointer-events: none;
 	}
+
+	ala-fullscreen-mod:not(:empty) + & {
+		left: calc(100% + 8px);
+		transition-delay: 0ms;
+	}
 }
 
-ala-mod-ui {
+ala-mod-card {
 	@extend .no-select;
 	@extend %card;
 	@include shadow(1);
@@ -1460,7 +1486,15 @@ ala-mod-ui {
 	display: flex;
 	flex-direction: column;
 	margin: 8px;
-	cursor: pointer;
+	transition: left $speed-medium, top $speed-medium, width $speed-medium, height $speed-medium;
+
+	#expand {
+		display: block;
+	}
+
+	#collapse {
+		display: none;
+	}
 
 	header {
 		margin-bottom: 16px;

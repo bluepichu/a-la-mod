@@ -384,7 +384,7 @@ $(document).ready(function(){
 			$("ala-lightbox-container").removeClass("active");
 		}
 	}
-	
+
 	ala.clearForm = function(formId){
 		$("form#" + formId + " input").val("");
 	}
@@ -420,7 +420,7 @@ $(document).ready(function(){
 	$("#back").click(function(){
 		ala.openChat();
 	});
-	
+
 	$("ala-chat-list").on("click", "#star", function(e){
 		$("ala-chat-card").capturePosition();
 		var card = $(this).parent().parent().parent();
@@ -434,6 +434,35 @@ $(document).ready(function(){
 		e.preventDefault();
 		e.stopPropagation();
 		return false;
+	});
+
+	$("ala-active-mod-ui").on("click", "ala-mod-card #expand", function(e){
+		$("ala-fullscreen-mod").append("<div></div>");
+		setTimeout(function(card){
+			return function(){
+				$("ala-fullscreen-mod").empty();
+				$(card).capturePosition();
+				$("ala-fullscreen-mod").append(card.detach());
+				$(card).animateReposition();
+				e.preventDefault();
+				e.stopPropagation();
+				return false;
+			}
+		}($(this).parent().parent().parent()), 800);
+	});
+	
+	$("ala-fullscreen-mod").on("click", "ala-mod-card #collapse", function(e){
+		var card = $(this).parent().parent().parent();
+		card.animateRepositionReverse();
+		setTimeout(function(card){
+			return function(){
+				$("ala-active-mod-ui").prepend(card.detach());
+				card.css({
+					left: 0,
+					top: 0
+				});
+			}
+		}(card), 400);
 	});
 });
 
