@@ -1233,7 +1233,7 @@ ala-chat-card {
 	flex-direction: column;
 	margin: 8px;
 	cursor: pointer;
-	transition: left $speed-slow .5*$speed-slow, top $speed-slow .5*$speed-slow, width $speed-slow .5*$speed-slow, height $speed-slow .5*$speed-slow;
+	transition: left $speed-slow .5*$speed-slow, top $speed-slow .5*$speed-slow, width .5*$speed-slow, height .5*$speed-slow ;
 	animation: raise-lower 2*$speed-slow ease 1 forwards;
 	z-index: 2;
 
