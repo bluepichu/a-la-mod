@@ -97,7 +97,11 @@ $(document).ready(function(){
 	});
 
 	$("ala-input-card #send").click(function(){
-		ala.submit();
+		if($("ala-input-card textarea").val().match(/^\s*$/)){
+			$("ala-input-card textarea").val("");
+		} else {
+			ala.submit();
+		}
 	});
 
 	ala.socket = io()
@@ -412,7 +416,7 @@ $(document).ready(function(){
 			}, 1000);
 		}
 	}
-	
+
 	ala.addModCard = function(mod){
 		// TODO
 		var newCard = $(Handlebars.templates["mod-card"]({
@@ -468,7 +472,7 @@ $(document).ready(function(){
 			}
 		}($(this).parent().parent().parent()), 800);
 	});
-	
+
 	$("ala-fullscreen-mod").on("click", "ala-mod-card #collapse", function(e){
 		var card = $(this).parent().parent().parent();
 		card.animateRepositionReverse();
