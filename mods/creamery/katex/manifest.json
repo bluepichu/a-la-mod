@@ -8,6 +8,9 @@
 		"dec":"dec/worker.js"
 	},
 	"styles": {
-		"dec":["dec/katex.min.css"]
+		"dec": {
+			"path": "dec",
+			"main": "katex.min.css"
+		}
 	}
 }

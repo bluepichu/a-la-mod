@@ -726,7 +726,7 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 		}
 		if(file == "styles"){
 			if(data[0].styles){
-				fs.readFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].styles[req.params.type][0]), "utf8", function(er, dat){
+				fs.readFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].styles[req.params.type].path, data[0].styles[req.params.type].main), "utf8", function(er, dat){
 					if(er || !dat){
 						res.status(500).send();
 						return;
@@ -734,7 +734,7 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 					dat = "[decoder='" + req.params.dev + "/" + req.params.name + "'] {" + dat + "}";
 					sass.render({
 						data: dat,
-						includePaths: [path.join(__dirname, "../mods", req.params.dev, req.params.name, req.params.type)] //this is kludgey in almost every aspect (including my own)
+						includePaths: [path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].styles[req.params.type].path)] //this is kludgey in almost every aspect (including my own)
 					}, function(err, result){
 						res.setHeader("Content-Type", "text/css");
 						res.status(200).send(result.css);

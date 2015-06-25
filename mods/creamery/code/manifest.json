@@ -9,6 +9,9 @@
 		"dec": "dec/worker.js"
 	},
 	"styles": {
-		"dec": ["dec/styles.css"]
+		"dec": {
+			"path": "dec",
+			"main": "styles.css"
+		}
 	}
 }
