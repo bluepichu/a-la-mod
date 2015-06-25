@@ -192,6 +192,7 @@ $(document).ready(function(){
 		if(!chatId){
 			ala.currentChat = null;
 			$("ala-chat-card").capturePosition();
+			$("ala-messages-card").css("margin-top", $("ala-active-chat ala-chat-card").outerHeight());
 			$("main").attr("state", "list");
 			$("#back").addClass("gone");
 			$("ala-chat-list").prepend($("ala-active-chat ala-chat-card").detach());
@@ -228,6 +229,7 @@ $(document).ready(function(){
 		$("ala-chat-card").capturePosition();
 		$("main").attr("state", "chat-active");
 		$("#back").removeClass("gone");
+		$("ala-messages-card").css("margin-top", 0);
 		$("ala-active-chat").prepend($("ala-chat-card[chat-id='" + chatId + "']").detach());
 		$("ala-chat-card").animateReposition();
 	}
