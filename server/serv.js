@@ -60,10 +60,27 @@ if(nconf.get("SGPASS")){
 } else {
 	console.log("Missing SGPASS environment variable. Will not be able to verify email addresses");
 }
-app.get("/push/:email/:title/:body", function(req, res) {
-	push.sendMessage(req.params.email, {title: req.params.title, body: req.params.body}, function() {console.log(arguments)})
-	res.send("Tried");
+
+var glob = require("glob")
+
+glob(path.join(__dirname,"../mods/*/*/manifest.json"), {}, function(err, mods) {
+	db.clear("mods", function() {})
+	for (var m in mods) {
+		fs.readFile(mods[m], function(err, data) {
+			if (err) {
+				return;
+			}
+			try {
+				var mod = JSON.parse(data.toString())
+				db.insert("mods",mod, function() {})
+			} catch (e) {
+				console.log("Bad manifest file: "+mods[m])
+			}
+
+		})
+	}
 })
+
 app.get("/push/get/:subId", function(req, res) {
 	push.getMessage(req.params.subId, function(err, response) {
 		console.log(arguments)
@@ -71,6 +88,8 @@ app.get("/push/get/:subId", function(req, res) {
 		res.send(JSON.stringify(response))
 	})
 })
+
+
 /**
  * Serves the À la Mod page.
  */
@@ -688,7 +707,6 @@ app.get("/mods/utils/:file", function(req, res){
 
 app.get("/mods/:type/:dev/:name/*", function(req, res){
 	db.query("mods", {
-		type: req.params.type,
 		developer: req.params.dev,
 		name: req.params.name
 	}, function(err, data){
@@ -702,12 +720,13 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 		}
 		var file = req.params[0];
 		if(file == "worker"){
-			res.sendFile(path.join(req.params.type, req.params.dev, req.params.name, data[0].worker), {root: path.join(__dirname, "../mods")});
+			//res.sendFile(path.join(req.params.type, req.params.dev, req.params.name, data[0].worker), {root: path.join(__dirname, "../mods")});
+			res.sendFile(path.join(req.params.dev, req.params.name, data[0].workers[req.params.type]), {root: path.join(__dirname, "../mods")});
 			return;
 		}
 		if(file == "styles"){
 			if(data[0].styles){
-				fs.readFile(path.join(__dirname, "../mods", req.params.type, req.params.dev, req.params.name, data[0].styles), "utf8", function(er, dat){
+				fs.readFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].styles[req.params.type][0]), "utf8", function(er, dat){
 					if(er || !dat){
 						res.status(500).send();
 						return;
@@ -715,7 +734,7 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 					dat = "[decoder='" + req.params.dev + "/" + req.params.name + "'] {" + dat + "}";
 					sass.render({
 						data: dat,
-						includePaths: [path.join(__dirname, "../mods", req.params.type, req.params.dev, req.params.name)]
+						includePaths: [path.join(__dirname, "../mods", req.params.dev, req.params.name, req.params.type)] //this is kludgey in almost every aspect (including my own)
 					}, function(err, result){
 						res.setHeader("Content-Type", "text/css");
 						res.status(200).send(result.css);
@@ -727,7 +746,7 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 				return;
 			}
 		}
-		res.sendFile(path.join(req.params.type, req.params.dev, req.params.name, file), {root: path.join(__dirname, "../mods")});
+		res.sendFile(path.join(req.params.dev, req.params.name, req.params.type, file), {root: path.join(__dirname, "../mods")}); //this scares me a bit
 		return;
 	});
 });
@@ -985,7 +1004,6 @@ var sendNotifs = function(data) {
 		_id: {$in: data.chat.users}
 	}, function(err, data) {
 		if (err) {
-			console.log(err)
 			return;
 		}
 		var socketList = getRoom(chat._id)

@@ -1,7 +1,0 @@
-{
-	name: "code",
-	developer: "creamery",
-	description: "Encodes code, input as \"`<code>`\".",
-	tags: ["code"],
-	worker: "worker.js"
-}

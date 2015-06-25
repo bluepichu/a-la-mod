@@ -1,0 +1,14 @@
+{
+	"name": "github",
+	"developer": "creamery",
+	"description": "Encodes github items.  Simply use \"github[<reference]\" to activate.",
+	"tags": ["github", "git"],
+	"methods": ["enc","dec"],
+	"workers": {
+		"enc":"enc/worker.js",
+		"dec":"dec/worker.js"
+	}, 
+	"styles": {
+		"dec":["dec/styles.scss"]
+	}
+}
