@@ -354,7 +354,8 @@ $(document).ready(function(){
 						id: chats[i]._id,
 						title: chats[i].title,
 						members: chats[i].users,
-						lastMessage: chats[i].messages[0]
+						lastMessage: chats[i].messages[0],
+						starred: chats[i].starred
 					}))
 				};
 				ala.chats[chats[i]._id].listing.click(function(){
@@ -421,13 +422,15 @@ $(document).ready(function(){
 	});
 	
 	$("ala-chat-list").on("click", "#star", function(e){
+		$("ala-chat-card").capturePosition();
 		var card = $(this).parent().parent().parent();
 		if(card.attr("starred") !== undefined){
 			card.removeAttr("starred");
 		} else {
 			card.attr("starred", "");
 		}
-		ala.socket.emit("starred", card.attr("chat-id"), card.attr("starred") == "");
+		ala.socket.emit("set star", card.attr("chat-id"), card.attr("starred") == "");
+		$("ala-chat-card").animateReposition();
 		e.preventDefault();
 		e.stopPropagation();
 		return false;

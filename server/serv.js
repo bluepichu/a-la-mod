@@ -565,7 +565,8 @@ app.post("/chats", function(req, res){
 			lastRead: 1,
 			messageCount: 1,
 			creationTime: 1,
-			title: 1
+			title: 1,
+			starred: 1
 		},
 				   function(er, dat){
 			if(er){
@@ -579,6 +580,14 @@ app.post("/chats", function(req, res){
 			});
 
 			for(var i = 0; i < dat.length; i++){
+				var starred = false;
+				for(var j = 0; j < dat[i].starred.length; j++){
+					if(dat[i].starred[j].toString() == data[0]._id){
+						starred = true;
+						break;
+					}
+				}
+				dat[i].starred = starred;
 				ash.attach(fetchUserList, [dat[i].users.map(function(el){ return ObjectId(el); }), "_id"], function(ind){return function(userList){
 					dat[ind].users = userList.map(function(el){return {_id: el._id, email: el.email, screenName: el.screenName}; });
 					if(dat[ind].messages.length > 0){
@@ -961,11 +970,33 @@ io.on("connection", function(socket){
 			var setObj = {};
 			setObj["lastRead." + socket.userId] = data[0].messageCount;
 			db.update("chats", {
-				_id: ObjectId(chatId)
+				_id: ObjectId(chatId),
+				users: {$in: [ObjectId(socket.userId)]}
 			}, {
 				$set: setObj
 			}, function(){});
 		});
+	});
+
+	/**
+     * Marks a user as having starred or unstarred a given chat.
+     */
+	socket.on("set star", function(chatId, starred){
+		if(starred){
+			db.update("chats", {
+				_id: ObjectId(chatId),
+				users: {$in: [ObjectId(socket.userId)]}
+			}, {
+				$addToSet: {starred: ObjectId(socket.userId)}
+			}, function(err, data){console.log(err, data)});
+		} else {
+			db.update("chats", {
+				_id: ObjectId(chatId),
+				users: {$in: [ObjectId(socket.userId)]}
+			}, {
+				$pull: {starred: ObjectId(socket.userId)}
+			}, function(){});
+		}
 	});
 });
 
