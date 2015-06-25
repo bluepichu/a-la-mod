@@ -412,6 +412,24 @@ $(document).ready(function(){
 			}, 1000);
 		}
 	}
+	
+	ala.addModCard = function(mod){
+		// TODO
+		var newCard = $(Handlebars.templates["mod-card"]({
+			title: mod.owner + "/" + mod.name
+		}));
+		$("ala-mod-list").append(newCard);
+		newCard.css({
+			transition: "none",
+			position: "relative",
+			left: "50%"
+		});
+		newCard.redraw();
+		newCard.css({
+			transition: "",
+			left: 0
+		});
+	}
 
 	$("ala-chat-list").on("click", "ala-chat-card", function(e){
 		ala.openChat($(this).attr("chat-id"));
@@ -436,7 +454,7 @@ $(document).ready(function(){
 		return false;
 	});
 
-	$("ala-active-mod-ui").on("click", "ala-mod-card #expand", function(e){
+	$("ala-mod-list").on("click", "ala-mod-card #expand", function(e){
 		$("ala-fullscreen-mod").append("<div></div>");
 		setTimeout(function(card){
 			return function(){
@@ -456,7 +474,7 @@ $(document).ready(function(){
 		card.animateRepositionReverse();
 		setTimeout(function(card){
 			return function(){
-				$("ala-active-mod-ui").prepend(card.detach());
+				$("ala-mod-list").prepend(card.detach());
 				card.css({
 					left: 0,
 					top: 0

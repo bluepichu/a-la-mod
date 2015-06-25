@@ -1141,7 +1141,7 @@ main {
 			left: 100%;
 			top: 0px;
 		}
-		ala-active-mod-ui {
+		ala-mod-list {
 			position: absolute;
 			left: 150%;
 			top: 0px;
@@ -1169,7 +1169,7 @@ main {
 			}
 		}
 
-		ala-active-mod-ui {
+		ala-mod-list {
 			position: absolute;
 			left: 50%;
 			top: 0px;
@@ -1409,7 +1409,7 @@ ala-active-chat {
 		button#recipe-select {
 			background: #0097A7;
 			position: absolute;
-			right: 16px;
+			right: 136px;
 			top: -28px;
 			color: $white;
 			z-index: 3;
@@ -1420,6 +1420,30 @@ ala-active-chat {
 				height: auto;
 				margin: 0px;
 				font-size: 24px;
+			}
+		}
+
+		ala-recipe-name {
+			@include shadow(1);
+			
+			display: block;
+			position: absolute;
+			right: 16px;
+			width: 140px;
+			top: -16px;
+			background: $gray-light-2;
+			z-index: 2;
+			font-size: .8em;
+			padding: 8px 8px 8px 24px;
+			border-radius: 16px;
+			text-align: center;
+			color: $text-secondary;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+//			overflow: hidden; // FIXME
+			
+			&:after {
+				border-radius: 16px;
 			}
 		}
 
@@ -1453,7 +1477,7 @@ ala-fullscreen-mod {
 	}
 }
 
-ala-active-mod-ui {
+ala-mod-list {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-around;
