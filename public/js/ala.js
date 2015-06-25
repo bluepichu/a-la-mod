@@ -126,7 +126,36 @@ $(document).ready(function(){
 	});
 
 	ala.socket.on("new chat", function(dat){
-		// TODO
+		ala.chats[dat._id] = {
+			users: dat.users,
+			unread: 0,
+			listing: $(Handlebars.templates["chat-card"]({
+				id: dat._id,
+				title: dat.title,
+				members: dat.users,
+				mostRecent: undefined
+			}))
+		}
+		ala.chatCount++;
+		ala.chats[dat._id].listing.click(function(){
+			if(!$(this).hasClass("active") && !ala.lockOpenChat){
+				ala.openChat($(this).attr("chat-id"));
+			}
+		});
+		ala.chats[dat._id].listing.css({
+			position: "absolute",
+			right: "100%",
+			top: "100%"
+		});
+		$("main").append(ala.chats[dat._id].listing);
+		$("ala-chat-card").capturePosition();
+		ala.chats[dat._id].listing.css({
+			position: "",
+			right: "",
+			top: ""
+		});
+		$("ala-chat-list").prepend(ala.chats[dat._id].listing.detach());
+		$("ala-chat-card").animateReposition();
 	});
 
 	ala.socket.on("message", function(chatId, message){
@@ -342,15 +371,17 @@ $(document).ready(function(){
 			ala.chatCount = 0;
 
 			for(var i = 0; i < chats.length; i++){
-				var unprocessed = "";
-				for(var j = 0; j < chats[i].messages[0].message.length; j++){
-					var val = chats[i].messages[0].message[j];
-					while(val.fallback){
-						val = val.fallback;
+				if(chats[i].messages.length > 0){
+					var unprocessed = "";
+					for(var j = 0; j < chats[i].messages[0].message.length; j++){
+						var val = chats[i].messages[0].message[j];
+						while(val.fallback){
+							val = val.fallback;
+						}
+						unprocessed += val;
 					}
-					unprocessed += val;
+					chats[i].messages[0].message = unprocessed;
 				}
-				chats[i].messages[0].message = unprocessed;
 				ala.chats[chats[i]._id] = {
 					users: chats[i].users,
 					unread: chats[i].messageCount - chats[i].lastRead[ala.user._id],
@@ -362,9 +393,6 @@ $(document).ready(function(){
 						starred: chats[i].starred
 					}))
 				};
-				ala.chats[chats[i]._id].listing.click(function(){
-					// TODO
-				});
 				$("ala-chat-list").append(ala.chats[chats[i]._id].listing);
 				ala.chatCount++;
 			}
@@ -391,6 +419,7 @@ $(document).ready(function(){
 
 	ala.clearForm = function(formId){
 		$("form#" + formId + " input").val("");
+		$("form#" + formId + " ala-user-list").empty().append(Handlebars.templates["user-chip"](ala.user));
 	}
 
 	ala.setLoading = function(loading){

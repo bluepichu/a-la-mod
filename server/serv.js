@@ -391,12 +391,23 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
 				lastRead[users[i]._id] = 0;
 			}
 
+			console.log({
+				users: users.map(function(el){ return el._id }),
+				title: req.body.title,
+				messages: [],
+				lastRead: lastRead,
+				messageCount: 0,
+				starred: [],
+				creationTime: moment().unix()
+			});
+
 			db.insert("chats", {
 				users: users.map(function(el){ return el._id }),
 				title: req.body.title,
 				messages: [],
 				lastRead: lastRead,
 				messageCount: 0,
+				starred: [],
 				creationTime: moment().unix()
 			},
 					  function(err, data){
@@ -414,6 +425,8 @@ app.post("/chat/new", function(req, res){ // TODO: This should require auth
 						}
 					}
 				}
+
+				console.log("!!!");
 
 				io.to(data._id).emit("new chat", {
 					_id: data._id,
