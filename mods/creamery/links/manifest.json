@@ -1,0 +1,10 @@
+{
+	"name": "links",
+	"developer": "creamery",
+	"description": "Decodes links.",
+	"tags": ["links", "link", "hyperlink", "url"],
+	"workers": {
+		"dec":"dec/worker.js",
+		"enc":"enc/worker.js"
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "code",
+	"developer": "creamery",
+	"description": "Decodes code strings.",
+	"tags": ["code"],
+	"worker": "worker.js",
+	"workers": {
+		"enc": "enc/worker.js",
+		"dec": "dec/worker.js"
+	},
+	"styles": {
+		"dec": {
+			"path": "dec",
+			"main": "styles.css"
+		}
+	}
+}
