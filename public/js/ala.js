@@ -419,6 +419,19 @@ $(document).ready(function(){
 	$("#back").click(function(){
 		ala.openChat();
 	});
+	
+	$("ala-chat-list").on("click", "#star", function(e){
+		var card = $(this).parent().parent().parent();
+		if(card.attr("starred") !== undefined){
+			card.removeAttr("starred");
+		} else {
+			card.attr("starred", "");
+		}
+		ala.socket.emit("starred", card.attr("chat-id"), card.attr("starred") == "");
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
+	});
 });
 
 Handlebars.registerHelper("gravatar", function(email, size){
