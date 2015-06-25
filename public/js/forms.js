@@ -21,6 +21,13 @@ $(document).ready(function(){
 		}, 2000);
 	});
 
+	$("button#new-chat").click(function(e){
+		ala.lightbox("form-new-chat");
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
+	});
+
 	$("button#cancel").click(function(e){
 		ala.lightbox();
 		e.preventDefault();
@@ -114,5 +121,98 @@ $(document).ready(function(){
 		e.stopPropagation();
 		e.preventDefault();
 		return false;
+	});
+
+	$("form#form-new-chat").submit(function(e){
+		if($("#form-new-chat #title").val() == ""){
+			$("#form-new-chat #title").focus();
+			ala.snack("Enter a title for the new chat.");
+			e.stopPropagation();
+			e.preventDefault();
+			return false;
+		}
+		pushEmailEntry();
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/chat/new", true);
+		xhr.onload = function(){
+			if(this.status == 200){
+				ala.snack("Chat created.");
+				ala.lightbox("");
+			} else {
+				ala.snack(this.responseText);
+			}
+			ala.setLoading(false);
+		}
+		xhr.setRequestHeader("Content-Type", "application/json");
+		var users = [];
+		$("#form-new-chat ala-user-list ala-user").each(function(ind, el){
+			users.push($(el).attr("user-email"));
+		});
+		xhr.send(JSON.stringify({
+			email: $.cookie("email"),
+			authToken: $.cookie("authToken"),
+			title: $("#form-new-chat #title").val(),
+			users: users
+		}));
+		ala.setLoading(true);
+		e.stopPropagation();
+		e.preventDefault();
+		return false;
+	})
+
+	var renderSuggestion = function(suggestion){
+		return "<ala-email-suggestion>" + suggestion + "</ala-email-suggestion>"
+	}
+
+	$("#email-entry").textext({
+		plugins: "autocomplete",
+		autoComplete: {
+			dropdownMaxHeight: "200px",
+			render: renderSuggestion
+		},
+		html: {
+			dropdown: "<ala-suggestion-dropdown class='text-dropdown'><ala-suggestion-list class='text-list'/></ala-suggestion-dropdown>",
+			suggestion: "<ala-suggestion class='text-suggestion'><ala-suggestion-text class='text-label'/></ala-suggestion>"
+		}
+	}).bind("getSuggestions", function(e, data){
+		var list = ala.user.contacts;
+		var te = $(e.target).textext()[0];
+		var query = (data ? data.query : "") || "";
+		$(this).trigger("setSuggestions", {result: te.itemManager().filter(list, query)});
+	});
+
+	var pushEmailEntry = function(){
+		if($("#form-new-chat #email-entry").val() == ""){
+			return;
+		}
+		if($("#form-new-chat ala-user[email='" + $("#form-new-chat #email-entry").val().trim() + "']").size() > 0){
+			$("#form-new-chat #email-entry").val("");
+			e.stopPropagation();
+			e.preventDefault();
+			return false;
+		}
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", "/user/" + encodeURI($("#form-new-chat #email-entry").val().trim()), true);
+		xhr.onload = function(){
+			$("#form-new-chat #email-entry").prop("disabled", false);
+			if(this.status == 200){
+				var data = JSON.parse(this.responseText);
+				data.removable = true;
+				$("#form-new-chat ala-user-list").append(Handlebars.templates["user-chip"](data));
+				$("#form-new-chat #email-entry").val("").focus();
+			} else {
+				ala.snack(this.responseText);
+			}
+		};
+		xhr.send();
+		$("#form-new-chat #email-entry").prop("disabled", true);
+	}
+	$("#form-new-chat #email-entry").keydown(function(e){
+		if(e.keyCode == 13){
+			setTimeout(pushEmailEntry, 100); // oh dear, someone please find something better
+			e.stopPropagation();
+			e.preventDefault();
+			return false;
+		}
 	});
 });

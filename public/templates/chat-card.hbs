@@ -8,7 +8,7 @@
 	<ala-last-message>
 		{{#if lastMessage}}
 		<span class="message">{{lastMessage.message}}</span>
-		<span class="timestamp">{{lastTimestamp.timestamp}}</span>
+		<span class="timestamp">{{spark ">date" lastMessage.timestamp "|seconds"}}</span>
 		{{else}}
 		<span class="message hint">No messages yet</span>
 		<span class="timestamp"></span>
