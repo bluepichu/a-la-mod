@@ -80,7 +80,48 @@ $(document).ready(function(){
 			}, 5000);
 		}, 10);
 	}
-
+	$("ala-notif-container").append(Handlebars.templates.bell())
+	ala.pushInst = new pushManager()
+	ala.pushInst.onLoad = function(err, sub) {
+		console.log("Load>>",arguments)
+		if (ala.pushInst.available) {
+			ala.spark.set("available",true)
+		} else {
+			ala.spark.set("available",false)
+			return
+		}
+		if (ala.pushInst.enabled) {
+			ala.spark.set("enabled",true)
+		} else {
+			ala.spark.set("enabled",false)
+		}
+		$("#notification").click(notifFunc)
+	}
+	ala.pushInst.onSubscribe = function(err, sub) {
+		console.log("Sub>>",arguments, ala.pushInst)
+		ala.spark.set("enabled", ala.pushInst.enabled)
+		sendToServer(ala.pushInst.subscriptionId, true)
+		$("#notification").click(notifFunc)
+	}
+	ala.pushInst.onUnsubscribe = function() {
+		console.log("Unsub>>",arguments,ala.pushInst)
+		console.log(ala.pushInst)
+		ala.spark.set("enabled", ala.pushInst.enabled)
+		sendToServer(ala.pushInst.subscriptionId, false)
+		$("#notification").click(notifFunc)
+	}
+	notifFunc = function() {
+		console.log("boo")
+		if (!ala.spark.get("available")) {
+			return
+		}
+		if (ala.spark.get("enabled")) {
+			ala.pushInst.unsubscribe()
+		} else {
+			ala.pushInst.subscribe()
+		}
+	}
+	$("#notification").click(notifFunc)
 	autosize($("ala-input-card textarea"));
 
 	$("ala-input-card textarea").keydown(function(e){
