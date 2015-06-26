@@ -1,7 +1,7 @@
 {
-	name: "github",
-	developer: "creamery",
-	description: "Encodes github items.  Simply use \"github[<reference]\" to activate.",
-	tags: ["github", "git"],
-	worker: "worker.js"
+	"name": "github",
+	"developer": "creamery",
+	"description": "Encodes github items.  Simply use \"github[<reference]\" to activate.",
+	"tags": ["github", "git"],
+	"worker": "worker.js"
 }

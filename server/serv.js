@@ -60,6 +60,30 @@ if(nconf.get("SGPASS")){
 } else {
 	console.log("Missing SGPASS environment variable. Will not be able to verify email addresses");
 }
+
+var glob = require("glob")
+
+glob(path.join(__dirname,"../mods/@(dec|enc)/*/*/manifest.json"), {}, function(err, mods) {
+	db.clear("mods", function() {})
+	for (var m in mods) {
+		(function(mods, m) {
+			fs.readFile(mods[m], function(err, data) {
+				if (err) {
+					return;
+				}
+				try {
+					var mod = JSON.parse(data.toString())
+					db.insert("mods",mod, function() {})
+					console.log("Inserted mod: "+mod.name)
+				} catch (e) {
+					console.log("Bad manifest file: "+mods[m])
+				}
+
+			})
+		})(mods, m)
+	}
+})
+
 app.get("/push/:email/:title/:body", function(req, res) {
 	push.sendMessage(req.params.email, {title: req.params.title, body: req.params.body}, function() {console.log(arguments)})
 	res.send("Tried");
