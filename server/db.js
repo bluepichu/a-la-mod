@@ -73,11 +73,27 @@ var update = function(collection, query, data, cb){
     });
 };
 
+/**
+ * Clears a database in its entirety
+ * @param {string} collection The collection to clear
+ * @param {function} cb Callback function for completiong
+ */
+var clear = function(collection, cb) {
+	db[collection].remove(function(err, data) {
+		if (err) {
+			cb(err)
+		} else {
+			cb(null)
+		}
+	})
+}
+
 module.exports = {
     query: query,
     insert: insert,
     update: update,
     project: project,
+    clear: clear,
     ObjectId: ObjectId,
     db: db,
 }
