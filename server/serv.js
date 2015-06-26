@@ -63,8 +63,7 @@ if(nconf.get("SGPASS")){
 
 var glob = require("glob")
 
-glob(path.join(__dirname,"../mods/@(dec|enc)/*/*/manifest.json"), {}, function(err, mods) {
-	db.clear("mods", function() {})
+var insertMods = function(mods, type) {
 	for (var m in mods) {
 		(function(mods, m) {
 			fs.readFile(mods[m], function(err, data) {
@@ -73,6 +72,7 @@ glob(path.join(__dirname,"../mods/@(dec|enc)/*/*/manifest.json"), {}, function(e
 				}
 				try {
 					var mod = JSON.parse(data.toString())
+					mod.type = type;
 					db.insert("mods",mod, function() {})
 					console.log("Inserted mod: "+mod.name)
 				} catch (e) {
@@ -82,6 +82,15 @@ glob(path.join(__dirname,"../mods/@(dec|enc)/*/*/manifest.json"), {}, function(e
 			})
 		})(mods, m)
 	}
+}
+
+db.clear("mods", function() {
+	glob(path.join(__dirname,"../mods/enc/*/*/manifest.json"), {}, function(err, mods) {
+		insertMods(mods, "enc")
+	})
+	glob(path.join(__dirname,"../mods/dec/*/*/manifest.json"), {}, function(err, mods) {
+		insertMods(mods, "dec")
+	})
 })
 
 app.get("/push/:email/:title/:body", function(req, res) {
