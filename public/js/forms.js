@@ -25,6 +25,10 @@ $(document).ready(function(){
 		ala.lightbox("form-login");
 	});
 
+	$("ala-icon#register").click(function(){
+		ala.lightbox("form-register");
+	});
+
 	$("button#forgot-password").click(function(e){
 		ala.lightbox("");
 		setTimeout(function(){
@@ -125,6 +129,67 @@ $(document).ready(function(){
 		ala.setLoading(true);
 		e.stopPropagation();
 		e.preventDefault();
+	});
+
+	$("form#form-register").submit(function(e){
+		if($("#form-register #password").val() == ""){
+			ala.snack("Please enter a password.");
+			return;
+		} else if($("#form-register #password").val() != $("#form-register #confirm-password").val()){
+			ala.snack("\"Password\" and \"Confirm Password\" fields don't match.");
+			return;
+		}
+		$("#form-register #register-submit").addClass("hidden");
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/user/new", true);
+		xhr.onload = function(){
+			if(this.status == 200){
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/user/auth", true);
+				xhr.onload = function(){
+					if(this.status == 200){
+						$.cookie("email", $("#form-register #email").val(), {expires: 30, path: "/"});
+						$.cookie("authToken", this.responseText, {expires: 30, path: "/"});
+						ala.lightbox();
+						setTimeout(function(){
+							ala.onLogin();
+							setTimeout(function(){
+								ala.lightbox("form-welcome");
+							}, 800);
+						}, 800);
+					} else {
+						$("#form-register #register-submit").removeClass("hidden");
+						ala.snack(this.responseText);
+					}
+					ala.setLoading(false);
+				}
+				xhr.setRequestHeader("Content-Type", "application/json");
+				xhr.send(JSON.stringify({
+					email: $("#form-register #email").val(),
+					password: $("#form-register #password").val()
+				}));
+			} else {
+				$("#form-register #register-submit").removeClass("hidden");
+				ala.snack(this.responseText);
+				ala.setLoading(false);
+			}
+		}
+		xhr.setRequestHeader("Content-Type", "application/json");
+		xhr.send(JSON.stringify({
+			email: $("#form-register #email").val(),
+			password: $("#form-register #password").val()
+		}));
+		ala.setLoading(true);
+		e.stopPropagation();
+		e.preventDefault();
+		return false;
+	});
+	
+	$("form#form-welcome").submit(function(e){
+		ala.lightbox();
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
 	});
 
 	$("form#form-mods").submit(function(e){
