@@ -63,33 +63,25 @@ if(nconf.get("SGPASS")){
 
 var glob = require("glob")
 
-var insertMods = function(mods, type) {
-	for (var m in mods) {
-		(function(mods, m) {
-			fs.readFile(mods[m], function(err, data) {
-				if (err) {
-					return;
-				}
-				try {
-					var mod = JSON.parse(data.toString())
-					mod.type = type;
-					db.insert("mods",mod, function() {})
-					console.log("Inserted mod: "+mod.name)
-				} catch (e) {
-					console.log("Bad manifest file: "+mods[m])
-				}
-
-			})
-		})(mods, m)
-	}
-}
-
 db.clear("mods", function() {
-	glob(path.join(__dirname,"../mods/enc/*/*/manifest.json"), {}, function(err, mods) {
-		insertMods(mods, "enc")
-	})
-	glob(path.join(__dirname,"../mods/dec/*/*/manifest.json"), {}, function(err, mods) {
-		insertMods(mods, "dec")
+	glob(path.join(__dirname,"../mods/*/*/manifest.json"), {}, function(err, mods) {
+		for (var m in mods) {
+			(function(mods, m) {
+				fs.readFile(mods[m], function(err, data) {
+					if (err) {
+						return;
+					}
+					try {
+						var mod = JSON.parse(data.toString())
+						db.insert("mods",mod, function() {})
+						console.log("Inserted mod: "+mod.name)
+					} catch (e) {
+						console.log("Bad manifest file: "+mods[m])
+					}
+
+				})
+			})(mods, m)
+		}
 	})
 })
 
@@ -750,7 +742,7 @@ app.get("/mods/utils/:file", function(req, res){
 
 app.get("/mods/:type/:dev/:name/*", function(req, res){
 	db.query("mods", {
-		type: req.params.type,
+		types: req.params.type,
 		developer: req.params.dev,
 		name: req.params.name
 	}, function(err, data){
@@ -764,20 +756,21 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 		}
 		var file = req.params[0];
 		if(file == "worker"){
-			res.sendFile(path.join(req.params.type, req.params.dev, req.params.name, data[0].worker), {root: path.join(__dirname, "../mods")});
+			res.sendFile(path.join(req.params.dev, req.params.name, data[0].workers[req.params.type]), {root: path.join(__dirname, "../mods")});
 			return;
 		}
 		if(file == "styles"){
-			if(data[0].styles){
-				fs.readFile(path.join(__dirname, "../mods", req.params.type, req.params.dev, req.params.name, data[0].styles), "utf8", function(er, dat){
+			if(data[0].styles && data[0].styles[req.params.type]){
+				fs.readFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].styles[req.params.type].path, data[0].styles[req.params.type].main), "utf8", function(er, dat){
 					if(er || !dat){
+						console.log(er)
 						res.status(500).send();
 						return;
 					}
 					dat = "[decoder='" + req.params.dev + "/" + req.params.name + "'] {" + dat + "}";
 					sass.render({
 						data: dat,
-						includePaths: [path.join(__dirname, "../mods", req.params.type, req.params.dev, req.params.name)]
+						includePaths: [path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].styles[req.params.type].path)]
 					}, function(err, result){
 						res.setHeader("Content-Type", "text/css");
 						res.status(200).send(result.css);

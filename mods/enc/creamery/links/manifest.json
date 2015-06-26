@@ -1,7 +1,0 @@
-{
-	"name": "links",
-	"developer": "creamery",
-	"description": "Encodes links, input as \"[text](url)\".",
-	"tags": ["links", "link", "hyperlink", "url"],
-	"worker": "worker.js"
-}
