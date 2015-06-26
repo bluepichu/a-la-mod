@@ -1,7 +1,7 @@
 {
-	name: "katex",
-	developer: "creamery",
-	description: "Encodes KaTeX-formatted strings, delimited by either \\( and \\) or $ and $.  (KaTeX is a subset of LaTeX.)",
-	tags: ["math", "katex", "latex", "tex", "type", "typesetting"],
-	worker: "worker.js"
+	"name": "katex",
+	"developer": "creamery",
+	"description": "Encodes KaTeX-formatted strings, delimited by either \\( and \\) or $ and $.  (KaTeX is a subset of LaTeX.)",
+	"tags": ["math", "katex", "latex", "tex", "type", "typesetting"],
+	"worker": "worker.js"
 }
