@@ -1,8 +1,9 @@
 $(document).ready(function(){
 	$("ala-icon#mods").click(function(){
 		ala.lightbox("form-mods");
-		$("#form-mods #mods-enc").val(ala.recipes.encoding.selected.mods.join(" "));
-		$("#form-mods #mods-dec").val(ala.recipes.decoding.selected.mods.join(" "));
+		$("#form-mods #mods-enc").val(ala.recipes.encoding.selected.mods.join("\n"));
+		$("#form-mods #mods-dec").val(ala.recipes.decoding.selected.mods.join("\n"));
+		$("#form-mods #mods-ui").val(ala.recipes.ui.mods.join("\n"));
 	});
 
 	$("ala-icon#account").click(function(){
@@ -59,14 +60,19 @@ $(document).ready(function(){
 		ala.recipes.encoding.selected = {
 			title: "TODO",
 			description: "TODO",
-			mods: $("#mods-enc").val().split(/\s+/g)
+			mods: $("#mods-enc").val().split(/[,;\s]+/g)
 		}
 
 		ala.recipes.decoding.selected = {
 			title: "TODO",
 			description: "TODO",
-			mods: $("#mods-dec").val().split(/\s+/g)
+			mods: $("#mods-dec").val().split(/[,;\s]+/g)
 		}
+
+		if (!ala.recipes.ui) {
+			ala.recipes.ui = {}
+		}
+		ala.recipes.ui.mods = $("#mods-ui").val().split(/[,;\s]+/g)
 
 		localStorage.recipes = JSON.stringify({
 			encoding: {
@@ -74,7 +80,8 @@ $(document).ready(function(){
 			},
 			decoding: {
 				selected: ala.recipes.decoding.selected
-			}
+			},
+			ui: ala.recipes.ui
 		});
 		ala.lightbox();
 		e.stopPropagation();

@@ -19,6 +19,9 @@ if(!("recipes" in localStorage)){
 				mods: []
 			},
 			list: []
+		},
+		ui: {
+			mods: []
 		}
 	});
 }

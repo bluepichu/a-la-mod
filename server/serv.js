@@ -782,7 +782,17 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 				return;
 			}
 		}
-		res.sendFile(path.join(req.params.type, req.params.dev, req.params.name, file), {root: path.join(__dirname, "../mods")});
+		if (file == "ui") {
+			var endpoint;
+			if (req.params.length == 1) {
+				endpoint = data[0].ui.main;
+			} else {
+				endpoint = req.params[1]
+			}
+			res.sendFile(path.join(req.params.dev, req.params.name, data[0].ui.path, endpoint));
+			return;
+		}
+		res.sendFile(path.join(req.params.dev, req.params.name, file), {root: path.join(__dirname, "../mods")});
 		return;
 	});
 });
