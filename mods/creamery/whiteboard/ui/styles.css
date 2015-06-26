@@ -1,0 +1,35 @@
+html {
+	padding: 0px;
+	margin: 0px;
+}
+
+body {
+	background: #eeeeee;
+	font-size: 100vw;
+	padding: 0px;
+	margin: 0px;
+}
+
+.container {
+	width: .5em;
+	height: .375em;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	-ms-flex-align: center;
+	align-items: center;
+	position: relative;
+}
+
+canvas {
+	background: #FFFFFF;
+	width: 100%;
+	height: 100%;
+}
