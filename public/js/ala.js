@@ -237,7 +237,11 @@ $(document).ready(function(){
 			$("main").attr("state", "list");
 			$("#back").addClass("gone");
 			$("ala-chat-list").prepend($("ala-active-chat ala-chat-card").detach());
-			$("ala-chat-card").animateReposition();
+			$("ala-chat-card:not(:first-child)").css("visibility", "hidden");
+			$("ala-chat-card:first-child").animateReposition();
+			setTimeout(function(){
+				$("ala-chat-card:not(:first-child)").css("visibility", "visible").animateReposition();
+			}, 400);
 			return;
 		}
 		var xhr = new XMLHttpRequest();
