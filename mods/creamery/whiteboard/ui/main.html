@@ -8,6 +8,7 @@
 				var drawing = false;
 				var lastX = 0;
 				var lastY = 0;
+				var brushSize = 5;
 
 				var context = $("#canvas").get(0).getContext("2d");
 
@@ -35,11 +36,20 @@
 					lastX = nextX;
 					lastY = nextY;
 				});
+				
+				$("body").keypress(function(e){
+					if(e.keyCode == 91){
+						brushSize--;
+					} else {
+						brushSize++;
+					}
+					brushSize = Math.min(Math.max(brushSize, 1), 100);
+				});
 
 				var draw = function(canvas, x1, y1, x2, y2){
 					canvas.strokeStyle = "#0000ff";
 					canvas.lineJoin = "round";
-					canvas.lineWidth = 5;
+					canvas.lineWidth = brushSize;
 					canvas.beginPath();
 					canvas.moveTo(scale(x1), scale(y1));
 					canvas.lineTo(scale(x2), scale(y2));
