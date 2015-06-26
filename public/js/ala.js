@@ -125,6 +125,15 @@ $(document).ready(function(){
 		}
 	}
 	$("#notification").click(notifFunc)
+
+	var cont = $("ala-mod-list");
+	for (var m in ala.recipes.ui.mods) {
+		cont.append($(Handlebars.templates["mod-card"]({
+			title: "NONE",
+			mod: ala.recipes.ui.mods[m]
+		})))
+	}
+
 	autosize($("ala-input-card textarea"));
 
 	$("ala-input-card textarea").keydown(function(e){

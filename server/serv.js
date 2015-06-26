@@ -741,6 +741,7 @@ app.get("/mods/utils/:file", function(req, res){
 });
 
 app.get("/mods/:type/:dev/:name/*", function(req, res){
+	console.log(req.params)
 	db.query("mods", {
 		types: req.params.type,
 		developer: req.params.dev,
@@ -782,14 +783,15 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 				return;
 			}
 		}
-		if (file == "ui") {
+		if (req.params.type == "ui") {
+			console.log(req.params)
 			var endpoint;
-			if (req.params.length == 1) {
+			if (!file) {
 				endpoint = data[0].ui.main;
 			} else {
-				endpoint = req.params[1]
+				endpoint = file
 			}
-			res.sendFile(path.join(req.params.dev, req.params.name, data[0].ui.path, endpoint));
+			res.sendFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].ui.path, endpoint));
 			return;
 		}
 		res.sendFile(path.join(req.params.dev, req.params.name, file), {root: path.join(__dirname, "../mods")});
