@@ -1,0 +1,21 @@
+{
+	"name": "ui",
+	"developer": "test",
+	"description": "Sample UI thing",
+	"tags": ["ui"],
+	"types": ["enc","dec","ui"],
+	"workers": {
+		"enc": "enc/worker.js",
+		"dec": "dec/worker.js"
+	},
+	"styles": {
+		"dec": {
+			"path": "dec",
+			"main": "styles.css"
+		}
+	},
+	"ui": {
+		"main": "main.html",
+		"path": "ui"
+	}
+}

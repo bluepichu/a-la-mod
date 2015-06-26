@@ -2,6 +2,10 @@
 	"name": "links",
 	"developer": "creamery",
 	"description": "Decodes links.",
+	"types": ["enc","dec"],
 	"tags": ["links", "link", "hyperlink", "url"],
-	"worker": "worker.js"
+	"workers": {
+		"dec":"dec/worker.js",
+		"enc":"enc/worker.js"
+	}
 }
