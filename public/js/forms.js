@@ -1,9 +1,19 @@
 $(document).ready(function(){
 	$("ala-icon#mods").click(function(){
 		ala.lightbox("form-mods");
-		$("#form-mods #mods-enc").val(ala.recipes.encoding.selected.mods.join("\n"));
-		$("#form-mods #mods-dec").val(ala.recipes.decoding.selected.mods.join("\n"));
-		$("#form-mods #mods-ui").val(ala.recipes.ui.mods.join("\n"));
+		var allMods = ala.recipes.all[ala.selected].mods
+		var enc = []
+		var dec = []
+		var ui = []
+		for (var mn in allMods) {
+			var m = allMods[mn]
+			if (m.encoder) enc.push(mn)
+			if (m.decoder) dec.push(mn)
+			if (m.ui) ui.push(mn)
+		}
+		$("#form-mods #mods-enc").val(enc.join("\n"));
+		$("#form-mods #mods-dec").val(dec.join("\n"));
+		$("#form-mods #mods-ui").val(ui.join("\n"));
 	});
 
 	$("ala-icon#account").click(function(){
@@ -20,6 +30,24 @@ $(document).ready(function(){
 		setTimeout(function(){
 			location.reload();
 		}, 2000);
+	});
+
+	$("ala-icon#login").click(function(){
+		ala.lightbox("form-login");
+	});
+
+	$("ala-icon#register").click(function(){
+		ala.lightbox("form-register");
+	});
+
+	$("button#forgot-password").click(function(e){
+		ala.lightbox("");
+		setTimeout(function(){
+			ala.lightbox("form-forgot-password");
+		}, 400);
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
 	});
 
 	$("button#new-chat").click(function(e){
@@ -56,33 +84,149 @@ $(document).ready(function(){
 		$(this).addClass("active");
 	});
 
-	$("form#form-mods").submit(function(e){
-		ala.recipes.encoding.selected = {
-			title: "TODO",
-			description: "TODO",
-			mods: $("#mods-enc").val().split(/[,;\s]+/g)
+	$("form#form-login").submit(function(e){
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/user/auth", true);
+
+		xhr.onload = function(){
+			if(this.status == 200){
+				$.cookie("email", $("#form-login #email").val(), {expires: 30, path: "/"});
+				$.cookie("authToken", JSON.parse(this.responseText).token, {expires: 30, path: "/"});
+				ala.lightbox();
+				setTimeout(function(){
+					ala.onLogin();
+				}, 800);
+			} else {
+				$("#form-login #login-submit").removeClass("hidden");
+				ala.snack(JSON.parse(this.responseText).error);
+			}
+			ala.setLoading(false);
 		}
 
-		ala.recipes.decoding.selected = {
-			title: "TODO",
-			description: "TODO",
-			mods: $("#mods-dec").val().split(/[,;\s]+/g)
+		xhr.setRequestHeader("Content-Type", "application/json");
+
+		xhr.send(JSON.stringify({
+			email: $("#form-login #email").val(),
+			password: $("#form-login #password").val()
+		}));
+
+		ala.setLoading(true);
+
+		e.stopPropagation();
+		e.preventDefault();
+	});
+
+	$("form#form-forgot-password").submit(function(e){
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/user/reset-password", true);
+
+		xhr.onload = function(){
+			if(this.status == 200){
+				ala.lightbox();
+				ala.snack("An email has been sent containing a temporary password.");
+			} else {
+				ala.snack(JSON.parse(this.responseText).error);
+			}
+			ala.setLoading(false);
 		}
 
-		if (!ala.recipes.ui) {
-			ala.recipes.ui = {}
-		}
-		ala.recipes.ui.mods = $("#mods-ui").val().split(/[,;\s]+/g)
+		xhr.setRequestHeader("Content-Type", "application/json");
 
-		localStorage.recipes = JSON.stringify({
-			encoding: {
-				selected: ala.recipes.encoding.selected
-			},
-			decoding: {
-				selected: ala.recipes.decoding.selected
-			},
-			ui: ala.recipes.ui
-		});
+		xhr.send(JSON.stringify({
+			email: $("#form-forgot-password #email").val()
+		}));
+
+		ala.setLoading(true);
+		e.stopPropagation();
+		e.preventDefault();
+	});
+
+	$("form#form-register").submit(function(e){
+		if($("#form-register #password").val() == ""){
+			ala.snack("Please enter a password.");
+			return;
+		} else if($("#form-register #password").val() != $("#form-register #confirm-password").val()){
+			ala.snack("\"Password\" and \"Confirm Password\" fields don't match.");
+			return;
+		}
+		$("#form-register #register-submit").addClass("hidden");
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/user/new", true);
+		xhr.onload = function(){
+			if(this.status == 200){
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/user/auth", true);
+				xhr.onload = function(){
+					if(this.status == 200){
+						$.cookie("email", $("#form-register #email").val(), {expires: 30, path: "/"});
+						$.cookie("authToken", this.responseText, {expires: 30, path: "/"});
+						ala.lightbox();
+						setTimeout(function(){
+							ala.onLogin();
+							setTimeout(function(){
+								ala.lightbox("form-welcome");
+							}, 800);
+						}, 800);
+					} else {
+						$("#form-register #register-submit").removeClass("hidden");
+						ala.snack(JSON.parse(this.responseText).error);
+					}
+					ala.setLoading(false);
+				}
+				xhr.setRequestHeader("Content-Type", "application/json");
+				xhr.send(JSON.stringify({
+					email: $("#form-register #email").val(),
+					password: $("#form-register #password").val()
+				}));
+			} else {
+				$("#form-register #register-submit").removeClass("hidden");
+				ala.snack(JSON.parse(this.responseText).error);
+				ala.setLoading(false);
+			}
+		}
+		xhr.setRequestHeader("Content-Type", "application/json");
+		xhr.send(JSON.stringify({
+			email: $("#form-register #email").val(),
+			password: $("#form-register #password").val()
+		}));
+		ala.setLoading(true);
+		e.stopPropagation();
+		e.preventDefault();
+		return false;
+	});
+	
+	$("form#form-welcome").submit(function(e){
+		ala.lightbox();
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
+	});
+
+	$("form#form-mods").submit(function(e){	
+		var enc = $("#mods-enc").val().split(/[,;\s]+/g)
+		var dec = $("#mods-dec").val().split(/[,;\s]+/g)
+		var ui =  $("#mods-ui").val().split(/[,;\s]+/g)
+		var allMods = {}
+		for (var m in enc) {
+			if (!allMods[enc[m]]) {
+				allMods[enc[m]] = {}
+			}
+			allMods[enc[m]].encoder = true
+		}
+		for (var m in dec) {
+			if (!allMods[dec[m]]) {
+				allMods[dec[m]] = {}
+			}
+			allMods[dec[m]].decoder = true
+		}
+		for (var m in ui) {
+			if (!allMods[ui[m]]) {
+				allMods[ui[m]] = {}
+			}
+			allMods[ui[m]].ui = true
+		}
+		ala.recipes.all[ala.selected].mods = allMods
+		localStorage.recipes = JSON.stringify(ala.recipes)
 		ala.lightbox();
 		e.stopPropagation();
 		e.preventDefault();
@@ -105,7 +249,7 @@ $(document).ready(function(){
 					location.reload();
 				}, 2000);
 			} else {
-				ala.snack(this.responseText);
+				ala.snack(JSON.parse(this.responseText).error);
 				ala.setLoading(false);
 			}
 		}
@@ -146,7 +290,7 @@ $(document).ready(function(){
 				ala.snack("Chat created.");
 				ala.lightbox("");
 			} else {
-				ala.snack(this.responseText);
+				ala.snack(JSON.parse(this.responseText).error);
 			}
 			ala.setLoading(false);
 		}
@@ -208,12 +352,13 @@ $(document).ready(function(){
 				$("#form-new-chat ala-user-list").append(Handlebars.templates["user-chip"](data));
 				$("#form-new-chat #email-entry").val("").focus();
 			} else {
-				ala.snack(this.responseText);
+				ala.snack(JSON.parse(this.responseText).error);
 			}
 		};
 		xhr.send();
 		$("#form-new-chat #email-entry").prop("disabled", true);
 	}
+
 	$("#form-new-chat #email-entry").keydown(function(e){
 		if(e.keyCode == 13){
 			setTimeout(pushEmailEntry, 100); // oh dear, someone please find something better

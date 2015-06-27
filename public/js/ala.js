@@ -3,30 +3,21 @@ ala.spark = new Spark(Handlebars);
 ala.messageCounter = [0, 0];
 
 if(!("recipes" in localStorage)){
-	localStorage.recipes = JSON.stringify({
-		encoding: {
-			selected: {
-				name: "Empty",
-				description: "An empty recipe to get you started.",
-				mods: []
-			},
-			list: []
-		},
-		decoding: {
-			selected: {
-				name: "Empty",
-				description: "An empty recipe to get you started.",
-				mods: []
-			},
-			list: []
-		},
-		ui: {
-			mods: []
+	localStorage.recipes = JSON.stringify(
+	{
+		selected: "Empty",
+		all: {
+			"Empty": {
+				mods: {},
+				description: "An empty recipe to get you started."
+			}
 		}
 	});
 }
 
 ala.recipes = JSON.parse(localStorage.recipes);
+ala.selected = ala.recipes.selected;
+
 
 moment.locale("en", {
 	calendar: {
@@ -66,6 +57,10 @@ var sendToServer = function(subId, add) {
 }
 
 $(document).ready(function(){
+	for (var m in ala.recipes.all[ala.selected].mods) {
+		ala.mods.initializeEncoder(m)
+	}
+
 	ala.clearSnack = function(){
 		if(ala.currentSnackTimeout){
 			clearTimeout(ala.currentSnackTimeout);
@@ -127,11 +122,17 @@ $(document).ready(function(){
 	$("#notification").click(notifFunc)
 
 	var cont = $("ala-mod-list");
-	for (var m in ala.recipes.ui.mods) {
-		cont.append($(Handlebars.templates["mod-card"]({
-			title: "NONE",
-			mod: ala.recipes.ui.mods[m]
-		})))
+	for (var m in ala.recipes.all[ala.selected].mods) {
+		var mod = ala.recipes.all[ala.selected].mods[m]
+		if (mod.ui) {
+			var insert = cont.append($(Handlebars.templates["mod-card"]({
+				title: mod.title || m,
+				mod: m
+			})))
+			insert.ready(function() {
+				ala.mods.registerUI(m, insert.find("iframe")[0].contentWindow)
+			})
+		}
 	}
 
 	autosize($("ala-input-card textarea"));
@@ -164,6 +165,7 @@ $(document).ready(function(){
 		ala.socket.on("hidden", false);
 
 		if($.cookie("email") && $.cookie("authToken")){
+			$("ala-entrance").css("transition", "none");
 			ala.socket.emit("login", $.cookie("email"), $.cookie("authToken"));
 		}
 	})
@@ -233,11 +235,10 @@ $(document).ready(function(){
 	});
 
 	ala.submit = function(){
-		ala.mods.encode($("ala-input-card textarea").val(), ala.recipes.encoding.selected.mods, function(data){
+		ala.mods.encode($("ala-input-card textarea").val(), ala.recipes.all[ala.selected].mods, function(data){
 			ala.socket.emit("message", ala.currentChat, data);
 		});
 		$("ala-input-card textarea").val("");
-		return false;
 		return false;
 	}
 
@@ -315,7 +316,7 @@ $(document).ready(function(){
 		newMessage.attr("message-id", "f" + ala.messageCounter[0]);
 		ala.spark.set("date-f" + ala.chatGroupCounter[0], data.timestamp);
 
-		ala.mods.decode(data.message, ala.recipes.decoding.selected.mods, function(id, sender){
+		ala.mods.decode(data.message, ala.recipes.all[ala.selected].mods, function(id, sender){
 			return function(data){
 				for(var i = 0; i < data.length; i++){
 					if(data[i].fallback !== undefined){
@@ -494,6 +495,7 @@ $(document).ready(function(){
 	ala.onLogin = function(err){
 		if(err){
 			ala.snack(err);
+			$("ala-entrance").css("transition", "");
 			$.cookie("authToken", "");
 		} else {
 			$("ala-entrance").addClass("authorized");

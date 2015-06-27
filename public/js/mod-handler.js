@@ -3,6 +3,7 @@ ala.mods.methodCounter = 0;
 ala.mods.methods = {};
 ala.mods.encoders = {};
 ala.mods.decoders = {};
+ala.mods.uis = {}
 
  /**
   * A method that takes a message from the user and encodes it based on the mods loaded. It
@@ -16,16 +17,23 @@ ala.mods.encode = function(message, mods, cb){
 	if(message.constructor !== Array){
 		message = [message]
 	}
-	for(var i = 0; i < mods.length; i++){
-		ala.mods.initializeEncoder(mods[i]);
+	for(var i in mods){
+		if (mods[i].encoder) {
+			ala.mods.initializeEncoder(i);
+		}
 	}
 	var closure = function(ind){
 		return function(data){
-			if(ind >= mods.length){
+			var k = Object.keys(mods)
+			if(ind >= k.length){
 				cb(data.message);
 				return;
 			}
-			ala.mods.execute(mods[ind], "enc", "encode", {message: data.message}, closure(ind+1));
+			if (!mods[k[ind]].encoder) {
+				closure(ind+1)({message:data.message})
+				return;
+			}
+			ala.mods.execute(k[ind], "enc", "encode", {message: data.message}, closure(ind+1));
 		}
 	}
 	
@@ -44,16 +52,22 @@ ala.mods.decode = function(message, mods, cb){
 	if(message.constructor !== Array){
 		message = [message]
 	}
-	for(var i = 0; i < mods.length; i++){
-		ala.mods.initializeDecoder(mods[i]);
+	for(var i in mods){
+		if (mods[i].decoder) {
+			ala.mods.initializeDecoder(i);
+		}
 	}
 	var closure = function(ind){
 		return function(data){
-			if(ind >= mods.length){
+			var k = Object.keys(mods)
+			if(ind >= k.length){
 				cb(data.message);
 				return;
 			}
-			ala.mods.execute(mods[ind], "dec", "decode", {message: data.message}, closure(ind+1));
+			if (!mods[k[ind]].decoder) {
+				closure(ind+1)({message:data.message})
+			}
+			ala.mods.execute(k[ind], "dec", "decode", {message: data.message}, closure(ind+1));
 		}
 	}
 	
@@ -168,6 +182,30 @@ ala.mods.execute = function(mod, modType, method, options, cb){
 
 ala.mods.messageHandler = function(ev){
 	var options = ev.data;
+	if (options.method == "postUI" && ala.mods.uis[ev.target.name] && ev.target.modType == "dec") {
+		ala.mods.uis[ev.target.name].postMessage(ev.data, "*")
+		return;
+	}
+	if (options.method == "broadcast" && ev.target.modType == "enc" && ala.currentChat) {
+		ala.socket.emit("message", ala.currentChat, options.message)
+		return;
+	}
 	ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId].callback(options.output);
 	delete ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId];
 }
+
+ala.mods.registerUI = function(name, nwindow) {	
+	ala.mods.uis[name] = nwindow;
+	nwindow.postMessage({method:"init"}, "*")
+}
+
+ala.mods.uiHandler = function(e) {
+	if (e.data && e.data.method == "send" && e.data.name) { //TODO: make this not bad so that ui's cannot send messages to other workers
+		ala.mods.encoders[e.data.name].postMessage({
+			method: "postUI",
+			options: e.data
+		})
+	}
+}
+
+window.onmessage = ala.mods.uiHandler

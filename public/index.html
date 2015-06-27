@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>&Agrave; la Mod</title>
+		<title>la Mod</title>
 
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
 		<link rel="manifest" href="static/manifest.json">
+		
+		<link rel="icon" href="/images/favicon.png" />
 
 		<link rel="stylesheet" href="css/style.css" />
 		<link rel="stylesheet" href="css/mobile.css" media="only screen and (max-device-width: 800px)" />
@@ -24,7 +26,6 @@
 		<script src="js/spark.js"></script>
 		<script src="js/moment.js"></script>
 		<script src="js/welcome.js"></script>
-		<script src="js/entrance.js"></script>
 		<script src="js/forms.js"></script>
 
 		<script src="js/textext/textext.core.js"></script>
@@ -43,74 +44,102 @@
 	<body>
 		<ala-input-blocker></ala-input-blocker>
 		<ala-entrance>
-			<h1 class="fade-in slide-down">Welcome to &Agrave; la Mod.</h1>
-			<h2 class="fade-in slide-up">Your chat, your way.</h2>
-			<div class="relative-anchor">
-				<ala-flex id="button-bar" class="fade-in slide-up anim-delay">
-					<button id="log-in" class="flat large">Log In</button>
-					<img src="images/app-icon-192.png" />
-					<button id="register" class="flat large">Register</button>
-				</ala-flex>
-				<form id="form-login" class="hidden" novalidate>
-					<ala-input>
-						<button id="login-back" class="flat">Go Back</button>
-					</ala-input>
-					<ala-input>
-						<input type="text" id="email" name="email" required />
-						<label>Email</label>
-					</ala-input>
-					<ala-input>
-						<input type="password" id="password" name="pass" required />
-						<label>Password</label>
-					</ala-input>
-					<ala-input class="large-margin spinner-target spinner-target-white">
-						<button id="open-recover" class="flat">Forgot Password</button>
-						<button type="submit" id="login-submit" class="raised ok" tabindex="0">Log In</button>
-					</ala-input>
-				</form>
-				<form id="form-register" class="hidden" novalidate>
-					<ala-input>
-						<button id="register-back" class="flat">Go Back</button>
-					</ala-input>
-					<ala-input>
-						<input type="text" id="email" name="email" required />
-						<label>Email</label>
-					</ala-input>
-					<ala-input>
-						<input type="password" id="password" name="pass" required />
-						<label>Password</label>
-					</ala-input>
-					<ala-input>
-						<input type="password" id="confirm-password" name="pass" required />
-						<label>Confirm Password</label>
-					</ala-input>
-					<ala-input class="large-margin centering spinner-target spinner-target-white">
-						<button type="submit" id="register-submit" class="raised ok">Register</button>
-					</ala-input>
-				</form>
-				<form id="form-recover" class="hidden" novalidate>
-					<ala-input>
-						<button id="recover-back" class="flat">Go Back</button>
-					</ala-input>
-					<ala-input>
-						<input type="text" id="email" name="email" required />
-						<label>Email</label>
-					</ala-input>
-					<ala-input class="large-margin centering spinner-target spinner-target-white">
-						<button type="submit" id="recover-submit" class="raised ok">Send Recovery Email</button>
-					</ala-input>
-				</form>
-			</div>
-			<ala-version-number>French Vanilla &middot; 0.1.0</ala-version-number>
+			<header>
+				<ala-version-number>French Vanilla &middot; 0.1.0</ala-version-number>
+				<ala-header-icons float="right">
+					<ala-icon id="login" class="mdi mdi-login"></ala-icon>
+					<ala-icon id="register" class="mdi mdi-account-plus"></ala-icon>
+					</div>
+			</header>
+			<ala-welcome>
+				<h1>Welcome to &Agrave; la Mod.</h1>
+				<h2>Your chat, your way.</h2>
+			</ala-welcome>
+			<ala-flex>
+				<ala-feature>
+					<ala-icon class="large mdi mdi-binary">
+						<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 48 48" enable-background="new 0 0 48 48" xml:space="preserve">
+							<path d="M10,6v16h12V6H10z M18,18h-4v-8h4V18z"/>
+							<polygon points="26,6 26,10 30,10 30,18 26,18 26,22 38,22 38,18 34,18 34,6"/>
+							<path d="M26,26v16h12V26H26z M34,38h-4v-8h4V38z"/>
+							<polygon points="10,26 10,30 14,30 14,38 10,38 10,42 22,42 22,38 18,38 18,26"/>
+						</svg>
+					</ala-icon>
+					<h3>It's your data.</h3>
+					<h4>Display it how you want.</h4>
+					<p>&Agrave; la Mod frees you from the traditional text-only chat.  Send a math equation, a diagram, formatted text - whatever you want, you can do it your way.</p>
+				</ala-feature>
+				<ala-feature>
+					<ala-icon class="large mdi mdi-view-quilt"></ala-icon>
+					<h3>It's your chat.</h3>
+					<h4>Design it how you want.</h4>
+					<p>Want a video chat on one half, and a text chat on the other?  Go for it.  A whiteboard, a YouTube video, and an equation editor?  With &Agrave; la Mod, it's up to you.</p>
+				</ala-feature>
+				<ala-feature>
+					<ala-icon class="large mdi mdi-cellphone-link"></ala-icon>
+					<h3>It's your device.</h3>
+					<h4>Use it when you want.</h4>
+					<p>&Agrave; la Mod is designed to work wherever you want it to.  Download it as an app on your cell phone, or use it in-browser on your desktop - the choice is yours.</p>
+				</ala-feature>
+			</ala-flex>
 		</ala-entrance>
 		<ala-app>
 			<ala-lightbox-container>
 				<ala-lightbox>
+					<form id="form-login">
+						<h3>Login</h3>
+						<ala-input>
+							<input type="text" class="dark" id="email" name="email" required />
+							<label>Email</label>
+						</ala-input>
+						<ala-input>
+							<input type="password" class="dark" id="password" name="password" required />
+							<label>Password</label>
+						</ala-input>
+						<ala-input float="left">
+							<button id="forgot-password" class="flat">Forgot Password</button>
+						</ala-input>
+						<ala-input float="right" class="spinner-target">
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Login</button>
+						</ala-input>
+					</form>
+					<form id="form-register">
+						<h3>Register</h3>
+						<ala-input>
+							<input type="text" class="dark" id="email" name="email" required />
+							<label>Email</label>
+						</ala-input>
+						<ala-input>
+							<input type="password" class="dark" id="password" name="password" required />
+							<label>Password</label>
+						</ala-input>
+						<ala-input>
+							<input type="password" class="dark" id="confirm-password" name="confirm-password" required />
+							<label>Confirm Password</label>
+						</ala-input>
+						<ala-input float="right" class="spinner-target">
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Register</button>
+						</ala-input>
+					</form>
+					<form id="form-forgot-password">
+						<h3>Forgot Password</h3>
+						<ala-input>
+							<input type="text" class="dark" id="email" name="email" required />
+							<label>Email</label>
+						</ala-input>
+						<p>We will send you an email containing a temporary password.</p>
+						<ala-input float="right" class="spinner-target">
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Submit</button>
+						</ala-input>
+					</form>
 					<form id="form-welcome">
 						<h3>Welcome to &Agrave; la Mod!</h3>
 						<p>Before you get started, we ask that you verify your email. Until you have done so, you won't be able to use certain functionality.</p>
 						<ala-input class="align-right">
-							<button id="welcome-ok" class="raised ok">Continue</button>
+							<button id="welcome-ok" class="flat">Continue</button>
 						</ala-input>
 					</form>
 					<form id="form-new-chat" novalidate>
@@ -126,8 +155,8 @@
 							<ala-user-list></ala-user-list>
 						</ala-input>
 						<ala-input class="align-right spinner-target">
-							<button id="cancel" class="raised">Cancel</button>
-							<button type="submit" id="new-chat-submit" class="raised ok">Create Chat</button>
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Create Chat</button>
 						</ala-input>
 					</form>
 					<form id="form-account-settings" novalidate>
@@ -175,8 +204,8 @@
 						<p class="hint">Leave the "new password" fields blank if you don't want to change your password.</p>
 						<p class="hint">Want to change your icon?  Change your <a href="//en.gravatar.com/" target="_blank">Gravatar</a>!</p>
 						<ala-input class="align-right spinner-target">
-							<button id="cancel" class="raised">Cancel</button>
-							<button type="submit" id="account-settings-submit" class="raised ok">Update Account</button>
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Update Account</button>
 						</ala-input>
 					</form>
 					<form id="form-mods" novalidate>
@@ -194,8 +223,8 @@
 							<textarea id="mods-ui" class="text-ui"></textarea>
 						</ala-input>
 						<ala-input class="align-right spinner-target">
-							<button id="cancel" class="raised">Cancel</button>
-							<button type="submit" id="mods-submit" class="raised ok">Submit</button>
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Submit</button>
 						</ala-input>
 					</form>
 				</ala-lightbox>
