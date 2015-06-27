@@ -335,6 +335,7 @@ app.post("/user/new", function(req, res){
 		var verID = crypto.randomBytes(16).toString("hex");
 		var email = req.body.email;
 		var user = req.body.email;
+		var color = ["#F44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3", "#03A9F4", "#00BCD4", "#009688", "#4CAF50", "#8BC34A", "#CDDC39", "#FFEB3B", "#FFC107", "#FF9800", "#FF5722", "#795548", "#9E9E9E", "#607D8B"]
 		db.insert("users", {
 			email: req.body.email,
 			password: password,
@@ -343,7 +344,8 @@ app.post("/user/new", function(req, res){
 			screenName: req.body.email,
 			verificationID: verID,
 			verified: false || local,
-			contacts: [req.body.email]
+			contacts: [req.body.email],
+			color: color[Math.floor(Math.random()*(color.length-1))]
 		}, function(err, data){
 			if(err){
 				res.status(500);
