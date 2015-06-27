@@ -25,3 +25,10 @@ sendMessage = function(data) {
 	data.method = "postUI"
 	postMessage(data)
 }
+
+broadcastMessage = function(message) {
+	data = {}
+	data.message = message
+	data.method = "broadcast"
+	postMessage(data)
+}

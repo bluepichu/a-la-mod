@@ -239,7 +239,6 @@ $(document).ready(function(){
 		});
 		$("ala-input-card textarea").val("");
 		return false;
-		return false;
 	}
 
 	ala.openChat = function(chatId){

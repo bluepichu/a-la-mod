@@ -186,6 +186,10 @@ ala.mods.messageHandler = function(ev){
 		ala.mods.uis[ev.target.name].postMessage(ev.data, "*")
 		return;
 	}
+	if (options.method == "broadcast" && ev.target.modType == "enc" && ala.currentChat) {
+		ala.socket.emit("message", ala.currentChat, options.message)
+		return;
+	}
 	ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId].callback(options.output);
 	delete ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId];
 }

@@ -3,5 +3,5 @@ document.onclick = function() {
 }
 
 registerMethod("postUI", function(data) {
-	console.log(data)
+	document.body.innerHTML = data.message
 })
