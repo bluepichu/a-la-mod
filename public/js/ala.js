@@ -4,15 +4,15 @@ ala.messageCounter = [0, 0];
 
 if(!("recipes" in localStorage)){
 	localStorage.recipes = JSON.stringify(
-	{
-		selected: "Empty",
-		all: {
-			"Empty": {
-				mods: {},
-				description: "An empty recipe to get you started."
+		{
+			selected: "Empty",
+			all: {
+				"Empty": {
+					mods: {},
+					description: "An empty recipe to get you started."
+				}
 			}
-		}
-	});
+		});
 }
 
 ala.recipes = JSON.parse(localStorage.recipes);
@@ -298,48 +298,52 @@ $(document).ready(function(){
 	ala.appendMessage = function(data){
 		ala.messageCounter[0]++;
 
-		var atBottom = ($("ala-messages-list").scrollTop() >= $("ala-messages-list")[0].scrollHeight - $("ala-messages-list").height());
-		if($("ala-messages-list").children().last().attr("sender") != data.sender._id){
-			ala.chatGroupCounter[0]++;
-			$("ala-messages-list").append(Handlebars.templates["chat-group"]({
-				sender: data.sender,
-				you: data.sender._id == ala.user._id,
-				timestamp: "|date-f" + ala.chatGroupCounter[0],
-			}));
-		}
-
-		var newMessage = $(Handlebars.templates["chat-message"]({
-			sender: data.sender
-		}));
-
-		$("ala-messages-list").children().last().append(newMessage);
-		if(atBottom){
-			$("ala-messages-list").scrollTop($("ala-messages-list")[0].scrollHeight);
-		}
-		newMessage.attr("message-id", "f" + ala.messageCounter[0]);
-		ala.spark.set("date-f" + ala.chatGroupCounter[0], data.timestamp);
-
-		ala.mods.decode(data.message, ala.recipes.all[ala.selected].mods, function(id, sender){
-			return function(data){
-				for(var i = 0; i < data.length; i++){
-					if(data[i].fallback !== undefined){
-						data[i] = data[i].fallback;
-					}
-					if(data[i].type == "SafeString"){
-						data[i] = {content: new Handlebars.SafeString(data[i].content), decoder: data[i].decoder};
-					}
-				}
-				var message = $(Handlebars.templates["chat-message"]({
-					message: data,
-					sender: sender
+		if(data.message.length == 1 && data.message[0].stream){
+			ala.mods.decode(data.message, ala.recipes.all[ala.selected].mods, function(){});
+		} else {
+			var atBottom = ($("ala-messages-list").scrollTop() >= $("ala-messages-list")[0].scrollHeight - $("ala-messages-list").height());
+			if($("ala-messages-list").children().last().attr("sender") != data.sender._id){
+				ala.chatGroupCounter[0]++;
+				$("ala-messages-list").append(Handlebars.templates["chat-group"]({
+					sender: data.sender,
+					you: data.sender._id == ala.user._id,
+					timestamp: "|date-f" + ala.chatGroupCounter[0],
 				}));
-				var atBottom = ($("ala-messages-list").scrollTop() >= $("ala-messages-list")[0].scrollHeight - $("ala-messages-list").height());
-				$("[message-id=" + id + "]").replaceWith(message);
-				if(atBottom){
-					$("ala-messages-list").scrollTop($("ala-messages-list")[0].scrollHeight);
-				}
 			}
-		}("f" + ala.messageCounter[0], data.sender));
+
+			var newMessage = $(Handlebars.templates["chat-message"]({
+				sender: data.sender
+			}));
+
+			$("ala-messages-list").children().last().append(newMessage);
+			if(atBottom){
+				$("ala-messages-list").scrollTop($("ala-messages-list")[0].scrollHeight);
+			}
+			newMessage.attr("message-id", "f" + ala.messageCounter[0]);
+			ala.spark.set("date-f" + ala.chatGroupCounter[0], data.timestamp);
+
+			ala.mods.decode(data.message, ala.recipes.all[ala.selected].mods, function(id, sender){
+				return function(data){
+					for(var i = 0; i < data.length; i++){
+						if(data[i].fallback !== undefined){
+							data[i] = data[i].fallback;
+						}
+						if(data[i].type == "SafeString"){
+							data[i] = {content: new Handlebars.SafeString(data[i].content), decoder: data[i].decoder};
+						}
+					}
+					var message = $(Handlebars.templates["chat-message"]({
+						message: data,
+						sender: sender
+					}));
+					var atBottom = ($("ala-messages-list").scrollTop() >= $("ala-messages-list")[0].scrollHeight - $("ala-messages-list").height());
+					$("[message-id=" + id + "]").replaceWith(message);
+					if(atBottom){
+						$("ala-messages-list").scrollTop($("ala-messages-list")[0].scrollHeight);
+					}
+				}
+			}("f" + ala.messageCounter[0], data.sender));
+		}
 	}
 
 	ala.prependMessage = function(data){

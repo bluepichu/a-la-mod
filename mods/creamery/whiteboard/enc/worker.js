@@ -8,11 +8,10 @@ registerMethod("postUI", function(data) {
 	broadcastMessage([{
 		codec: {
 			namespace: "creamery",
-			type: "code"
+			type: "whiteboard"
 		},
-		content: {
-			code: "print 'hello world'"
-		},
-		fallback: "print 'hello world'"
-	}])
+		stream: true,
+		content: data,
+		fallback: ""
+	}]);
 })
