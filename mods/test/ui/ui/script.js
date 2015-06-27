@@ -1,3 +1,3 @@
-registerMethod("init", function() {
-	console.log("woohoo")
-})
+document.onclick = function() {
+	sendMessage({message:"clickity-click", name:"test/ui"})
+}

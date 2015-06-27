@@ -17,3 +17,7 @@ registerMethod("encode", function(inp, cb){
 	});*/
 	cb({message:inp})
 });
+
+registerMethod("postUI", function(data) {
+	console.log(data)
+})

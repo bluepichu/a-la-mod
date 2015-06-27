@@ -3,6 +3,7 @@ ala.mods.methodCounter = 0;
 ala.mods.methods = {};
 ala.mods.encoders = {};
 ala.mods.decoders = {};
+ala.mods.uis = {}
 
  /**
   * A method that takes a message from the user and encodes it based on the mods loaded. It
@@ -80,7 +81,6 @@ ala.mods.decode = function(message, mods, cb){
   */
 
 ala.mods.initializeEncoder = function(mod, options){
-	console.log(mod)
 	if(!options){
 		options = {};
 	}
@@ -182,11 +182,27 @@ ala.mods.execute = function(mod, modType, method, options, cb){
 
 ala.mods.messageHandler = function(ev){
 	var options = ev.data;
-	console.log(options)
+	if (options.method == "postUI" && ala.mods.ui[ev.target.name] && ev.target.modType == "dec") {
+		ala.mods.ui[ev.target.name].postMessage(ev.data)
+		return;
+	}
 	ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId].callback(options.output);
 	delete ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId];
 }
 
-ala.mods.uiHandler = function(e) {
-	
+ala.mods.registerUI = function(name, nwindow) {	
+	ala.mods.uis[name] = nwindow;
+	nwindow.postMessage({method:"init"}, "*")
 }
+
+ala.mods.uiHandler = function(e) {
+	if (e.data && e.data.method == "send" && e.data.name) { //TODO: make this not bad so that ui's cannot send messages to other workers
+		console.log("yes")
+		ala.mods.encoders[e.data.name].postMessage({
+			method: "postUI",
+			options: e.data
+		})
+	}
+}
+
+window.onmessage = ala.mods.uiHandler

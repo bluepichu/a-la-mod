@@ -6,16 +6,11 @@ window.onload = function() {
 		if (!e.data) {
 			return;
 		}
-		if (e.data.method == "init") {
-			parent = e.source
-			while (messages.length > 0) {
-				parent.postMessage(messages.shift(), "*")
-			}
-		}
 		if (e.data.method in methods) {
 			methods[e.data.method](e.data)
 		}
 	}
+	window.top.postMessage({method: "init"}, "*")
 }
 
 registerMethod = function(method, cb) {
@@ -23,9 +18,6 @@ registerMethod = function(method, cb) {
 }
 
 sendMessage = function(data) {
-	if (parent) {
-		parent.postMessage(data, "*")
-	} else {
-		messages.push(data)
-	}
+	data.method = "send"
+	window.top.postMessage(data, "*")
 }

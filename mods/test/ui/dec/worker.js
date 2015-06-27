@@ -12,3 +12,7 @@ registerMethod("decode", function(inp, cb){
 	}
 	cb({message: out});
 });
+
+registerMethod("postUI", function(data) {
+	console.log(data)
+})

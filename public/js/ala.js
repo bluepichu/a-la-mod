@@ -18,6 +18,7 @@ if(!("recipes" in localStorage)){
 ala.recipes = JSON.parse(localStorage.recipes);
 ala.selected = ala.recipes.selected;
 
+
 moment.locale("en", {
 	calendar: {
 		lastDay : "[Yesterday at] LT",
@@ -56,6 +57,10 @@ var sendToServer = function(subId, add) {
 }
 
 $(document).ready(function(){
+	for (var m in ala.recipes.all[ala.selected].mods) {
+		ala.mods.initializeEncoder(m)
+	}
+
 	ala.clearSnack = function(){
 		if(ala.currentSnackTimeout){
 			clearTimeout(ala.currentSnackTimeout);
@@ -120,10 +125,14 @@ $(document).ready(function(){
 	for (var m in ala.recipes.all[ala.selected].mods) {
 		var mod = ala.recipes.all[ala.selected].mods[m]
 		if (mod.ui) {
-			cont.append($(Handlebars.templates["mod-card"]({
+			var insert = cont.append($(Handlebars.templates["mod-card"]({
 				title: mod.title || m,
 				mod: m
 			})))
+			insert.ready(function() {
+				console.log("hai")
+				ala.mods.registerUI(m, insert.find("iframe")[0].contentWindow)
+			})
 		}
 	}
 
