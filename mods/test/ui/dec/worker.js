@@ -1,7 +1,7 @@
 importScripts("/mods/utils/mod-base");
 
 registerMethod("decode", function(inp, cb){
-	cb({message: inpu})
+	cb({message: inp.message})
 	return;
 	inp = inp.message;
 	var out = inp.slice(0, inp.length);

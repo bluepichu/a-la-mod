@@ -16,16 +16,23 @@ ala.mods.encode = function(message, mods, cb){
 	if(message.constructor !== Array){
 		message = [message]
 	}
-	for(var i = 0; i < mods.length; i++){
-		ala.mods.initializeEncoder(mods[i]);
+	for(var i in mods){
+		if (mods[i].encoder) {
+			ala.mods.initializeEncoder(i);
+		}
 	}
 	var closure = function(ind){
 		return function(data){
-			if(ind >= mods.length){
+			var k = Object.keys(mods)
+			if(ind >= k.length){
 				cb(data.message);
 				return;
 			}
-			ala.mods.execute(mods[ind], "enc", "encode", {message: data.message}, closure(ind+1));
+			if (!mods[k[ind]].encoder) {
+				closure(ind+1)({message:data.message})
+				return;
+			}
+			ala.mods.execute(k[ind], "enc", "encode", {message: data.message}, closure(ind+1));
 		}
 	}
 	
@@ -44,16 +51,22 @@ ala.mods.decode = function(message, mods, cb){
 	if(message.constructor !== Array){
 		message = [message]
 	}
-	for(var i = 0; i < mods.length; i++){
-		ala.mods.initializeDecoder(mods[i]);
+	for(var i in mods){
+		if (mods[i].decoder) {
+			ala.mods.initializeDecoder(i);
+		}
 	}
 	var closure = function(ind){
 		return function(data){
-			if(ind >= mods.length){
+			var k = Object.keys(mods)
+			if(ind >= k.length){
 				cb(data.message);
 				return;
 			}
-			ala.mods.execute(mods[ind], "dec", "decode", {message: data.message}, closure(ind+1));
+			if (!mods[k[ind]].decoder) {
+				closure(ind+1)({message:data.message})
+			}
+			ala.mods.execute(k[ind], "dec", "decode", {message: data.message}, closure(ind+1));
 		}
 	}
 	
@@ -67,6 +80,7 @@ ala.mods.decode = function(message, mods, cb){
   */
 
 ala.mods.initializeEncoder = function(mod, options){
+	console.log(mod)
 	if(!options){
 		options = {};
 	}
@@ -168,6 +182,11 @@ ala.mods.execute = function(mod, modType, method, options, cb){
 
 ala.mods.messageHandler = function(ev){
 	var options = ev.data;
+	console.log(options)
 	ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId].callback(options.output);
 	delete ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId];
+}
+
+ala.mods.uiHandler = function(e) {
+	
 }
