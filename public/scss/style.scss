@@ -135,21 +135,6 @@ $spinner-white: url(/images/spinner-white.svg);
 	}
 }
 
-::-webkit-scrollbar {
-	width: 4px;
-}
-::-webkit-scrollbar-track {
-	width: 1px;
-	background: $gray-light-2;
-	border: 1.5px solid transparent;
-	-webkit-background-clip: content-box;
-	background-clip: content-box;
-}
-::-webkit-scrollbar-thumb {
-	border-radius: 4px;
-	background: $gray-dark-4;
-}
-
 * {
 	box-sizing: border-box;
 }
@@ -161,7 +146,7 @@ body {
 }
 ala-entrance {
 	@extend %scrollbar-padding;
-	
+
 	background: $gray-light-1;
 	display: block;
 	height: 100vh;
@@ -170,16 +155,17 @@ ala-entrance {
 	z-index: 20;
 	top: 0;
 	left: 0;
-	transition: top $speed-slow ease-in, left $speed-slow ease-in;
+	transition: top $speed-slow ease-in, left $speed-slow ease-in, opacity $speed-immediate $speed-slow;
 	overflow-y: auto;
-	
+
 	&.authorized {
 		left: -100vw;
+		opacity: 0;
 	}
 
 	header {
 		@include shadow(1);
-		
+
 		z-index: 1;
 		height: 64px;
 		align-items: center;
@@ -221,6 +207,56 @@ ala-entrance {
 			color: $white;
 			margin-top: 16px;
 			padding-bottom: 56px;
+		}
+	}
+
+	ala-flex {
+		justify-content: space-around;
+		flex-wrap: wrap;
+
+		ala-feature {
+			width: 300px;
+			display: flex;
+			align-items: center;
+			flex-direction: column;
+			margin: 8px;
+
+			h3 {
+				font-size: 2em;
+				color: $primary;
+			}
+
+			h4 {
+				font-size: 1.6em;
+				color: $text-primary;
+			}
+
+			p {
+				text-align: justify;
+				margin: 1em auto;
+				color: $text-secondary;
+			}
+
+			ala-icon.large {
+				@extend %circle;
+
+				cursor: auto;
+				font-size: 120px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				width: 1.5em;
+				height: 1.5em;
+				background: $ok;
+				color: $white;
+
+				svg {
+					width: 1em;
+					height: 1em;
+
+					fill: $white;
+				}
+			}
 		}
 	}
 }
@@ -524,6 +560,21 @@ ala-app {
 		z-index: 10;
 		position: relative;
 		width: 100%;
+	}
+
+	::-webkit-scrollbar {
+		width: 4px;
+	}
+	::-webkit-scrollbar-track {
+		width: 1px;
+		background: $gray-light-2;
+		border: 1.5px solid transparent;
+		-webkit-background-clip: content-box;
+		background-clip: content-box;
+	}
+	::-webkit-scrollbar-thumb {
+		border-radius: 4px;
+		background: $gray-dark-4;
 	}
 }
 
