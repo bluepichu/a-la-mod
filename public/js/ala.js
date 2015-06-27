@@ -122,16 +122,19 @@ $(document).ready(function(){
 	$("#notification").click(notifFunc)
 
 	var cont = $("ala-mod-list");
+	ala.iframes = []
 	for (var m in ala.recipes.all[ala.selected].mods) {
 		var mod = ala.recipes.all[ala.selected].mods[m]
 		if (mod.ui) {
-			var insert = cont.append($(Handlebars.templates["mod-card"]({
+			var insert = $(Handlebars.templates["mod-card"]({
 				title: mod.title || m,
 				mod: m
-			})))
-			insert.ready(function() {
+			}))
+			cont.append(insert)
+			ala.iframes.push(insert)
+			insert.ready((function(m) {return function() {
 				ala.mods.registerUI(m, insert.find("iframe")[0].contentWindow)
-			})
+			}})(m))
 		}
 	}
 
