@@ -162,7 +162,10 @@ $(document).ready(function(){
 
 	ala.socket.on("connect", function() {
 		console.log("Socket connected")
-		ala.socket.on("hidden", false);
+		ala.socket.emit("hidden", false);
+		$(document).on("visibilitychange", function() {
+			ala.socket.emit("hidden",document.hidden)
+		})
 
 		if($.cookie("email") && $.cookie("authToken")){
 			$("ala-entrance").css("transition", "none");
