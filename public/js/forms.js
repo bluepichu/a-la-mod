@@ -82,14 +82,14 @@ $(document).ready(function(){
 		xhr.onload = function(){
 			if(this.status == 200){
 				$.cookie("email", $("#form-login #email").val(), {expires: 30, path: "/"});
-				$.cookie("authToken", this.responseText, {expires: 30, path: "/"});
+				$.cookie("authToken", JSON.parse(this.responseText).token, {expires: 30, path: "/"});
 				ala.lightbox();
 				setTimeout(function(){
 					ala.onLogin();
 				}, 800);
 			} else {
 				$("#form-login #login-submit").removeClass("hidden");
-				ala.snack(this.responseText);
+				ala.snack(JSON.parse(this.responseText).error);
 			}
 			ala.setLoading(false);
 		}
@@ -116,7 +116,7 @@ $(document).ready(function(){
 				ala.lightbox();
 				ala.snack("An email has been sent containing a temporary password.");
 			} else {
-				ala.snack(this.responseText);
+				ala.snack(JSON.parse(this.responseText).error);
 			}
 			ala.setLoading(false);
 		}
@@ -160,7 +160,7 @@ $(document).ready(function(){
 						}, 800);
 					} else {
 						$("#form-register #register-submit").removeClass("hidden");
-						ala.snack(this.responseText);
+						ala.snack(JSON.parse(this.responseText).error);
 					}
 					ala.setLoading(false);
 				}
@@ -171,7 +171,7 @@ $(document).ready(function(){
 				}));
 			} else {
 				$("#form-register #register-submit").removeClass("hidden");
-				ala.snack(this.responseText);
+				ala.snack(JSON.parse(this.responseText).error);
 				ala.setLoading(false);
 			}
 		}
@@ -242,7 +242,7 @@ $(document).ready(function(){
 					location.reload();
 				}, 2000);
 			} else {
-				ala.snack(this.responseText);
+				ala.snack(JSON.parse(this.responseText).error);
 				ala.setLoading(false);
 			}
 		}
@@ -283,7 +283,7 @@ $(document).ready(function(){
 				ala.snack("Chat created.");
 				ala.lightbox("");
 			} else {
-				ala.snack(this.responseText);
+				ala.snack(JSON.parse(this.responseText).error);
 			}
 			ala.setLoading(false);
 		}
@@ -345,7 +345,7 @@ $(document).ready(function(){
 				$("#form-new-chat ala-user-list").append(Handlebars.templates["user-chip"](data));
 				$("#form-new-chat #email-entry").val("").focus();
 			} else {
-				ala.snack(this.responseText);
+				ala.snack(JSON.parse(this.responseText).error);
 			}
 		};
 		xhr.send();
