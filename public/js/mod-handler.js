@@ -111,8 +111,10 @@ ala.mods.initializeDecoder = function(mod, options){
   */
 
 ala.mods.initialize = function(mod, options){
+	console.log(arguments)
 	if(!mod || !options){
-		throw "Mod Initialization Error: mod or options not specified.";
+		console.log("Mod initializeation failed")
+		return;
 	}
 	var addTo;
 	switch(options.modType){

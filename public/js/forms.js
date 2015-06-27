@@ -208,18 +208,21 @@ $(document).ready(function(){
 		var ui =  $("#mods-ui").val().split(/[,;\s]+/g)
 		var allMods = {}
 		for (var m in enc) {
+			if (!enc[m]) continue;
 			if (!allMods[enc[m]]) {
 				allMods[enc[m]] = {}
 			}
 			allMods[enc[m]].encoder = true
 		}
 		for (var m in dec) {
+			if (!dec[m]) continue;
 			if (!allMods[dec[m]]) {
 				allMods[dec[m]] = {}
 			}
 			allMods[dec[m]].decoder = true
 		}
 		for (var m in ui) {
+			if (!ui[m]) continue;
 			if (!allMods[ui[m]]) {
 				allMods[ui[m]] = {}
 			}
