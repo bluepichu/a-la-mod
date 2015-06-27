@@ -1,7 +1,7 @@
 importScripts("/mods/utils/mod-base", "/mods/utils/pattern-matcher");
 
 registerMethod("encode", function(inp, cb){
-	matchPattern(inp.message, /([ "]|^)((https?:\/\/)?(\w+\.)+\w+)(\(([\w ]+)\))?([ "]|$)/, function(match, cb){
+	matchPattern(inp.message, /([ "]|^)((https?:\/\/)?([\w_-]+\.)+\w+)(\(([\w ]+)\))?([ "]|$)/, function(match, cb){
 		console.log(match)
 		cb({
 			codec: {
