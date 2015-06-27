@@ -130,7 +130,6 @@ $(document).ready(function(){
 				mod: m
 			})))
 			insert.ready(function() {
-				console.log("hai")
 				ala.mods.registerUI(m, insert.find("iframe")[0].contentWindow)
 			})
 		}

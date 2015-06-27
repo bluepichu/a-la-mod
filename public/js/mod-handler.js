@@ -182,8 +182,8 @@ ala.mods.execute = function(mod, modType, method, options, cb){
 
 ala.mods.messageHandler = function(ev){
 	var options = ev.data;
-	if (options.method == "postUI" && ala.mods.ui[ev.target.name] && ev.target.modType == "dec") {
-		ala.mods.ui[ev.target.name].postMessage(ev.data)
+	if (options.method == "postUI" && ala.mods.uis[ev.target.name] && ev.target.modType == "dec") {
+		ala.mods.uis[ev.target.name].postMessage(ev.data, "*")
 		return;
 	}
 	ala.mods.methods[ev.target.modType + " " + ev.target.name][options.requestId].callback(options.output);
@@ -197,7 +197,6 @@ ala.mods.registerUI = function(name, nwindow) {
 
 ala.mods.uiHandler = function(e) {
 	if (e.data && e.data.method == "send" && e.data.name) { //TODO: make this not bad so that ui's cannot send messages to other workers
-		console.log("yes")
 		ala.mods.encoders[e.data.name].postMessage({
 			method: "postUI",
 			options: e.data

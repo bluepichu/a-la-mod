@@ -2,6 +2,7 @@ importScripts("/mods/utils/mod-base");
 
 registerMethod("decode", function(inp, cb){
 	cb({message: inp.message})
+	sendMessage({message:"hi"})
 	return;
 	inp = inp.message;
 	var out = inp.slice(0, inp.length);
@@ -13,6 +14,3 @@ registerMethod("decode", function(inp, cb){
 	cb({message: out});
 });
 
-registerMethod("postUI", function(data) {
-	console.log(data)
-})
