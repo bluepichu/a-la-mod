@@ -22,6 +22,24 @@ $(document).ready(function(){
 		}, 2000);
 	});
 
+	$("ala-icon#login").click(function(){
+		ala.lightbox("form-login");
+	});
+
+	$("ala-icon#register").click(function(){
+		ala.lightbox("form-register");
+	});
+
+	$("button#forgot-password").click(function(e){
+		ala.lightbox("");
+		setTimeout(function(){
+			ala.lightbox("form-forgot-password");
+		}, 400);
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
+	});
+
 	$("button#new-chat").click(function(e){
 		ala.lightbox("form-new-chat");
 		e.preventDefault();
@@ -54,6 +72,125 @@ $(document).ready(function(){
 	$("ala-color-swatch").click(function(){
 		$(this).parent().children().removeClass("active");
 		$(this).addClass("active");
+	});
+
+
+	$("form#form-login").submit(function(e){
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/user/auth", true);
+
+		xhr.onload = function(){
+			if(this.status == 200){
+				$.cookie("email", $("#form-login #email").val(), {expires: 30, path: "/"});
+				$.cookie("authToken", this.responseText, {expires: 30, path: "/"});
+				ala.lightbox();
+				setTimeout(function(){
+					ala.onLogin();
+				}, 800);
+			} else {
+				$("#form-login #login-submit").removeClass("hidden");
+				ala.snack(this.responseText);
+			}
+			ala.setLoading(false);
+		}
+
+		xhr.setRequestHeader("Content-Type", "application/json");
+
+		xhr.send(JSON.stringify({
+			email: $("#form-login #email").val(),
+			password: $("#form-login #password").val()
+		}));
+
+		ala.setLoading(true);
+
+		e.stopPropagation();
+		e.preventDefault();
+	});
+
+	$("form#form-forgot-password").submit(function(e){
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/user/reset-password", true);
+
+		xhr.onload = function(){
+			if(this.status == 200){
+				ala.lightbox();
+				ala.snack("An email has been sent containing a temporary password.");
+			} else {
+				ala.snack(this.responseText);
+			}
+			ala.setLoading(false);
+		}
+
+		xhr.setRequestHeader("Content-Type", "application/json");
+
+		xhr.send(JSON.stringify({
+			email: $("#form-forgot-password #email").val()
+		}));
+
+		ala.setLoading(true);
+		e.stopPropagation();
+		e.preventDefault();
+	});
+
+	$("form#form-register").submit(function(e){
+		if($("#form-register #password").val() == ""){
+			ala.snack("Please enter a password.");
+			return;
+		} else if($("#form-register #password").val() != $("#form-register #confirm-password").val()){
+			ala.snack("\"Password\" and \"Confirm Password\" fields don't match.");
+			return;
+		}
+		$("#form-register #register-submit").addClass("hidden");
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/user/new", true);
+		xhr.onload = function(){
+			if(this.status == 200){
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/user/auth", true);
+				xhr.onload = function(){
+					if(this.status == 200){
+						$.cookie("email", $("#form-register #email").val(), {expires: 30, path: "/"});
+						$.cookie("authToken", this.responseText, {expires: 30, path: "/"});
+						ala.lightbox();
+						setTimeout(function(){
+							ala.onLogin();
+							setTimeout(function(){
+								ala.lightbox("form-welcome");
+							}, 800);
+						}, 800);
+					} else {
+						$("#form-register #register-submit").removeClass("hidden");
+						ala.snack(this.responseText);
+					}
+					ala.setLoading(false);
+				}
+				xhr.setRequestHeader("Content-Type", "application/json");
+				xhr.send(JSON.stringify({
+					email: $("#form-register #email").val(),
+					password: $("#form-register #password").val()
+				}));
+			} else {
+				$("#form-register #register-submit").removeClass("hidden");
+				ala.snack(this.responseText);
+				ala.setLoading(false);
+			}
+		}
+		xhr.setRequestHeader("Content-Type", "application/json");
+		xhr.send(JSON.stringify({
+			email: $("#form-register #email").val(),
+			password: $("#form-register #password").val()
+		}));
+		ala.setLoading(true);
+		e.stopPropagation();
+		e.preventDefault();
+		return false;
+	});
+	
+	$("form#form-welcome").submit(function(e){
+		ala.lightbox();
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
 	});
 
 	$("form#form-mods").submit(function(e){
@@ -214,6 +351,7 @@ $(document).ready(function(){
 		xhr.send();
 		$("#form-new-chat #email-entry").prop("disabled", true);
 	}
+
 	$("#form-new-chat #email-entry").keydown(function(e){
 		if(e.keyCode == 13){
 			setTimeout(pushEmailEntry, 100); // oh dear, someone please find something better

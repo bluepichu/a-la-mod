@@ -164,6 +164,7 @@ $(document).ready(function(){
 		ala.socket.on("hidden", false);
 
 		if($.cookie("email") && $.cookie("authToken")){
+			$("ala-entrance").css("transition", "none");
 			ala.socket.emit("login", $.cookie("email"), $.cookie("authToken"));
 		}
 	})
@@ -494,6 +495,7 @@ $(document).ready(function(){
 	ala.onLogin = function(err){
 		if(err){
 			ala.snack(err);
+			$("ala-entrance").css("transition", "");
 			$.cookie("authToken", "");
 		} else {
 			$("ala-entrance").addClass("authorized");
