@@ -171,11 +171,11 @@ ala-entrance {
 	top: 0;
 	left: 0;
 	transition: top $speed-slow ease-in, left $speed-slow ease-in;
+	overflow-y: auto;
 	
 	&.authorized {
 		left: -100vw;
 	}
-	overflow-y: scroll;
 
 	header {
 		@include shadow(1);
