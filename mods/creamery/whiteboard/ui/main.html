@@ -1,5 +1,6 @@
 <html>
 	<head>
+		<script src="/mods/utils/ui-base"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 		<link rel="stylesheet" href="/mods/ui/creamery/whiteboard/styles.css" />
 
@@ -30,13 +31,21 @@
 					var nextX = e.pageX - $(this).offset().left;
 					var nextY = e.pageY - $(this).offset().top;
 					if(drawing){
-						draw(context, lastX, lastY, nextX, nextY);
-						// emit(lastX, lastY, nextX, nextY)
+						sendMessage({
+							message: {
+								x1: lastX,
+								y1: lastY,
+								x2: nextX,
+								y2: nextY,
+								r: brushSize
+							},
+							name: "creamery/whiteboard"
+						});
 					}
 					lastX = nextX;
 					lastY = nextY;
 				});
-				
+
 				$("body").keypress(function(e){
 					if(e.keyCode == 91){
 						brushSize--;
@@ -46,17 +55,21 @@
 					brushSize = Math.min(Math.max(brushSize, 1), 100);
 				});
 
-				var draw = function(canvas, x1, y1, x2, y2){
+				registerMethod("postUI", function(data) {
+					draw(context, data.x1, data.y1, data.x2, data.y2, data.r);
+				})
+
+				var draw = function(canvas, x1, y1, x2, y2, r){
 					canvas.strokeStyle = "#0000ff";
 					canvas.lineJoin = "round";
-					canvas.lineWidth = brushSize;
+					canvas.lineWidth = r;
 					canvas.beginPath();
 					canvas.moveTo(scale(x1), scale(y1));
 					canvas.lineTo(scale(x2), scale(y2));
 					canvas.closePath();
 					canvas.stroke();
 				}
-				
+
 				var scale = function(x){
 					return x * 800 / $("#canvas").width();
 				}
@@ -65,7 +78,7 @@
 	</head>
 	<body>
 		<div class="container">
-			<canvas id="canvas" width="800" height="600"></canvas>
+			<canvas id="canvas" width="800" height="480"></canvas>
 		</div>
 	</body>
 </html>
