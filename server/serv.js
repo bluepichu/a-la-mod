@@ -1108,21 +1108,25 @@ io.on("connection", function(socket){
 					message: msg,
 					timestamp: moment().unix()
 				});
+				
+//				console.log(msg);
 
-				db.update("chats", {
-					_id: ObjectId(chatId)
-				},
-						  {
-					$push: {
-						messages: {
-							sender: socket.userId,
-							message: msg,
-							timestamp: moment().unix()
-						}
+				if(!msg[0].stream){
+					db.update("chats", {
+						_id: ObjectId(chatId)
 					},
-					$inc: {messageCount: 1}
-				},
-						  function(err, data){});
+							  {
+						$push: {
+							messages: {
+								sender: socket.userId,
+								message: msg,
+								timestamp: moment().unix()
+							}
+						},
+						$inc: {messageCount: 1}
+					},
+							  function(err, data){});
+				}
 			});
 		});
 	});
