@@ -1106,8 +1106,10 @@ io.on("connection", function(socket){
 					message: msg,
 					timestamp: moment().unix()
 				});
+				
+//				console.log(msg);
 
-				if(!msg.stream){
+				if(!msg[0].stream){
 					db.update("chats", {
 						_id: ObjectId(chatId)
 					},

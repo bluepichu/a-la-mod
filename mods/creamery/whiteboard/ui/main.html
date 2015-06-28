@@ -10,6 +10,8 @@
 				var lastX = 0;
 				var lastY = 0;
 				var brushSize = 5;
+				var cache = [];
+				var pushSize = 8;
 
 				var context = $("#canvas").get(0).getContext("2d");
 
@@ -21,6 +23,13 @@
 
 				$("#canvas").mouseup(function(e){
 					drawing = false;
+					if(cache.length > 0){
+						sendMessage({
+							paths: cache,
+							name: "creamery/whiteboard"
+						});
+						cache = [];
+					}
 				});
 
 				$("#canvas").mouseleave(function(e){
@@ -31,16 +40,22 @@
 					var nextX = e.pageX - $(this).offset().left;
 					var nextY = e.pageY - $(this).offset().top;
 					if(drawing){
-						sendMessage({
+						cache.push({
 							message: {
 								x1: lastX,
 								y1: lastY,
 								x2: nextX,
 								y2: nextY,
 								r: brushSize
-							},
-							name: "creamery/whiteboard"
+							}
 						});
+						if(cache.length >= pushSize){
+							sendMessage({
+								paths: cache,
+								name: "creamery/whiteboard"
+							});
+							cache = [];
+						}
 					}
 					lastX = nextX;
 					lastY = nextY;
@@ -57,7 +72,9 @@
 
 				registerMethod("postUI", function(data) {
 					console.log(data);
-					draw(context, data.x1, data.y1, data.x2, data.y2, data.r);
+					for(var i = 0; i < data.length; i++){
+						draw(context, data[i].message.x1, data[i].message.y1, data[i].message.x2, data[i].message.y2, data[i].message.r);
+					}
 				})
 
 				var draw = function(canvas, x1, y1, x2, y2, r){
