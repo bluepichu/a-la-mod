@@ -37,6 +37,7 @@ var PAGE_SIZE = 40;  // Number of chat results to return in a single request.
 var SOCKETS = {}; // Stores currently authorized sockets, as {<user id>: [<list of connected sockets authorized with user id>]}
 
 var PORT = nconf.get("port") || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
+var MODE = nconf.get("mode") || "normal"; // Sets run mode - should be either "normal" (normal operation) or "local" (to use local copies of fonts and APIs)
 
 var sendgridlogin = require("sendgrid");
 var sendgrid = undefined;
@@ -100,7 +101,17 @@ app.get("/push/get/:subId", function(req, res) {
  * Serves the À la Mod page.
  */
 app.get("/", function(req, res){
-	res.sendFile("/index.html", {root: path.join(__dirname, "../public")});
+	switch(MODE){
+		case "normal":
+			res.sendFile("/index.html", {root: path.join(__dirname, "../public")});
+			break;
+		case "local":
+			res.sendFile("/local.html", {root: path.join(__dirname, "../public")});
+			break;
+		default:
+			res.status(404).send();
+			break;
+	}
 });
 
 /**
@@ -1108,8 +1119,8 @@ io.on("connection", function(socket){
 					message: msg,
 					timestamp: moment().unix()
 				});
-				
-//				console.log(msg);
+
+				//				console.log(msg);
 
 				if(!msg[0].stream){
 					db.update("chats", {
