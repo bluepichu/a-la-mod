@@ -1,12 +1,14 @@
-var methods = [];
+var methods = {};
 
 onmessage = function(ev){
 	var data = ev.data;
-	if(data.method in methods){
-		if (data.method == "postUI") {
-			methods[data.method](data.options)
-			return
+	if(data.method == "mod.post"){
+		if(ui.onMessage){
+			ui.onMessage(data.options);
 		}
+		return;
+	}
+	if(data.method in methods){
 		methods[data.method](data.options, function(ret){
 			postMessage({
 				method: "return",
@@ -21,14 +23,20 @@ registerMethod = function(method, func){
 	methods[method] = func;
 }
 
-sendMessage = function(data) {
-	data.method = "postUI"
-	postMessage(data)
+alm = {};
+
+alm.send = function(message){
+	var data = {};
+	data.message = message;
+	data.method = "alm.send";
+	postMessage(data);
 }
 
-broadcastMessage = function(message) {
-	data = {}
-	data.message = message
-	data.method = "broadcast"
-	postMessage(data)
+ui = {};
+
+ui.post = function(data){
+	data.method = "ui.post";
+	postMessage(data);
 }
+
+ui.onMessage = null;

@@ -3,16 +3,9 @@
 	"developer": "creamery",
 	"description": "Decodes code strings.",
 	"tags": ["code"],
-	"types": ["enc","dec"],
 	"worker": "worker.js",
-	"workers": {
-		"enc": "enc/worker.js",
-		"dec": "dec/worker.js"
-	},
-	"styles": {
-		"dec": {
-			"path": "dec",
-			"main": "styles.css"
-		}
+	"inline": {
+		"main": "inline.css",
+		"path": ""
 	}
 }

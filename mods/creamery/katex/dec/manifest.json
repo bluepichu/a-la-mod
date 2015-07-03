@@ -1,8 +1,0 @@
-{
-	name: "katex",
-	developer: "creamery",
-	description: "Decodes KaTeX-formatted strings.",
-	tags: ["math", "katex", "latex", "tex", "type", "typesetting"],
-	worker: "worker.js",
-	styles: "katex.min.css"
-}

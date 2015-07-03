@@ -8,7 +8,9 @@ if(!("recipes" in localStorage)){
 			selected: "Empty",
 			all: {
 				"Empty": {
-					mods: {},
+					encoders: [],
+					decoders: [],
+					uis: [],
 					description: "An empty recipe to get you started."
 				}
 			}
@@ -57,8 +59,16 @@ var sendToServer = function(subId, add) {
 }
 
 $(document).ready(function(){
-	for (var m in ala.recipes.all[ala.selected].mods) {
-		ala.mods.initializeEncoder(m)
+	for(var i = 0; i < ala.recipes.all[ala.selected].encoders.length; i++){
+		ala.mods.initialize(ala.recipes.all[ala.selected].encoders[i]);
+	}
+
+	for(var i = 0; i < ala.recipes.all[ala.selected].decoders.length; i++){
+		ala.mods.initialize(ala.recipes.all[ala.selected].decoders[i]);
+	}
+
+	for(var i = 0; i < ala.recipes.all[ala.selected].uis.length; i++){
+		ala.mods.initialize(ala.recipes.all[ala.selected].uis[i]);
 	}
 
 	ala.clearSnack = function(){
@@ -123,19 +133,16 @@ $(document).ready(function(){
 
 	var cont = $("ala-mod-list");
 	ala.iframes = []
-	for (var m in ala.recipes.all[ala.selected].mods) {
-		var mod = ala.recipes.all[ala.selected].mods[m]
-		if (mod.ui) {
-			var insert = $(Handlebars.templates["mod-card"]({
-				title: mod.title || m,
-				mod: m
-			}))
-			cont.append(insert)
-			ala.iframes.push(insert)
-			insert.ready((function(m) {return function() {
-				ala.mods.registerUI(m, insert.find("iframe")[0].contentWindow)
-			}})(m))
-		}
+	for(var i = 0; i < ala.recipes.all[ala.selected].uis.length; i++){
+		var insert = $(Handlebars.templates["mod-card"]({
+			title: ala.recipes.all[ala.selected].uis[i],
+			mod: ala.recipes.all[ala.selected].uis[i]
+		}))
+		cont.append(insert)
+		ala.iframes.push(insert)
+		insert.ready((function(m){return function() {
+			ala.mods.registerUI(m, insert.find("iframe")[0].contentWindow)
+		}})(ala.recipes.all[ala.selected].uis[i]))
 	}
 
 	autosize($("ala-input-card textarea"));
@@ -241,7 +248,7 @@ $(document).ready(function(){
 	});
 
 	ala.submit = function(){
-		ala.mods.encode($("ala-input-card textarea").val(), ala.recipes.all[ala.selected].mods, function(data){
+		ala.mods.encode($("ala-input-card textarea").val(), ala.recipes.all[ala.selected].encoders, function(data){
 			ala.socket.emit("message", ala.currentChat, data);
 		});
 		$("ala-input-card textarea").val("");
@@ -302,7 +309,7 @@ $(document).ready(function(){
 		ala.messageCounter[0]++;
 
 		if(data.message.length == 1 && data.message[0].stream){
-			ala.mods.decode(data.message, ala.recipes.all[ala.selected].mods, function(){});
+			ala.mods.decode(data.message, ala.recipes.all[ala.selected].decoders, function(){});
 		} else {
 			var atBottom = ($("ala-messages-list").scrollTop() >= $("ala-messages-list")[0].scrollHeight - $("ala-messages-list").height());
 			if($("ala-messages-list").children().last().attr("sender") != data.sender._id){
@@ -325,7 +332,7 @@ $(document).ready(function(){
 			newMessage.attr("message-id", "f" + ala.messageCounter[0]);
 			ala.spark.set("date-f" + ala.chatGroupCounter[0], data.timestamp);
 
-			ala.mods.decode(data.message, ala.recipes.all[ala.selected].mods, function(id, sender){
+			ala.mods.decode(data.message, ala.recipes.all[ala.selected].decoders, function(id, sender){
 				return function(data){
 					for(var i = 0; i < data.length; i++){
 						if(data[i].fallback !== undefined){

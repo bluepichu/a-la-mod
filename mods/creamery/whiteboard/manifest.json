@@ -3,17 +3,7 @@
 	"developer": "creamery",
 	"description": "Simple whiteboard app.",
 	"tags": ["whiteboard", "drawing", "art"],
-	"types": ["enc","dec","ui"],
-	"workers": {
-		"enc": "enc/worker.js",
-		"dec": "dec/worker.js"
-	},
-	"styles": {
-		"dec": {
-			"path": "dec",
-			"main": "styles.css"
-		}
-	},
+	"worker": "worker.js",
 	"ui": {
 		"main": "main.html",
 		"path": "ui"
