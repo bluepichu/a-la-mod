@@ -1,0 +1,11 @@
+{
+	"name": "images",
+	"developer": "creamery",
+	"description": "Images!",
+	"tags": ["images"],
+	"worker": "worker.js",
+	"inline": {
+		"main": "styles.css",
+		"path": ""
+	}
+}
