@@ -3,6 +3,7 @@
 	"developer": "creamery",
 	"description": "Images!",
 	"tags": ["images"],
+    "types": ["enc", "dec"],
 	"worker": "worker.js",
 	"inline": {
 		"main": "styles.css",

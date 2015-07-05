@@ -3,6 +3,7 @@
 	"developer": "creamery",
 	"description": "Decodes KaTeX-formatted strings.",
 	"tags": ["math", "katex", "latex", "tex", "type", "typesetting"],
+    "types": ["enc", "dec"],
 	"worker": "worker.js",
 	"inline": {
 		"main": "katex.min.css",

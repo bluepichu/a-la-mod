@@ -4,6 +4,7 @@
 	"description": "Decodes links.",
 	"types": ["enc","dec"],
 	"tags": ["links", "link", "hyperlink", "url"],
+    "types": ["enc", "dec"],
 	"worker": "worker.js",
 	"inline": {
 		"main": "inline",

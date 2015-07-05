@@ -3,6 +3,7 @@
 	"developer": "creamery",
 	"description": "Decodes code strings.",
 	"tags": ["code"],
+    "types": ["enc", "dec"],
 	"worker": "worker.js",
 	"inline": {
 		"main": "inline.css",

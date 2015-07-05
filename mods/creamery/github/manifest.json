@@ -3,6 +3,7 @@
 	"developer": "creamery",
 	"description": "Encodes github items.  Simply use \"github[<reference>]\" to activate.",
 	"tags": ["github", "git"],
+    "types": ["enc", "dec"],
 	"worker": "worker.js",
 	"inline": {
 		"main": "styles.scss",
