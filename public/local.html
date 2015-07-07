@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<!-- TEMPORARY SOLUTION FOR OFFLINE EDITING -->
+
+<html>
+	<head>
+		<title>la Mod</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+		<link rel="manifest" href="static/manifest.json">
+		
+		<link rel="icon" href="/images/favicon.png" />
+
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/mobile.css" media="only screen and (max-device-width: 800px)" />
+<!--		"Basic" font should be installed locally		-->
+<!--		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Basic" />-->
+		<link rel="stylesheet" href="css/materialdesignicons.min.css" />
+
+		<script src="js/serviceManager.js"></script>
+
+		<script src="js/jquery.min.js"></script>
+		<script src="js/jquery.cookie.js"></script>
+		<script src="js/autosize.js"></script>
+		<script src="js/handlebars-v1.3.0.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="js/md5.min.js"></script>
+		<script src="js/utils.js"></script>
+		<script src="js/spark.js"></script>
+		<script src="js/moment.js"></script>
+		<script src="js/welcome.js"></script>
+		<script src="js/forms.js"></script>
+
+		<script src="js/textext/textext.core.js"></script>
+		<script src="js/textext/textext.plugin.autocomplete.js"></script>
+		<script src="js/textext/textext.plugin.filter.js"></script>
+		<script src="js/textext/textext.plugin.suggestions.js"></script>
+		<script src="js/textext/textext.plugin.tags.js"></script>
+
+		<script>
+			ala = {};
+		</script>
+		<script src="js/mod-handler.js"></script>
+		<script src="templates/templates.js"></script>
+		<script src="js/ala.js"></script>
+	</head>
+	<body>
+		<ala-input-blocker></ala-input-blocker>
+		<ala-entrance>
+			<header>
+				<ala-version-number>French Vanilla &middot; 0.1.0</ala-version-number>
+				<ala-header-icons float="right">
+					<ala-icon id="login" class="mdi mdi-login"></ala-icon>
+					<ala-icon id="register" class="mdi mdi-account-plus"></ala-icon>
+					</div>
+			</header>
+			<ala-welcome>
+				<h1>Welcome to &Agrave; la Mod.</h1>
+				<h2>Your chat, your way.</h2>
+			</ala-welcome>
+			<ala-flex>
+				<ala-feature>
+					<ala-icon class="large mdi mdi-binary">
+						<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 48 48" enable-background="new 0 0 48 48" xml:space="preserve">
+							<path d="M10,6v16h12V6H10z M18,18h-4v-8h4V18z"/>
+							<polygon points="26,6 26,10 30,10 30,18 26,18 26,22 38,22 38,18 34,18 34,6"/>
+							<path d="M26,26v16h12V26H26z M34,38h-4v-8h4V38z"/>
+							<polygon points="10,26 10,30 14,30 14,38 10,38 10,42 22,42 22,38 18,38 18,26"/>
+						</svg>
+					</ala-icon>
+					<h3>It's your data.</h3>
+					<h4>Display it how you want.</h4>
+					<p>&Agrave; la Mod frees you from the traditional text-only chat.  Send a math equation, a diagram, formatted text - whatever you want, you can do it your way.</p>
+				</ala-feature>
+				<ala-feature>
+					<ala-icon class="large mdi mdi-view-quilt"></ala-icon>
+					<h3>It's your chat.</h3>
+					<h4>Design it how you want.</h4>
+					<p>Want a video chat on one half, and a text chat on the other?  Go for it.  A whiteboard, a YouTube video, and an equation editor?  With &Agrave; la Mod, it's up to you.</p>
+				</ala-feature>
+				<ala-feature>
+					<ala-icon class="large mdi mdi-cellphone-link"></ala-icon>
+					<h3>It's your device.</h3>
+					<h4>Use it when you want.</h4>
+					<p>&Agrave; la Mod is designed to work wherever you want it to.  Download it as an app on your cell phone, or use it in-browser on your desktop - the choice is yours.</p>
+				</ala-feature>
+			</ala-flex>
+		</ala-entrance>
+		<ala-app>
+			<ala-lightbox-container>
+				<ala-lightbox>
+					<form id="form-login">
+						<h3>Login</h3>
+						<ala-input>
+							<input type="text" class="dark" id="email" name="email" required />
+							<label>Email</label>
+						</ala-input>
+						<ala-input>
+							<input type="password" class="dark" id="password" name="password" required />
+							<label>Password</label>
+						</ala-input>
+						<ala-input float="left">
+							<button id="forgot-password" class="flat">Forgot Password</button>
+						</ala-input>
+						<ala-input float="right" class="spinner-target">
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Login</button>
+						</ala-input>
+					</form>
+					<form id="form-register">
+						<h3>Register</h3>
+						<ala-input>
+							<input type="text" class="dark" id="email" name="email" required />
+							<label>Email</label>
+						</ala-input>
+						<ala-input>
+							<input type="password" class="dark" id="password" name="password" required />
+							<label>Password</label>
+						</ala-input>
+						<ala-input>
+							<input type="password" class="dark" id="confirm-password" name="confirm-password" required />
+							<label>Confirm Password</label>
+						</ala-input>
+						<ala-input float="right" class="spinner-target">
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Register</button>
+						</ala-input>
+					</form>
+					<form id="form-forgot-password">
+						<h3>Forgot Password</h3>
+						<ala-input>
+							<input type="text" class="dark" id="email" name="email" required />
+							<label>Email</label>
+						</ala-input>
+						<p>We will send you an email containing a temporary password.</p>
+						<ala-input float="right" class="spinner-target">
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Submit</button>
+						</ala-input>
+					</form>
+					<form id="form-welcome">
+						<h3>Welcome to &Agrave; la Mod!</h3>
+						<p>Before you get started, we ask that you verify your email. Until you have done so, you won't be able to use certain functionality.</p>
+						<ala-input class="align-right">
+							<button id="welcome-ok" class="flat">Continue</button>
+						</ala-input>
+					</form>
+					<form id="form-new-chat" novalidate>
+						<h3>New Chat</h3>
+						<ala-input>
+							<input type="text" class="dark" id="title" name="title" required />
+							<label>Title</label>
+						</ala-input>
+						<ala-input style="z-index: 4;">
+							<input type="text" class="dark disable-enter-submission" id="email-entry" name="email-entry" rows="1"  placeholder="Enter emails to add to the chat..." autocomplete="off" />
+						</ala-input>
+						<ala-input>
+							<ala-user-list></ala-user-list>
+						</ala-input>
+						<ala-input class="align-right spinner-target">
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Create Chat</button>
+						</ala-input>
+					</form>
+					<form id="form-account-settings" novalidate>
+						<h3>Account Settings</h3>
+						<ala-input>
+							<input type="text" class="dark" id="screen-name" name="screen-name" required />
+							<label>Screen Name</label>
+						</ala-input>
+						<ala-input>
+							<ala-flex id="color-picker">
+								<ala-color-swatch color="#F44336" style="background: #F44336" ></ala-color-swatch>
+								<ala-color-swatch color="#E91E63" style="background: #E91E63" ></ala-color-swatch>
+								<ala-color-swatch color="#9C27B0" style="background: #9C27B0" ></ala-color-swatch>
+								<ala-color-swatch color="#673AB7" style="background: #673AB7" ></ala-color-swatch>
+								<ala-color-swatch color="#3F51B5" style="background: #3F51B5" ></ala-color-swatch>
+								<ala-color-swatch color="#2196F3" style="background: #2196F3" ></ala-color-swatch>
+								<ala-color-swatch color="#03A9F4" style="background: #03A9F4" ></ala-color-swatch>
+								<ala-color-swatch color="#00BCD4" style="background: #00BCD4" ></ala-color-swatch>
+								<ala-color-swatch color="#009688" style="background: #009688" ></ala-color-swatch>
+								<ala-color-swatch color="#4CAF50" style="background: #4CAF50" ></ala-color-swatch>
+								<ala-color-swatch color="#8BC34A" style="background: #8BC34A" ></ala-color-swatch>
+								<ala-color-swatch color="#CDDC39" style="background: #CDDC39" ></ala-color-swatch>
+								<ala-color-swatch color="#FFEB3B" style="background: #FFEB3B" ></ala-color-swatch>
+								<ala-color-swatch color="#FFC107" style="background: #FFC107" ></ala-color-swatch>
+								<ala-color-swatch color="#FF9800" style="background: #FF9800" ></ala-color-swatch>
+								<ala-color-swatch color="#FF5722" style="background: #FF5722" ></ala-color-swatch>
+								<ala-color-swatch color="#795548" style="background: #795548" ></ala-color-swatch>
+								<ala-color-swatch color="#9E9E9E" style="background: #9E9E9E" ></ala-color-swatch>
+								<ala-color-swatch color="#607D8B" style="background: #607D8B" ></ala-color-swatch>
+							</ala-flex>
+							<label class="small dark">Display Color</label>
+						</ala-input>
+						<ala-input>
+							<input type="password" class="dark" id="current-password" name="current-password" required />
+							<label>Current Password</label>
+						</ala-input>
+						<ala-input>
+							<input type="password" class="dark" id="new-password" name="new-password" required />
+							<label>New Password</label>
+						</ala-input>
+						<ala-input>
+							<input type="password" class="dark" id="confirm-new-password" name="confirm-new-password" required />
+							<label>Confirm New Password</label>
+						</ala-input>
+						<p class="hint">Leave the "new password" fields blank if you don't want to change your password.</p>
+						<p class="hint">Want to change your icon?  Change your <a href="//en.gravatar.com/" target="_blank">Gravatar</a>!</p>
+						<ala-input class="align-right spinner-target">
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Update Account</button>
+						</ala-input>
+					</form>
+					<form id="form-mods" novalidate>
+						<h3>Mods</h3>
+						<ala-input>
+							<h5>Encoding Mods</h5>
+							<textarea id="mods-enc" class="text-ui dark"></textarea>
+						</ala-input>
+						<ala-input>
+							<h5>Decoding Mods</h5>
+							<textarea id="mods-dec" class="text-ui"></textarea>
+						</ala-input>
+						<ala-input>
+							<h5>UI Mods</h5>
+							<textarea id="mods-ui" class="text-ui"></textarea>
+						</ala-input>
+						<ala-input class="align-right spinner-target">
+							<button id="cancel" class="flat">Cancel</button>
+							<button type="submit" class="flat">Submit</button>
+						</ala-input>
+					</form>
+				</ala-lightbox>
+			</ala-lightbox-container>
+			<header>
+				<ala-header-icons float="left">
+					<ala-icon id="back" class="mdi mdi-arrow-left gone"></ala-icon>
+				</ala-header-icons>
+				<h4>&Agrave; la Mod</h4>
+				<ala-header-icons float="right">
+					<ala-notif-container></ala-notif-container>
+					<ala-icon id="search" class="mdi mdi-magnify"></ala-icon>
+					<ala-icon id="mods" class="mdi mdi-view-dashboard"></ala-icon>
+					<ala-icon id="account" class="mdi mdi-account"></ala-icon>
+					<ala-icon id="logout" class="mdi mdi-logout"></ala-icon>
+				</ala-header-icons>
+			</header>
+			<main state="list">
+				<ala-chat-list>
+				</ala-chat-list>
+				<button id="new-chat" class="floating-action">
+					<ala-icon class="mdi mdi-plus"></ala-icon>
+				</button>
+				<ala-active-chat class="active">
+					<ala-messages-card>
+						<ala-messages-list></ala-messages-list>
+					</ala-messages-card>
+					<ala-input-card>
+						<textarea placeholder="Enter a message..."></textarea>
+						<button id="recipe-select" class="floating-action">
+							<ala-icon class="mdi mdi-view-list"></ala-icon>
+						</button>
+						<ala-recipe-name>Default Recipe</ala-recipe-name>
+						<button id="send" class="raised ok">Send</button>
+					</ala-input-card>
+				</ala-active-chat>
+				<ala-fullscreen-mod></ala-fullscreen-mod>
+				<ala-mod-list></ala-mod-list>
+			</main>
+		</ala-app>
+		<ala-snack-bar></ala-snack-bar>
+	</body>
+</html>

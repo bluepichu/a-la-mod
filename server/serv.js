@@ -842,10 +842,9 @@ app.get("/mods/utils/:file", function(req, res){
 	res.sendFile("/utils/" + req.params.file + ".js", {root: path.join(__dirname, "../mods")});
 });
 
-app.get("/mods/:type/:dev/:name/*", function(req, res){
+app.get("/mods/:dev/:name/*", function(req, res){
 	console.log(req.params)
 	db.query("mods", {
-		types: req.params.type,
 		developer: req.params.dev,
 		name: req.params.name
 	}, function(err, data){
@@ -860,14 +859,15 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 			res.status(404).send();
 			return;
 		}
+		console.log(data[0]);
 		var file = req.params[0];
 		if(file == "worker"){
-			res.sendFile(path.join(req.params.dev, req.params.name, data[0].workers[req.params.type]), {root: path.join(__dirname, "../mods")});
+			res.sendFile(path.join(req.params.dev, req.params.name, data[0].worker), {root: path.join(__dirname, "../mods")});
 			return;
 		}
-		if(file == "styles"){
-			if(data[0].styles && data[0].styles[req.params.type]){
-				fs.readFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].styles[req.params.type].path, data[0].styles[req.params.type].main), "utf8", function(er, dat){
+		if(file == "inline"){
+			if(data[0].inline){
+				fs.readFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].inline.path, data[0].inline.main), "utf8", function(er, dat){
 					if(er || !dat){
 						console.log(er)
 						res.status(500);
@@ -879,7 +879,7 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 					dat = "[decoder='" + req.params.dev + "/" + req.params.name + "'] {" + dat + "}";
 					sass.render({
 						data: dat,
-						includePaths: [path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].styles[req.params.type].path)]
+						includePaths: [path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].inline.path)]
 					}, function(err, result){
 						res.setHeader("Content-Type", "text/css");
 						res.status(200).send(result.css);
@@ -891,14 +891,10 @@ app.get("/mods/:type/:dev/:name/*", function(req, res){
 				return;
 			}
 		}
-		if (req.params.type == "ui") {
-			console.log(req.params)
-			var endpoint;
-			if (!file) {
-				endpoint = data[0].ui.main;
-			} else {
-				endpoint = file
-			}
+		var match = /ui(\/(.*))?/.exec(file);
+		if(match !== null){
+			console.log(match);
+			var endpoint = match[1] || data[0].ui.main;
 			res.sendFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].ui.path, endpoint));
 			return;
 		}

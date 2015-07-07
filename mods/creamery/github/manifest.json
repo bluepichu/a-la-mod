@@ -1,18 +1,12 @@
 {
 	"name": "github",
 	"developer": "creamery",
-	"description": "Encodes github items.  Simply use \"github[<reference]\" to activate.",
-	"types": ["enc","dec"],
+	"description": "Encodes github items.  Simply use \"github[<reference>]\" to activate.",
 	"tags": ["github", "git"],
-	"methods": ["enc","dec"],
-	"workers": {
-		"enc":"enc/worker.js",
-		"dec":"dec/worker.js"
-	}, 
-	"styles": {
-		"dec": {
-			"path": "dec",
-			"main": "styles.scss"
-		}
+    "types": ["enc", "dec"],
+	"worker": "worker.js",
+	"inline": {
+		"main": "styles.scss",
+		"path": ""
 	}
 }

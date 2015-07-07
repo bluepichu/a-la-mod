@@ -1,8 +1,0 @@
-{
-	name: "github",
-	developer: "creamery",
-	description: "Decodes github items.",
-	tags: ["github", "git"],
-	worker: "worker.js",
-	styles: "styles.scss"
-}

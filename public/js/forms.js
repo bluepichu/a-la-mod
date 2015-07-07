@@ -1,19 +1,9 @@
 $(document).ready(function(){
 	$("ala-icon#mods").click(function(){
 		ala.lightbox("form-mods");
-		var allMods = ala.recipes.all[ala.selected].mods
-		var enc = []
-		var dec = []
-		var ui = []
-		for (var mn in allMods) {
-			var m = allMods[mn]
-			if (m.encoder) enc.push(mn)
-			if (m.decoder) dec.push(mn)
-			if (m.ui) ui.push(mn)
-		}
-		$("#form-mods #mods-enc").val(enc.join("\n"));
-		$("#form-mods #mods-dec").val(dec.join("\n"));
-		$("#form-mods #mods-ui").val(ui.join("\n"));
+		$("#form-mods #mods-enc").val(ala.recipes.all[ala.selected].encoders.join("\n"));
+		$("#form-mods #mods-dec").val(ala.recipes.all[ala.selected].decoders.join("\n"));
+		$("#form-mods #mods-ui").val(ala.recipes.all[ala.selected].uis.join("\n"));
 	});
 
 	$("ala-icon#account").click(function(){
@@ -203,33 +193,36 @@ $(document).ready(function(){
 	});
 
 	$("form#form-mods").submit(function(e){	
-		var enc = $("#mods-enc").val().split(/[,;\s]+/g)
-		var dec = $("#mods-dec").val().split(/[,;\s]+/g)
-		var ui =  $("#mods-ui").val().split(/[,;\s]+/g)
-		var allMods = {}
+		var delimiter = /[,;\s]+/g;
+		
+		var enc = $("#mods-enc").val().split(delimiter);
+		ala.recipes.all[ala.selected].encoders = [];
 		for (var m in enc) {
-			if (!enc[m]) continue;
-			if (!allMods[enc[m]]) {
-				allMods[enc[m]] = {}
+			if(!enc[m]){
+				continue;
 			}
-			allMods[enc[m]].encoder = true
+			ala.recipes.all[ala.selected].encoders.push(enc[m]);
 		}
+		
+		var dec = $("#mods-dec").val().split(delimiter);
+		ala.recipes.all[ala.selected].decoders = [];
 		for (var m in dec) {
-			if (!dec[m]) continue;
-			if (!allMods[dec[m]]) {
-				allMods[dec[m]] = {}
+			if(!dec[m]){
+				continue;
 			}
-			allMods[dec[m]].decoder = true
+			ala.recipes.all[ala.selected].decoders.push(dec[m]);
 		}
+		
+		var ui = $("#mods-ui").val().split(delimiter);
+		ala.recipes.all[ala.selected].uis = [];
 		for (var m in ui) {
-			if (!ui[m]) continue;
-			if (!allMods[ui[m]]) {
-				allMods[ui[m]] = {}
+			if(!ui[m]){
+				continue;
 			}
-			allMods[ui[m]].ui = true
+			ala.recipes.all[ala.selected].uis.push(ui[m]);
 		}
-		ala.recipes.all[ala.selected].mods = allMods
-		localStorage.recipes = JSON.stringify(ala.recipes)
+		
+		localStorage.recipes = JSON.stringify(ala.recipes);
 		ala.lightbox();
 		e.stopPropagation();
 		e.preventDefault();

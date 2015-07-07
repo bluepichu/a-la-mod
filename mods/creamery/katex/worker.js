@@ -1,4 +1,4 @@
-importScripts("/mods/utils/mod-base", "katex.min.js");
+importScripts("/mods/utils/mod-base", "/mods/utils/pattern-matcher", "katex.min.js");
 
 registerMethod("decode", function(inp, cb){
 	inp = inp.message;
@@ -13,4 +13,22 @@ registerMethod("decode", function(inp, cb){
 		}
 	}
 	cb({message: out});
+});
+
+registerMethod("encode", function(inp, cb){
+	matchPattern(inp.message, /\$(.*?)\$|\\\((.*?)\\\)/, function(match, cb){
+		var eq = match[1] || match[2];
+		cb({
+			codec: {
+				namespace: "creamery",
+				type: "katex"
+			},
+			content: {
+				equation: eq
+			},
+			fallback: eq
+		});
+	}, function(data){
+		cb({message: data});
+	});
 });

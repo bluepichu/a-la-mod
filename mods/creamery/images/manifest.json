@@ -1,12 +1,12 @@
 {
-	"name": "code",
+	"name": "images",
 	"developer": "creamery",
-	"description": "Decodes code strings.",
-	"tags": ["code"],
+	"description": "Images!",
+	"tags": ["images"],
     "types": ["enc", "dec"],
 	"worker": "worker.js",
 	"inline": {
-		"main": "inline.css",
+		"main": "styles.css",
 		"path": ""
 	}
 }

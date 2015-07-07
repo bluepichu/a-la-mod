@@ -2,7 +2,7 @@
 	<head>
 		<script src="/mods/utils/ui-base"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-		<link rel="stylesheet" href="/mods/ui/creamery/whiteboard/styles.css" />
+		<link rel="stylesheet" href="/mods/creamery/whiteboard/ui/styles.css" />
 
 		<script>
 			$(document).ready(function(){
@@ -24,7 +24,7 @@
 				$("#canvas").mouseup(function(e){
 					drawing = false;
 					if(cache.length > 0){
-						sendMessage({
+						mod.post({
 							paths: cache,
 							name: "creamery/whiteboard"
 						});
@@ -50,7 +50,7 @@
 							}
 						});
 						if(cache.length >= pushSize){
-							sendMessage({
+							mod.post({
 								paths: cache,
 								name: "creamery/whiteboard"
 							});
@@ -70,12 +70,12 @@
 					brushSize = Math.min(Math.max(brushSize, 1), 100);
 				});
 
-				registerMethod("postUI", function(data) {
+				mod.onMessage = function(data){
 					console.log(data);
 					for(var i = 0; i < data.length; i++){
 						draw(context, data[i].message.x1, data[i].message.y1, data[i].message.x2, data[i].message.y2, data[i].message.r);
 					}
-				})
+				}
 
 				var draw = function(canvas, x1, y1, x2, y2, r){
 					canvas.strokeStyle = "#0000ff";

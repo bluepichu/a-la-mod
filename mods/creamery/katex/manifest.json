@@ -2,16 +2,11 @@
 	"name": "katex",
 	"developer": "creamery",
 	"description": "Decodes KaTeX-formatted strings.",
-	"types": ["enc","dec"],
 	"tags": ["math", "katex", "latex", "tex", "type", "typesetting"],
-	"workers": {
-		"enc":"enc/worker.js",
-		"dec":"dec/worker.js"
-	},
-	"styles": {
-		"dec": {
-			"path": "dec",
-			"main": "katex.min.css"
-		}
+    "types": ["enc", "dec"],
+	"worker": "worker.js",
+	"inline": {
+		"main": "katex.min.css",
+		"path": "styles"
 	}
 }
