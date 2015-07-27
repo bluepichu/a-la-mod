@@ -51,6 +51,10 @@ $speed-medium: 400ms;
 $speed-slow: 800ms;
 $speed-vslow: 1200ms;
 
+// Transitions
+$transition-ease-in-hard: cubic-bezier(.3, 0, 1, 1);
+$transition-ease-out-hard: cubic-bezier(0, 0, .7, 1);
+
 // URLs
 $icon-dropdown: url(/images/ic-drop-down.svg);
 $icon-dropup: url(/images/ic-drop-up.svg);
@@ -776,7 +780,8 @@ ala-lightbox {
 	padding: 16px;
 	position: relative;
 	left: -100%;
-	transition: $speed-medium left ease-in;
+	transition: $speed-medium left $transition-ease-in-hard;
+    
 	form {
 		width: 360px;
 	}
@@ -1050,7 +1055,8 @@ ala-color-swatch {
 	margin-top: 2em;
 }
 .active > ala-lightbox {
-	left: 0;
+	left: 0px;
+    transition: $speed-medium left $transition-ease-out-hard;
 }
 .dark + label {
 	color: $text-secondary;
