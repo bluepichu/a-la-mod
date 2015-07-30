@@ -149,7 +149,7 @@ $(document).ready(function(){
 				xhr.onload = function(){
 					if(this.status == 200){
 						$.cookie("email", $("#form-register #email").val(), {expires: 30, path: "/"});
-						$.cookie("authToken", this.responseText, {expires: 30, path: "/"});
+						$.cookie("authToken", JSON.parse(this.responseText).token, {expires: 30, path: "/"});
 						ala.lightbox();
 						setTimeout(function(){
 							ala.onLogin();
