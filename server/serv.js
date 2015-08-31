@@ -17,8 +17,14 @@ var ObjectId = db.ObjectId;
 var moment = require("moment");
 var emailValidator = require("email-validator");
 var cryptoString = require("random-crypto-string");
-var mkdirp = require("mkdirp");
+var mkdirpCB = require("mkdirp");
 var sass = require("node-sass");
+var globCB = require("glob")
+
+var Promise = require("promise");
+var readFile = Promise.denodeify(fs.readFile);
+var glob = Promise.denodeify(globCB);
+var mkdirp = Promise.denodeify(mkdirpCB);
 
 var morgan = require("morgan");
 app.use(morgan("dev"));
@@ -47,56 +53,57 @@ var local = false;
 var email = require("./email");
 
 var stub;
-fs.readFile(__dirname + "/templates/notif-stubs.template", function(err, buff) {
-	if(err){
-		console.log(err);
-	} else {
-		stub = buff.toString();
-	}
+readFile(__dirname + "/templates/notif-stubs.template", "utf8")
+	.then(function(data){
+	stub = data;
 })
+	.catch(function(err){
+	console.log(err);
+});
 
 if(nconf.get("SGPASS")){
 	sendgrid = sendgridlogin("a-la-mod", nconf.get("SGPASS"));
-
 } else {
-	console.log("Missing SGPASS environment variable. Will not be able to verify email addresses");
+	console.log("Missing SGPASS environment variable. Will not be able to verify email addresses.");
 }
 
-var glob = require("glob")
 
-db.clear("mods", function() {
-	glob(path.join(__dirname,"../mods/*/*/manifest.json"), {}, function(err, mods) {
-		for (var m in mods) {
-			(function(mods, m) {
-				fs.readFile(mods[m], function(err, data) {
-					if (err) {
-						return;
-					}
-					try {
-						var mod = JSON.parse(data.toString())
-						db.insert("mods",mod, function() {})
-						console.log("Inserted mod: "+mod.name)
-					} catch (e) {
-						console.log("Bad manifest file: "+mods[m])
-					}
-
-				})
-			})(mods, m)
-		}
-	})
+db.clear("mods")
+	.then(function(){
+	return glob(path.join(__dirname,"../mods/*/*/manifest.json"), {});
 })
+	.then(function(manifests){
+	return Promise.all(manifests.map(function(manifest){
+		return readFile(manifest, "utf8");
+	}));
+})
+	.then(function(manifests){
+	return manifests.map(function(manifest){
+		manifest = JSON.parse(manifest);
+		return db.insert("mods", manifest);
+	});
+})
+	.catch(function(err){
+	console.log(err.stack);
+});
 
 app.get("/push/:email/:title/:body", function(req, res) {
-	push.sendMessage(req.params.email, {title: req.params.title, body: req.params.body}, function() {console.log(arguments)})
+	push.sendMessage(req.params.email, {title: req.params.title, body: req.params.body});
 	res.send("Tried");
 })
+
 app.get("/push/get/:subId", function(req, res) {
-	push.getMessage(req.params.subId, function(err, response) {
-		console.log(arguments)
+	push.getMessage(req.params.subId)
+		.then(function(data){
 		res.type("application/json")
 		res.send(JSON.stringify(response))
 	})
+		.catch(function(err){
+		console.error(err);
+		res.send(500);
+	});
 })
+
 /**
  * Serves the À la Mod page.
  */
@@ -170,14 +177,8 @@ app.get("/static/:file", function(req, res){
  * Returns the public data about a user.
  */
 app.get("/user/:email", function(req, res){
-	db.query("users", {email: req.params.email}, function(err, data){
-		if(err){
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
+	db.query("users", {email: req.params.email})
+		.then(function(data){
 		if(data.length != 1){
 			res.status(400);
 			res.send(JSON.stringify({
@@ -185,92 +186,96 @@ app.get("/user/:email", function(req, res){
 			}));
 			return;
 		}
+		data = data[0];
 		res.send(JSON.stringify({
-			email: data[0].email,
-			_id: data[0]._id,
-			screenName: data[0].screenName
+			email: data.email,
+			_id: data._id,
+			screenName: data.screenName
 		}));
+	})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
+		return;
 	});
 });
 
-app.get("/user/verify/:verID", function(req, res) {
-	db.query("users", {verificationID: req.params.verID}, function(err, data) {
-		if (err) {
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
-		if (data.length != 1) {
+app.get("/user/verify/:verID", function(req, res){
+	db.query("users", {verificationID: req.params.verID})
+		.then(function(data){
+		if(data.length != 1){
 			res.status(400);
 			res.send(renderTemplate("No user with this verification ID found")); //TODO: make prettier
 			return;
 		}
-		if (data[0].verified) {
+		if(data[0].verified){
 			res.status(200);
 			res.send(renderTemplate("User already verified!"));
 			return;
 		}
-		db.update("users", {verificationID: req.params.verID}, {"$set": {verified: true}}, function(err, data) {
-			if (err) {
-				res.status(500);
-				res.send(renderTemplate("Unable to verify user"));
-				return;
-			}
-			res.status(201);
-			res.send(renderTemplate("User verified!"));
-		})
+		return db.update("users", {verificationID: req.params.verID}, {"$set": {verified: true}});
 	})
-})
+		.then(function(data){
+		res.status(201);
+		res.send(renderTemplate("User verified!"));
+	})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
+	});
+});
 
 
 app.get("/user/reset/:resetID", function(req, res) {
-	db.query("users",{resID: req.params.resetID}, function(err, data) {
-		if (err) {
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
-		if (data.length != 1) {
+	var userPrm = db.query("users", {resID: req.params.resetID});
+	var pwPrm = cryptoString(12);
+
+	var resetPrm = Promise.all([userPrm, pwPrm])
+	.then(function(data){
+		var user = data[0];
+		var pw = data[1];
+		if(user.length != 1){
 			res.status(400);
 			res.send(renderTemplate("No user with this reset ID found"));
 			return;
 		}
-		cryptoString(12, function(err, password){
-			var hash = passwordHash(password, data[0].salt);
-			db.update("users", {email: data[0].email}, {$set: {password: hash}}, function(err, datam){
-				if (err) {
-					res.status(500);
-					res.send(JSON.stringify({
-						error: "The server failed to process your request.  Try again in a minute."
-					}));
-					return;
-				}
-				res.status(200);
-				res.send(renderTemplate("Your password has been reset to: "+password+". Please remember to change your password the next time you log in."));
-				if (!sendgrid) {
-					console.log("Error, cannot send reset email");
-				}
-				email.sendEmail(
-					sendgrid,
-					data[0].email,
-					{
-						html: email.createEmail(data[0].email.split("@")[0], "Your password has been reset to: "+password+". Please remember to change your password the next time you log in."),
-						subject: "Your A la Mod password has been reset"
-					}
-				)
-				db.update("users",{resID: req.params.resetID}, {$unset:{resID: ""}}, function(){});
-			});
-		});
-	})
+		user = user[0];
+		var hash = passwordHash(password, user.salt);
+		return db.update("users", {email: user.email}, {$set: {password: hash}});
+	});
 
-})
+	Promise.all([userPrm, pwPrm, resetPrm])
+		.then(function(data){
+		res.status(200);
+		res.send(renderTemplate("Your password has been reset to: " + password + ". Please remember to change your password the next time you log in."));
+		if (!sendgrid) {
+			console.log("Error, cannot send reset email");
+		}
+		email.sendEmail(
+			sendgrid,
+			user.email,
+			{
+				html: email.createEmail(user.email.split("@")[0], "Your password has been reset to: "+password+". Please remember to change your password the next time you log in."),
+				subject: "Your A la Mod password has been reset"
+			}
+		)
+		return db.update("users", {resID: req.params.resetID}, {$unset: {resID: ""}});
+	})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
+	});
+});
+
 app.post("/user/notifs/register", function(req, res) {
 	var chk = argCheck(req.body, {email: "string", auth: "string", subscriptionId: "string", shouldAdd: "boolean"})
-	if (!chk.valid) {
+	if(!chk.valid){
 		res.status(400);
 		res.send(JSON.stringify({
 			error: chk.error
@@ -281,41 +286,44 @@ app.post("/user/notifs/register", function(req, res) {
 		email: req.body.email, 
 		authTokens: {
 			$in: [req.body.auth]
-		}}, function(err, data) {
-		if (err) {
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
-		if (data.length != 1) {
+		}})
+		.then(function(data){
+		if(data.length != 1){
 			res.status(400);
 			res.send(JSON.stringify({
 				error: "You're not authorized to take that action.  Make sure you're logged in."
 			}));
 			return;
 		}
-		if (!data[0].verified) {
+
+		if(!data[0].verified){
 			res.status(400);
 			res.send(JSON.stringify({
 				error: "You need to verify your email before you can do that."
 			}));
 			return;
 		}
-		if (req.body.shouldAdd) {
-			push.addKey(req.body.email, req.body.subscriptionId)
+
+		if(req.body.shouldAdd){
+			return push.addKey(req.body.email, req.body.subscriptionId);
 		} else {
-			push.removeKey(req.body.email, req.body.subscriptionId)
+			return push.removeKey(req.body.email, req.body.subscriptionId);
 		}
 	})
-})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
+	});
+});
+
 /**
  * Creates a new user.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/user/new", function(req, res){
 	var chk = argCheck(req.body, {email: "string", password: "string"});
-	if (!chk.valid) {
+	if(!chk.valid){
 		res.status(400);
 		res.send(JSON.stringify({
 			error: chk.error
@@ -331,8 +339,9 @@ app.post("/user/new", function(req, res){
 		return;
 	}
 
-	db.query("users", {email: req.body.email}, function(err, data){
-		if(err || data.length > 0){
+	db.query("users", {email: req.body.email})
+		.then(function(data){
+		if(data.length > 0){
 			res.status(400);
 			res.send(JSON.stringify({
 				error: "That email is already associated with another account.  Please choose a different email."
@@ -343,36 +352,43 @@ app.post("/user/new", function(req, res){
 		var salt = crypto.randomBytes(32).toString("base64");
 		var password = passwordHash(req.body.password, salt);
 
-		var verID = crypto.randomBytes(16).toString("hex");
+		var verId = crypto.randomBytes(16).toString("hex");
 		var email = req.body.email;
 		var user = req.body.email;
 		var color = ["#F44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3", "#03A9F4", "#00BCD4", "#009688", "#4CAF50", "#8BC34A", "#CDDC39", "#FFEB3B", "#FFC107", "#FF9800", "#FF5722", "#795548", "#9E9E9E", "#607D8B"]
-		db.insert("users", {
+		var insPrm = db.insert("users", {
 			email: req.body.email,
 			password: password,
 			salt: salt,
 			authTokens: [],
 			screenName: req.body.email,
-			verificationID: verID,
+			verificationID: verId,
 			verified: false || local,
 			contacts: [req.body.email],
 			color: color[Math.floor(Math.random()*(color.length-1))]
-		}, function(err, data){
-			if(err){
-				res.status(500);
-				res.send(JSON.stringify({
-					error: "The server failed to process your request.  Try again in a minute."
-				}));
-			} else {
-				res.status(200);
-				res.send(JSON.stringify({
-					result: "ok"
-				}));
-				if (!local) {
-					sendVerEmail(verID, email, user); //change the third param to username when we get one
-				}
-			}
 		});
+
+		return Promise.all([insPrm, Promise.resolve([verId, email, user])]);
+	})
+		.then(function(data){
+		var verId = data[1][0];
+		var email = data[1][1];
+		var user = data[1][2];
+
+		res.status(200);
+		res.send(JSON.stringify({
+			result: "ok"
+		}));
+		if(!local){
+			sendVerEmail(verId, email, user);
+		}
+	})
+		.catch(function(err){
+		res.status(500);
+		console.log(err.stack);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
 	});
 });
 
@@ -388,17 +404,9 @@ app.post("/user/auth", function(req, res){
 		}));
 		return;
 	}
-	db.query("users", {
-		email: req.body.email
-	},
-			 function(err, data){
-		if(err){
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
+
+	db.query("users", {email: req.body.email})
+		.then(function(data){
 		if(data.length != 1){
 			res.status(400);
 			res.send(JSON.stringify({
@@ -423,11 +431,16 @@ app.post("/user/auth", function(req, res){
 
 		db.update("users", {
 			email: data[0].email
-		},
-				  {
+		}, {
 			$push: {authTokens: token}
-		},
-				  function(err, data){});
+		});
+	})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
+		return;
 	});
 });
 
@@ -435,7 +448,7 @@ app.post("/user/auth", function(req, res){
  * Creates a new chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chat/new", function(req, res){
-	var chk = argCheck(req.body,{email: "string", authToken: "string", title: "string", users: "object"});
+	var chk = argCheck(req.body, {email: "string", authToken: "string", title: "string", users: "object"});
 	if(!chk.valid) {
 		res.status(400);
 		res.send(JSON.stringify({
@@ -443,89 +456,79 @@ app.post("/chat/new", function(req, res){
 		}));
 		return;
 	}
-	db.query("users", {
+
+	var userPrm = db.query("users", {
 		email: req.body.email, 
 		authTokens: {
 			$in: [req.body.authToken]
-		}}, function(err, data) {
-		if (err) {
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
 		}
-		if (data.length != 1) {
+	})
+	.then(function(data){
+		if(data.length != 1){
 			res.status(400);
 			res.send(JSON.stringify({
 				error: "You're not authorized to take that action.  Make sure you're logged in."
 			}));
 			return;
 		}
-		if (!data[0].verified) {
+		if(!data[0].verified){
 			res.status(400);
 			res.send(JSON.stringify({
 				error: "You need to verify your email before you can do that."
 			}));
 			return;
 		}
-		fetchUserList(req.body.users, "email", function(users){
-			var lastRead = {};
+		return fetchUserList(req.body.users, "email");
+	});
 
-			for(var i = 0; i < users.length; i++){
-				lastRead[users[i]._id] = 0;
+	var insertPrm = userPrm.then(function(users){
+		var lastRead = {};
+
+		for(var i = 0; i < users.length; i++){
+			lastRead[users[i]._id] = 0;
+		}
+
+		return db.insert("chats", {
+			users: users.map(function(el){ return el._id; }),
+			title: req.body.title,
+			messages: [],
+			lastRead: lastRead,
+			messageCount: 0,
+			starred: [],
+			creationTime: moment().unix()
+		});
+	});
+
+	Promise.all([userPrm, insertPrm])
+		.then(function(data){
+		users = data[0];
+		chat = data[1];
+
+		for(var i = 0; i < users.length; i++){
+			db.update("users", {_id: ObjectId(users[i]._id)}, {$addToSet: {contacts: {$each: req.body.users}}});
+			if(users[i]._id in SOCKETS){
+				for(var j = 0; j < SOCKETS[users[i]._id].length; j++){
+					SOCKETS[users[i]._id][j].join(chat._id);
+				}
 			}
+		}
 
-			console.log({
-				users: users.map(function(el){ return el._id }),
-				title: req.body.title,
-				messages: [],
-				lastRead: lastRead,
-				messageCount: 0,
-				starred: [],
-				creationTime: moment().unix()
-			});
+		io.to(chat._id).emit("new chat", {
+			_id: chat._id,
+			title: chat.title,
+			users: users.map(function(el){return {_id: el._id, email: el.email, screenName: el.screenName}; })
+		});
 
-			db.insert("chats", {
-				users: users.map(function(el){ return el._id }),
-				title: req.body.title,
-				messages: [],
-				lastRead: lastRead,
-				messageCount: 0,
-				starred: [],
-				creationTime: moment().unix()
-			},
-					  function(err, data){
-				if(err){
-					res.status(500);
-					res.send(JSON.stringify({
-						error: "The server failed to process your request.  Try again in a minute."
-					}));
-					return;
-				}
-
-				for(var i = 0; i < users.length; i++){
-					db.update("users", {_id: ObjectId(users[i]._id)}, {$addToSet: {contacts: {$each: req.body.users}}}, function(){});
-					if(users[i]._id in SOCKETS){
-						for(var j = 0; j < SOCKETS[users[i]._id].length; j++){
-							SOCKETS[users[i]._id][j].join(data._id);
-						}
-					}
-				}
-
-				console.log("!!!");
-
-				io.to(data._id).emit("new chat", {
-					_id: data._id,
-					title: data.title,
-					users: users.map(function(el){return {_id: el._id, email: el.email, screenName: el.screenName}; })
-				});
-
-				res.status(200);
-				res.send(JSON.stringify({
-					result: "ok"
-				}));
-			})});
+		res.status(200);
+		res.send(JSON.stringify({
+			result: "ok"
+		}));
+	})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
 	})
 });
 
@@ -541,6 +544,7 @@ app.post("/user/update", function(req, res){
 		}));
 		return;
 	}
+
 	var updateObj = {};
 	if(req.body.updates.password){
 		updateObj.salt = crypto.randomBytes(32).toString("base64");
@@ -553,14 +557,9 @@ app.post("/user/update", function(req, res){
 	if(req.body.updates.color){
 		updateObj.color = req.body.updates.color;
 	}
-	db.query("users", {email: req.body.email}, function(err, data){
-		if(err){
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
+
+	db.query("users", {email: req.body.email})
+		.then(function(data){
 		if(data.length != 1){
 			res.status(400);
 			res.send(JSON.stringify({
@@ -568,29 +567,30 @@ app.post("/user/update", function(req, res){
 			}));
 			return;
 		}
-		db.update("users", {
+		return db.update("users", {
 			email: req.body.email,
 			password: passwordHash(req.body.password, data[0].salt)
 		}, {
 			$set: updateObj
-		}, function(er, dat){
-			if(er){
-				res.status(500);
-				res.send(JSON.stringify({
-					error: "The server failed to process your request.  Try again in a minute."
-				}));
-				return;
-			}
-			if(dat.n == 0){
-				res.status(400);
-				res.send(JSON.stringify({
-					error: "That password is incorrect.  Double check your password."
-				}));
-				return;
-			}
-			res.status(200);
-			res.send("Ok.");
 		});
+	})
+		.then(function(data){
+		if(data.n == 0){
+			res.status(400);
+			res.send(JSON.stringify({
+				error: "That password is incorrect.  Double check your password."
+			}));
+			return;
+		}
+		res.status(200);
+		res.send("Ok.");
+	})
+		.catch(function(err){
+		console.error(err.stack);
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
 	});
 });
 
@@ -606,16 +606,10 @@ app.post("/user/reset-password", function(req, res){
 		}));
 		return;
 	}
-	db.query("users", {email: req.body.email}, function(err, data){
-		if(err){
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
 
-		if(!data || data.length != 1){
+	db.query("users", {email: req.body.email})
+		.then(function(data){
+		if(data.length != 1){
 			res.status(400);
 			res.send(JSON.stringify({
 				error: "That user doesn't exist.  Double check your email."
@@ -623,33 +617,33 @@ app.post("/user/reset-password", function(req, res){
 			return;
 		}
 
-		var resID = crypto.randomBytes(16).toString("hex");
-		db.update("users", {email: req.body.email}, {$set: {resID: resID}}, function(err, data) {
-			if (err) {
-				res.status(500);
-				res.send(JSON.stringify({
-					error: "The server failed to process your request.  Try again in a minute."
-				}));
-				return;
+		return Promise.all([Promise.resolve(crypto.randomBytes(16).toString("hex")), db.update("users", {email: req.body.email}, {$set: {resID: resID}})]);
+	})
+		.then(function(data){
+		res.status(200);
+		res.send(JSON.stringify({
+			result: "An email has been sent to your email containg a link to reset your password."
+		}));
+		if (!sendgrid) {
+			console.log("Error, cannot send reset email");
+			return
+		}
+		email.sendEmail(
+			sendgrid,
+			req.body.email,
+			{
+				html: email.createEmail(req.body.email.split("@")[0], "You recently requested to change your password. If you still wish to do so, please click <a href='http://a-la-mod.herokuapp.com/user/reset/" + resID + "'>here</a>. If you did not request this, you may safely ignore this message."),
+				subject: "A la Mod password reset"
 			}
-			res.status(200);
-			res.send(JSON.stringify({
-				result: "An email has been sent to your email containg a link to reset your password."
-			}));
-			if (!sendgrid) {
-				console.log("Error, cannot send reset email");
-				return
-			}
-			email.sendEmail(
-				sendgrid,
-				req.body.email,
-				{
-					html: email.createEmail(req.body.email.split("@")[0], "You recently requested to change your password. If you still wish to do so, please click <a href='http://a-la-mod.herokuapp.com/user/reset/"+resID+"'>here</a>. If you did not request this, you may safely ignore this message."),
-					subject: "A la Mod password reset"
-				}
-			)
+		)
 
-		})
+	})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
+		return;
 	});
 });
 
@@ -657,8 +651,8 @@ app.post("/user/reset-password", function(req, res){
  * Returns a list of chats for the current user.  Parameters are provided in the POST request as a JSON object.
  */
 app.post("/chats", function(req, res){
-	var chk = argCheck(req.body, {email: "string", authToken: "string" });
-	if (!chk.valid) {
+	var chk = argCheck(req.body, {email: "string", authToken: "string"});
+	if(!chk.valid){
 		res.status(400);
 		res.send(JSON.stringify({
 			error: chk.error
@@ -666,17 +660,11 @@ app.post("/chats", function(req, res){
 		return;
 	}
 
-	db.query("users", {
+	var userChatsPrm = db.query("users", {
 		email: req.body.email,
 		authTokens: {$in: [req.body.authToken]}
-	}, function(err, data){
-		if(err){
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
+	})
+	.then(function(data){
 		if(data.length != 1){
 			res.status(400);
 			res.send(JSON.stringify({
@@ -684,8 +672,9 @@ app.post("/chats", function(req, res){
 			}));
 			return;
 		}
-		db.project("chats", {
-			users: {$in: [data[0]._id]}
+		data = data[0];
+		var chatsPrm = db.project("chats", {
+			users: {$in: [data._id]}
 		}, {
 			_id: 1,
 			messages: {$slice: [-1, 1]},
@@ -695,45 +684,61 @@ app.post("/chats", function(req, res){
 			creationTime: 1,
 			title: 1,
 			starred: 1
-		},
-				   function(er, dat){
-			if(er){
-				res.status(500);
-				res.send(JSON.stringify({
-					error: "The server failed to process your request.  Try again in a minute."
-				}));
-				return;
+		});
+
+		return Promise.all([Promise.resolve(data), chatsPrm]);
+	});
+
+	var userListsPrm = userChatsPrm.then(function(data){
+		var user = data[0];
+		var chats = data[1];
+
+		var loading = [];
+
+		for(var i = 0; i < chats.length; i++){
+			var starred = false;
+			for(var j = 0; j < chats[i].starred.length; j++){
+				if(chats[i].starred[j].toString() == user._id){
+					starred = true;
+					break;
+				}
 			}
+			chats[i].starred = starred;
+			loading.push(fetchUserList(chats[i].users.map(function(el){ return ObjectId(el); }), "_id"));
+		}
 
-			var ash = new AsyncHandler(function(){
-				res.status(200).send(dat);
-			});
+		return Promise.all(loading);     
+	})
 
-			for(var i = 0; i < dat.length; i++){
-				var starred = false;
-				for(var j = 0; j < dat[i].starred.length; j++){
-					if(dat[i].starred[j].toString() == data[0]._id){
-						starred = true;
+	Promise.all([userChatsPrm, userListsPrm])
+		.then(function(data){
+		var user = data[0][0];
+		var chats = data[0][1];
+		var userLists = data[1];
+
+		for(var i = 0; i < chats.length; i++){
+			chats[i].users = userLists[i].map(function(el){return {_id: el._id, email: el.email, screenName: el.screenName}; });
+			if(chats[i].messages.length > 0){
+				for(var j = 0; j < userLists[i].length; j++){
+					if(userLists[i][j]._id.toString() == chats[i].messages[0].sender.toString()){
+						chats[i].messages[0].sender = userLists[i][j].screenName;
 						break;
 					}
 				}
-				dat[i].starred = starred;
-				ash.attach(fetchUserList, [dat[i].users.map(function(el){ return ObjectId(el); }), "_id"], function(ind){return function(userList){
-					dat[ind].users = userList.map(function(el){return {_id: el._id, email: el.email, screenName: el.screenName}; });
-					if(dat[ind].messages.length > 0){
-						for(var i = 0; i < userList.length; i++){
-							if(userList[i]._id.toString() == dat[ind].messages[0].sender.toString()){
-								dat[ind].messages[0].sender = userList[i].screenName;
-								break;
-							}
-						}
-					}
-					this.next();
-				}}(i));
 			}
+		}
 
-			ash.run();       
-		});
+		return Promise.resolve(chats);
+	})
+		.then(function(data){
+		res.status(200);
+		res.send(data);
+	})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
 	});
 });
 
@@ -742,7 +747,7 @@ app.post("/chats", function(req, res){
  */
 app.post("/chat/history", function(req, res){
 	var chk = argCheck(req.body, {chatId: "string", email: "string", authToken: "string", page: {type: "number", optional: true}});
-	if (!chk.valid) {
+	if(!chk.valid){
 		res.status(400);
 		res.send(JSON.stringify({
 			error: chk.error
@@ -755,17 +760,11 @@ app.post("/chat/history", function(req, res){
 		page = req.body.page;
 	}
 
-	db.query("users", {
+	var userChatPrm = db.query("users", {
 		email: req.body.email,
 		authTokens: {$in: [req.body.authToken]}
-	}, function(err, data){
-		if(err){
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
+	})
+	.then(function(data){
 		if(data.length != 1){
 			res.status(400);
 			res.send(JSON.stringify({
@@ -773,22 +772,18 @@ app.post("/chat/history", function(req, res){
 			}));
 			return;
 		}
-		db.project("chats", {
+
+		data = data[0];
+
+		var chatPrm = db.project("chats", {
 			_id: ObjectId(req.body.chatId),
-			users: {$in: [ObjectId(data[0]._id)]}
+			users: {$in: [ObjectId(data._id)]}
 		}, {
 			messages: {$slice: [-(page+1)*PAGE_SIZE, PAGE_SIZE]},
 			messageCount: 1
-		},
-				   function(er, dat){
-			if(er){
-				res.status(500);
-				res.send(JSON.stringify({
-					error: "The server failed to process your request.  Try again in a minute."
-				}));
-				return;
-			}
-			if(dat.length != 1){
+		})
+		.then(function(data){
+			if(data.length != 1){
 				res.status(400);
 				res.send(JSON.stringify({
 					error: "That chat doesn't exist."
@@ -796,45 +791,58 @@ app.post("/chat/history", function(req, res){
 				return;
 			}
 
-			if(page*PAGE_SIZE > dat[0].messageCount){
-				res.status(200).send({title: dat[0].title, messages: []});
-				return;
-			} else if((page+1)*PAGE_SIZE > dat[0].messageCount){
-				dat[0].messages = dat[0].messages.slice(0, dat[0].messageCount - page*PAGE_SIZE);
-			}
-
-			data = data[0];
-			dat = dat[0];
-
-			var ash = new AsyncHandler(function(){
-				res.status(200).send({title: dat.title, messages: dat.messages});
-			});
-
-			for(var i = 0; i < dat.messages.length; i++){
-				ash.attach(db.query, ["users", {_id: ObjectId(dat.messages[i].sender)}], function(ind){ return function(e, da){
-					da = da[0];
-					dat.messages[ind].sender = {
-						_id: da._id,
-						email: da.email,
-						screenName: da.screenName,
-						color: da.color
-					};
-					this.next();
-				};}(i));
-			}
-
-			ash.run();
-
-			var updateObject = {};
-			updateObject["lastRead." + data._id] = dat.messageCount - page*PAGE_SIZE;
-
-			db.update("chats", {
-				_id: ObjectId(req.body.chatId),
-				users: {$in: [data._id]}
-			}, {
-				$max: updateObject
-			}, function(){});
+			return data[0];
 		});
+
+		return Promise.all([Promise.resolve(data), chatPrm]);
+	});
+
+	var userListPrm = userChatPrm.then(function(data){
+		var user = data[0];
+		var chat = data[1];
+
+		if(page*PAGE_SIZE > chat.messageCount){
+			res.status(200).send({title: chat.title, messages: []});
+			return;
+		} else if((page+1)*PAGE_SIZE > chat.messageCount){
+			chat.messages = chat.messages.slice(0, chat.messageCount - page*PAGE_SIZE);
+		}
+
+		return fetchUserList(chat.messages.map(function(el){ return el.sender; }), "_id");
+	});
+
+	Promise.all([userChatPrm, userListPrm])
+		.then(function(data){
+		var user = data[0][0];
+		var chat = data[0][1];
+		var userList = data[1];
+
+		for(var i = 0; i < chat.messages.length; i++){
+			chat.messages[i].sender = {
+				_id: userList[i]._id,
+				email: userList[i].email,
+				screenName: userList[i].screenName,
+				color: userList[i].color
+			};
+		}
+
+		res.status(200).send({title: chat.title, messages: chat.messages});
+
+		var updateObject = {};
+		updateObject["lastRead." + user._id] = chat.messageCount - page*PAGE_SIZE;
+
+		db.update("chats", {
+			_id: ObjectId(req.body.chatId),
+			users: {$in: [user._id]}
+		}, {
+			$max: updateObject
+		});
+	})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
 	});
 });
 
@@ -843,49 +851,25 @@ app.get("/mods/utils/:file", function(req, res){
 });
 
 app.get("/mods/:dev/:name/*", function(req, res){
-	console.log(req.params)
-	db.query("mods", {
+	var file = req.params[0];
+
+	var modPrm = db.query("mods", {
 		developer: req.params.dev,
 		name: req.params.name
-	}, function(err, data){
-		if(err || !data){
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
+	});
+
+	var nextPrm = modPrm.then(function(data){
 		if(data.length != 1){
 			res.status(404).send();
 			return;
 		}
-		console.log(data[0]);
-		var file = req.params[0];
 		if(file == "worker"){
 			res.sendFile(path.join(req.params.dev, req.params.name, data[0].worker), {root: path.join(__dirname, "../mods")});
 			return;
 		}
 		if(file == "inline"){
 			if(data[0].inline){
-				fs.readFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].inline.path, data[0].inline.main), "utf8", function(er, dat){
-					if(er || !dat){
-						console.log(er)
-						res.status(500);
-						res.send(JSON.stringify({
-							error: "The server failed to process your request.  Try again in a minute."
-						}));
-						return;
-					}
-					dat = "[decoder='" + req.params.dev + "/" + req.params.name + "'] {" + dat + "}";
-					sass.render({
-						data: dat,
-						includePaths: [path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].inline.path)]
-					}, function(err, result){
-						res.setHeader("Content-Type", "text/css");
-						res.status(200).send(result.css);
-					});
-				});
-				return;
+				return readFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].inline.path, data[0].inline.main), "utf8");
 			} else {
 				res.status(404).send();
 				return;
@@ -893,18 +877,49 @@ app.get("/mods/:dev/:name/*", function(req, res){
 		}
 		var match = /ui(\/(.*))?/.exec(file);
 		if(match !== null){
-			console.log(match);
 			var endpoint = match[1] || data[0].ui.main;
 			res.sendFile(path.join(__dirname, "../mods", req.params.dev, req.params.name, data[0].ui.path, endpoint));
 			return;
 		}
 		res.sendFile(path.join(req.params.dev, req.params.name, file), {root: path.join(__dirname, "../mods")});
 		return;
+	})
+	.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
 	});
+
+	if(file == "inline"){
+		Promise.all([modPrm, nextPrm])
+			.then(function(data){
+			var mod = data[0][0];
+			var scss = data[1];
+
+			scss = "[decoder='" + req.params.dev + "/" + req.params.name + "'] {" + scss + "}";
+			var render = Promise.denodeify(sass.render);
+			return render({
+				data: scss,
+				includePaths: [path.join(__dirname, "../mods", req.params.dev, req.params.name, mod.inline.path)]
+			});
+		})
+			.then(function(result){
+			res.setHeader("Content-Type", "text/css");
+			res.status(200).send(result.css);
+		})
+			.catch(function(err){
+			res.status(500);
+			res.send(JSON.stringify({
+				error: "The server failed to process your request.  Try again in a minute."
+			}));
+		});
+	}
 });
 
 app.post("/mods/new", function(req, res){ // TODO: any type of security, input validation
-	if(!(argCheck(req.body, {type: "string", developer: "string", name: "string", content: "string"}).valid && /^[A-Za-z\-0-9]*$/.test(req.body.developer) && /^[A-Za-z\-0-9]*$/.test(req.body.name) && (req.body.type == "enc" || req.body.type == "dec"))){
+	var chk = argCheck(req.body, {type: "string", developer: "string", name: "string", content: "string"});
+	if(!(chk.valid && /^[A-Za-z\-0-9]*$/.test(req.body.developer) && /^[A-Za-z\-0-9]*$/.test(req.body.name) && (req.body.type == "enc" || req.body.type == "dec"))){
 		res.status(400);
 		res.send(JSON.stringify({
 			error: chk.error
@@ -915,15 +930,8 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 		type: req.body.type,
 		developer: req.body.developer,
 		name: req.body.name
-	}, function(err, data){
-		if(err || !data){
-			res.status(500);
-			res.send(JSON.stringify({
-				error: "The server failed to process your request.  Try again in a minute."
-			}));
-			return;
-		}
-
+	})
+		.then(function(data){
 		if(data.length > 0){
 			res.status(400);
 			res.send(JSON.stringify({
@@ -932,28 +940,22 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 			return;
 		}
 
-		mkdirp(path.join(__dirname, "../mods") + "/" + req.body.type + "/" + req.body.developer, function(er){
-			if(er){
-				res.status(500);
-				res.send(JSON.stringify({
-					error: "The server failed to process your request.  Try again in a minute."
-				}));
-				return;
-			}
-			fs.writeFile(path.join(__dirname, "../mods") + "/" + req.body.type + "/" + req.body.developer + "/" + req.body.name + ".js", req.body.content, function(e){
-				if(e){
-					res.status(500);
-					res.send(JSON.stringify({
-						error: "The server failed to process your request.  Try again in a minute."
-					}));
-					return;
-				}
-				res.status(200);
-				res.send(JSON.stringify({
-					result: "ok"
-				}));
-			});
-		});
+		return mkdirp(path.join(__dirname, "../mods") + "/" + req.body.type + "/" + req.body.developer);
+	})
+		.then(function(){
+		writeFile(path.join(__dirname, "../mods") + "/" + req.body.type + "/" + req.body.developer + "/" + req.body.name + ".js", req.body.content);
+	})
+		.then(function(){
+		res.status(200);
+		res.send(JSON.stringify({
+			result: "ok"
+		}));
+	})
+		.catch(function(err){
+		res.status(500);
+		res.send(JSON.stringify({
+			error: "The server failed to process your request.  Try again in a minute."
+		}));
 	});
 });
 
@@ -963,7 +965,7 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 app.use(express.static("public"));
 
 http.listen(PORT, function(){
-	console.log("listening on *:" + PORT);
+	console.log("Listening on *:" + PORT);
 });
 
 
@@ -985,27 +987,22 @@ var passwordHash = function(password, salt){
 /**
  * Returns a list of user objects from a list of users given by some unique field (usually emails or IDs).
  * @param {array} data The list of user parameters
- * @param {string} field The field for each user specified in {@code data }
- * @param {function} cb Callback function taking a single parameter, the resulting user list
+ * @param {string} field The field for each user specified in {@code data}
+ * @returns {Promise}
  */
-var fetchUserList = function(data, field, cb){
-	var resultList = [];
-	var ash = new AsyncHandler(function(ret){return function(){cb(ret)}}(resultList));
+var fetchUserList = function(data, field){
+	var loading = [];
 
 	for(var i = 0; i < data.length; i++){
 		var obj = {};
 		obj[field] = data[i];
-		ash.attach(db.query, ["users", obj], function(err, dat){
-			if(!err){
-				if(dat[0]){
-					resultList.push(dat[0]);
-				}
-			}
-			this.next();
-		});
+		loading.push(db.query("users", obj));
 	}
 
-	ash.run();
+	return Promise.all(loading)
+		.then(function(data){
+		return data.map(function(d){ return d[0]; });
+	});
 }
 
 io.on("connection", function(socket){
@@ -1017,17 +1014,14 @@ io.on("connection", function(socket){
 			io.to(socket.id).emit("login error", {description: "Login failed: you're alerady logged in!"});
 			return;
 		}
+
 		db.query("users", {
 			email: user,
 			authTokens: {
 				$in: [auth] 
 			}
-		},
-				 function(err, data){
-			if(err){
-				io.to(socket.id).emit("login", "Login failed: server error.");
-				return;
-			}
+		})
+			.then(function(data){
 			if(data.length != 1){
 				io.to(socket.id).emit("login", "Login failed: authorization error.");
 				return;
@@ -1040,15 +1034,15 @@ io.on("connection", function(socket){
 			}
 			SOCKETS[socket.userId].push(socket);
 
-			db.query("chats", {
-
-			}, function(er, dat){
-				if(!er){
-					for(var i = 0; i < dat.length; i++){
-						socket.join(dat[i]._id);
-					}
-				}
-			});
+			return db.query("chats", {});
+		})
+			.then(function(data){
+			for(var i = 0; i < data.length; i++){
+				socket.join(data[i]._id);
+			}
+		})
+			.catch(function(err){
+			io.to(socket.id).emit("login", "Login failed: server error.");
 		});
 	});
 
@@ -1077,64 +1071,58 @@ io.on("connection", function(socket){
 		if(socket.userId === undefined){
 			io.to(socket.id).emit("error", {description: "Request failed: you're not logged in."});
 		}
-		db.query("chats", {
+		var chatPrm = db.query("chats", {
 			_id: ObjectId(chatId),
 			users: {
 				$in: [ObjectId(socket.userId)]
 			}
-		},
-				 function(err, data){
-			if(err || data.length == 0){
-				io.to(socket.id).emit("error", {description: "Request failed: you're not a part of that chat."});
-				return;
+		});
+
+		var userPrm = db.query("users", {
+			email: socket.email
+		});
+
+		Promise.all([chatPrm, userPrm])
+			.then(function(data){
+			var chat = data[0][0];
+			var user = data[1][0];
+
+			var packet = {
+				chat: chat,
+				msg: msg,
+				socket: socket,
 			}
-			db.query("users", {
-				email: socket.email
-			},
-					 function(er, dat){
-				if(er || !dat){
-					// ???
-					io.to(socket.id).emit("error", {description: "Request failed: server error."});
-					return;
-				}
-				var packet = {
-					chat: data[0],
-					msg: msg,
-					socket: socket,
-				}
-				sendNotifs(packet)
-				var sender = {
-					email: socket.email,
-					_id: socket.userId,
-					screenName: dat[0].screenName,
-					color: dat[0].color
-				}; 
+			sendNotifs(packet)
+			var sender = {
+				email: socket.email,
+				_id: socket.userId,
+				screenName: user.screenName,
+				color: user.color
+			}; 
 
-				io.to(chatId).emit("message", chatId, {
-					sender: sender,
-					message: msg,
-					timestamp: moment().unix()
-				});
-
-				//				console.log(msg);
-
-				if(!msg[0].stream){
-					db.update("chats", {
-						_id: ObjectId(chatId)
-					},
-							  {
-						$push: {
-							messages: {
-								sender: socket.userId,
-								message: msg,
-								timestamp: moment().unix()
-							}
-						},
-						$inc: {messageCount: 1}
-					},
-							  function(err, data){});
-				}
+			io.to(chatId).emit("message", chatId, {
+				sender: sender,
+				message: msg,
+				timestamp: moment().unix()
 			});
+
+			if(!msg[0].stream){
+				return db.update("chats", {
+					_id: ObjectId(chatId)
+				}, {
+					$push: {
+						messages: {
+							sender: socket.userId,
+							message: msg,
+							timestamp: moment().unix()
+						}
+					},
+					$inc: {messageCount: 1}
+				});
+			}
+		})
+			.catch(function(err){
+			io.to(socket.id).emit("error", {description: "Request failed: you're not a part of that chat."});
 		});
 	});
 
@@ -1145,18 +1133,16 @@ io.on("connection", function(socket){
 		db.query("chats", {
 			_id: ObjectId(chatId),
 			users: {$in: [ObjectId(socket.userId)]}
-		}, function(err, data){
-			if(err){
-				return;
-			}
+		})
+			.then(function(data){
 			var setObj = {};
 			setObj["lastRead." + socket.userId] = data[0].messageCount;
-			db.update("chats", {
+			return db.update("chats", {
 				_id: ObjectId(chatId),
 				users: {$in: [ObjectId(socket.userId)]}
 			}, {
 				$set: setObj
-			}, function(){});
+			});
 		});
 	});
 
@@ -1170,14 +1156,14 @@ io.on("connection", function(socket){
 				users: {$in: [ObjectId(socket.userId)]}
 			}, {
 				$addToSet: {starred: ObjectId(socket.userId)}
-			}, function(err, data){console.log(err, data)});
+			});
 		} else {
 			db.update("chats", {
 				_id: ObjectId(chatId),
 				users: {$in: [ObjectId(socket.userId)]}
 			}, {
 				$pull: {starred: ObjectId(socket.userId)}
-			}, function(){});
+			});
 		}
 	});
 
@@ -1196,39 +1182,36 @@ var sendNotifs = function(data) {
 	var body = data.socket.email + ": " + data.msg
 	var p = data;
 	var chat = data.chat;
+
 	db.query("users", {
 		_id: {$in: data.chat.users}
-	}, function(err, data) {
-		if (err) {
-			console.log(err)
-			return;
-		}
-		var socketList = getRoom(chat._id)
-		for (var i in data) {
-			console.log(">> "+Object.keys(socketList))
+	})
+		.then(function(data){
+		var socketList = getRoom(chat._id);
+		for(var i = 0; i < data.length; i++){
 			//First case - do not send notification to sender
-			if (data[i].email == p.socket.email) {
-				console.log("Not sending to owner")
+			if(data[i].email == p.socket.email){
+				console.log("Not sending to owner");
 				continue;
 			}
 			//Second case - if they have no open browsers, send them a notification
-			if (!(data[i].email in socketList)) {
-				castNotif(data[i].email, title, body) 	
-				console.log("Attempting to send to closed client")
-				continue
+			if(!(data[i].email in socketList)){
+				castNotif(data[i].email, title, body);	
+				console.log("Attempting to send to closed client");
+				continue;
 			}
 			//Third case - if all their clients are hidden, send them a notification
-			var sockets = socketList[data[i].email]
+			var sockets = socketList[data[i].email];
 			var shouldContinue = true;
-			for (var s in sockets) {
-				if (!sockets[s].hidden) {  //this will also catch the case where no hidden event was emitted, and thus the client is still open
+			for(var s in sockets){
+				if(!sockets[s].hidden){  //this will also catch the case where no hidden event was emitted, and thus the client is still open
 					shouldContinue = false;
 					break;
 				}
 			}
-			if (shouldContinue) {
-				castNotif(data[i].email, title, body)
-				console.log("Attempting to send to hidden client")
+			if(shouldContinue){
+				castNotif(data[i].email, title, body);
+				console.log("Attempting to send to hidden client");
 				continue;
 			}
 			//Default case - the clients are opened and being viewed, so no notification is necessary
@@ -1252,45 +1235,16 @@ var castNotif = function(email, title, body) {
 //TODO: we really need to spend like a couple days looking at how we can cache a lot of this stuff. 
 //Not like its that hard to calculate, but we don't want to have to run this every time someone sends a message
 var getRoom = function(room) {
-	var ret = {}
-	for (var sId in io.nsps["/"].adapter.rooms[room]) {
+	var ret = {};
+	for(var sId in io.nsps["/"].adapter.rooms[room]){
 		var sock = io.sockets.connected[sId]
-		if (!ret[sock.email]) {
-			ret[sock.email] = []
+		if(!ret[sock.email]){
+			ret[sock.email] = [];
 		}
-		ret[sock.email].push(sock)
+		ret[sock.email].push(sock);
 	}
-	return ret
-
+	return ret;
 }
-
-// AsyncHandler written by bluepichu.  May become an import at a later point, since this may be published as its own project.
-var AsyncHandler = function(done){
-	this.asyncCount = 0;
-	this.running = false;
-
-	this.run = function(){
-		this.running = true;
-		if(this.asyncCount == 0){
-			done();
-		}
-	}
-
-	this.attach = function(func, args, cb){
-		this.asyncCount++;
-		cb = cb.bind({next: this.next.bind(this)});
-		args.push(cb);
-		func.apply(this, args);
-	}
-
-	this.next = function(){
-		this.asyncCount--;
-		if(this.asyncCount == 0 && this.running){
-			done();
-		}
-	}
-}
-
 
 /**
  * Ensures that the given argument object matches the given schema.
@@ -1299,8 +1253,8 @@ var AsyncHandler = function(done){
  * @returns {object} An object describing whether or not the provided object is valid and what errors exist, if any
  */
 var argCheck = function(args, type){
-	for(kA in args) {
-		if(!type[kA]) {
+	for(kA in args){
+		if(!type[kA]){
 			return {valid: false, error: "Your request has an extra field \"" + kA + "\" and can't be processed."};
 		}
 		if(typeof type[kA] == "object"){
@@ -1308,37 +1262,33 @@ var argCheck = function(args, type){
 				return {valid: false, error: "Your request's \"" + kA + "\" field is of the wrong type and can't be processed."};
 			}
 		} else {
-			if(typeof args[kA] != type[kA]) {
+			if(typeof args[kA] != type[kA]){
 				return {valid: false, error: "Your request's \"" + kA + "\" field is of the wrong type and can't be processed."};
 			}
 		}
 	}
-	for(kT in type) {
-		if(!(kT in args) && !(typeof type[kT] == "object" && type[kT].optional)) {
+	for(kT in type){
+		if(!(kT in args) && !(typeof type[kT] == "object" && type[kT].optional)){
 			return {valid: false, error: "Your request is missing the field \"" + kT + "\" and can't be processed."};
 		}
 	}
-	return {valid: true}
+	return {valid: true};
 }
 
-var renderTemplate = function(text) {
-	if (!stub) {
+var renderTemplate = function(text){
+	if(!stub){
 		return text;
 	}
-	return stub.replace(/{{content}}/g,text)
+	return stub.replace(/{{content}}/g, text);
 }
 
-var sendVerEmail = function(verID, emailaddr, username) {
-	if (!sendgrid) {
-		console.log("Error, cannot send verification email");
-		return
+var sendVerEmail = function(verID, emailaddr, username){
+	if(!sendgrid){
+		console.log("Can't send verification email");
+		return;
 	}
-	email.sendEmail(
-		sendgrid,
-		emailaddr,
-		{
-			html: email.createEmail(emailaddr.split("@")[0], "Welcome to &Agrave; la Mod!<br>Before you can start using A la Mod, we ask that you verify your email. Click <a style='color: #ccc' href='https://a-la-mod.com/user/verify/"+verID+"'>here</a> to verify."),
-			subject: "Verify Your Email"
-		}
-	)
+	email.sendEmail(sendgrid, emailaddr, {
+		html: email.createEmail(emailaddr.split("@")[0], "Welcome to &Agrave; la Mod!<br>Before you can start using A la Mod, we ask that you verify your email. Click <a style='color: #ccc' href='https://a-la-mod.com/user/verify/"+verID+"'>here</a> to verify."),
+		subject: "Verify Your Email"
+	})
 }
