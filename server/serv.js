@@ -632,11 +632,10 @@ app.post("/user/reset-password", function(req, res){
 			sendgrid,
 			req.body.email,
 			{
-				html: email.createEmail(req.body.email.split("@")[0], "You recently requested to change your password. If you still wish to do so, please click <a href='http://a-la-mod.herokuapp.com/user/reset/" + resID + "'>here</a>. If you did not request this, you may safely ignore this message."),
+				html: email.createEmail(req.body.email.split("@")[0], "You recently requested to change your password. If you still wish to do so, please click <a href='http://a-la-mod.com/user/reset/" + resID + "'>here</a>. If you did not request this, you may safely ignore this message."),
 				subject: "A la Mod password reset"
 			}
 		)
-
 	})
 		.catch(function(err){
 		res.status(500);
