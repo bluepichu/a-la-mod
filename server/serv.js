@@ -649,8 +649,14 @@ app.post("/user/reset-password", function(req, res){
 /**
  * Returns a list of chats for the current user.  Parameters are provided in the POST request as a JSON object.
  */
-app.post("/chats", function(req, res){
-	var chk = argCheck(req.body, {email: "string", authToken: "string"});
+app.get("/chats", function(req, res){
+	var chk = argCheck({
+		email: req.cookies.email,
+		authToken: req.cookies.authToken
+	}, {
+		email: "string",
+		authToken: "string"
+	});
 	if(!chk.valid){
 		res.status(400);
 		res.json({
@@ -665,6 +671,7 @@ app.post("/chats", function(req, res){
 	})
 	.then(function(data){
 		if(data.length != 1){
+			console.log(data);
 			res.status(400);
 			res.json({
 				error: "You're not authorized to take that action.  Make sure you're logged in."
@@ -744,8 +751,19 @@ app.post("/chats", function(req, res){
 /**
  * Returns a list of previous messages for a given chat.  Parameters are provided in the POST request as a JSON object.
  */
-app.post("/chat/history", function(req, res){
-	var chk = argCheck(req.body, {chatId: "string", email: "string", authToken: "string", page: {type: "number", optional: true}});
+app.get("/chat/:chatId/history/:page?", function(req, res){
+	params = {
+		email: req.cookies.email,
+		authTokne: req.cookies.authToken,
+		chatId: req.params.chatId,
+		page: req.params.page
+	}
+	var chk = argCheck(params, {
+		chatId: "string",
+		email: "string",
+		authToken: "string",
+		page: {type: "number", optional: true}
+	});
 	if(!chk.valid){
 		res.status(400);
 		res.json({
@@ -755,13 +773,13 @@ app.post("/chat/history", function(req, res){
 	}
 
 	var page = 0;
-	if(req.body.page){
-		page = req.body.page;
+	if(params.page){
+		page = params.page;
 	}
 
 	var userChatPrm = db.query("users", {
-		email: req.body.email,
-		authTokens: {$in: [req.body.authToken]}
+		email: params.email,
+		authTokens: {$in: [params.authToken]}
 	})
 	.then(function(data){
 		if(data.length != 1){
@@ -775,7 +793,7 @@ app.post("/chat/history", function(req, res){
 		data = data[0];
 
 		var chatPrm = db.project("chats", {
-			_id: ObjectId(req.body.chatId),
+			_id: ObjectId(params.chatId),
 			users: {$in: [ObjectId(data._id)]}
 		}, {
 			messages: {$slice: [-(page+1)*PAGE_SIZE, PAGE_SIZE]},
@@ -831,7 +849,7 @@ app.post("/chat/history", function(req, res){
 		updateObject["lastRead." + user._id] = chat.messageCount - page*PAGE_SIZE;
 
 		db.update("chats", {
-			_id: ObjectId(req.body.chatId),
+			_id: ObjectId(params.chatId),
 			users: {$in: [user._id]}
 		}, {
 			$max: updateObject

@@ -8,25 +8,23 @@ ala.fetch = function(options){ // TODO: type checking?
 		xhr.open(options.method, options.url);
 
 		xhr.onload = function(){
+			var resp = this.responseText;
+			switch(this.getResponseHeader("Content-Type").split(";")[0]){
+				case "application/json":
+					resp = JSON.parse(resp);
+			}
 			if(this.status >= 200 && this.status < 300){
-				switch(this.getResponseHeader("Content-Type").split(";")[0]){
-					case "application/json":
-						resolve(JSON.parse(this.responseText));
-						break;
-					default:
-						resolve(this.responseText);
-						break;
-				}
+				resolve(resp);
 			} else {
-				if(this.response.error){
+				if(resp.error){
 					reject({
 						status: this.status,
-						errorText: this.response.error
+						errorText: resp.error
 					});
 				} else {
 					reject({
 						status: this.status,
-						errorText: this.statusText
+						errorText: resp
 					});
 				}
 			}
@@ -339,7 +337,7 @@ $(document).ready(function(){
 		}
 		ala.lockOpenChat = true;
 		ala.fetch({
-			method: "POST",
+			method: "GET",
 			url: "/chat/history",
 			body: {
 				email: $.cookie("email"),
@@ -466,7 +464,7 @@ $(document).ready(function(){
 			return;
 		}
 		ala.fetch({
-			method: "POST",
+			method: "GET",
 			url: "/chat/history",
 			body: {
 				email: $.cookie("email"),
@@ -503,7 +501,7 @@ $(document).ready(function(){
 
 	ala.loadChats = function(){
 		ala.fetch({
-			method: "POST",
+			method: "GET",
 			url: "/chats",
 			body: {
 				email: $.cookie("email"),
