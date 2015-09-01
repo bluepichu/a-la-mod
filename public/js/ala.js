@@ -239,7 +239,7 @@ $(document).ready(function(){
 		console.info("[Socket] Socket connected.");
 		ala.socket.emit("hidden", false);
 		$(document).on("visibilitychange", function(){
-			ala.socket.emit("hidden",document.hidden);
+			ala.socket.emit("hidden", document.hidden);
 		})
 
 		if($.cookie("email") && $.cookie("authToken")){
@@ -489,6 +489,9 @@ $(document).ready(function(){
 	}
 
 	ala.loadChats = function(){
+		$("ala-chat-list").empty();
+		// TODO: DISCONNECT SPARK CONNECTIONS HERE
+		ala.chats = {};
 		ala.fetch({
 			method: "GET",
 			url: "/chats"
