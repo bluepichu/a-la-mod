@@ -1,3 +1,5 @@
+"use strcit";
+
 //A lightweight Handlebars live rendering system similar to ember and blaze
 //Written 2015 by zwade
 args = null;

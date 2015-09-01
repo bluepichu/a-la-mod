@@ -1,3 +1,5 @@
+"use strict";
+
 // Node imports
 var express = require("express");
 var app = express();
@@ -195,6 +197,7 @@ app.get("/user/:email", function(req, res){
 		})
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -223,6 +226,7 @@ app.get("/user/verify/:verID", function(req, res){
 		res.send(renderTemplate("User verified!"));
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -267,6 +271,7 @@ app.get("/user/reset/:resetID", function(req, res) {
 		return db.update("users", {resID: req.params.resetID}, {$unset: {resID: ""}});
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -312,6 +317,7 @@ app.post("/user/notifs/register", function(req, res) {
 		}
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -385,8 +391,8 @@ app.post("/user/new", function(req, res){
 		}
 	})
 		.catch(function(err){
-		res.status(500);
 		logger.error(err.stack);
+		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
 		})
@@ -437,6 +443,7 @@ app.post("/user/auth", function(req, res){
 		});
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -502,8 +509,8 @@ app.post("/chat/new", function(req, res){
 
 	Promise.all([userPrm, insertPrm])
 		.then(function(data){
-		users = data[0];
-		chat = data[1];
+		var users = data[0];
+		var chat = data[1];
 
 		for(var i = 0; i < users.length; i++){
 			db.update("users", {_id: ObjectId(users[i]._id)}, {$addToSet: {contacts: {$each: req.body.users}}});
@@ -526,6 +533,7 @@ app.post("/chat/new", function(req, res){
 		})
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -639,6 +647,7 @@ app.post("/user/reset-password", function(req, res){
 		)
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -741,6 +750,7 @@ app.get("/chats", function(req, res){
 		res.send(data);
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -752,7 +762,7 @@ app.get("/chats", function(req, res){
  * Returns a list of previous messages for a given chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.get("/chat/:chatId/history/:page?", function(req, res){
-	params = {
+	var params = {
 		email: req.cookies.email,
 		authToken: req.cookies.authToken,
 		chatId: req.params.chatId
@@ -858,6 +868,7 @@ app.get("/chat/:chatId/history/:page?", function(req, res){
 		});
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -904,6 +915,7 @@ app.get("/mods/:dev/:name/*", function(req, res){
 		return;
 	})
 	.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -928,6 +940,7 @@ app.get("/mods/:dev/:name/*", function(req, res){
 			res.status(200).send(result.css);
 		})
 			.catch(function(err){
+			logger.error(err.stack);
 			res.status(500);
 			res.json({
 				error: "The server failed to process your request.  Try again in a minute."
@@ -971,6 +984,7 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 		})
 	})
 		.catch(function(err){
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -1061,6 +1075,7 @@ io.on("connection", function(socket){
 			}
 		})
 			.catch(function(err){
+			logger.error(err.stack);
 			io.to(socket.id).emit("login", "Login failed: server error.");
 		});
 	});
@@ -1073,7 +1088,7 @@ io.on("connection", function(socket){
 			return;
 		}
 
-		arr = SOCKETS[socket.userId];
+		var arr = SOCKETS[socket.userId];
 
 		for(var i = 0; i < arr.length; i++){
 			if(arr[i] == socket){
@@ -1141,7 +1156,8 @@ io.on("connection", function(socket){
 			}
 		})
 			.catch(function(err){
-			io.to(socket.id).emit("error", {description: "Request failed: you're not a part of that chat."});
+			logger.log(err.stack);
+			io.to(socket.id).emit("error", {description: "Request failed: server error."});
 		});
 	});
 
@@ -1272,7 +1288,7 @@ var getRoom = function(room) {
  * @returns {object} An object describing whether or not the provided object is valid and what errors exist, if any
  */
 var argCheck = function(args, type){
-	for(kA in args){
+	for(var kA in args){
 		if(!type[kA]){
 			return {valid: false, error: "Your request has an extra field \"" + kA + "\" and can't be processed."};
 		}
@@ -1286,7 +1302,7 @@ var argCheck = function(args, type){
 			}
 		}
 	}
-	for(kT in type){
+	for(var kT in type){
 		if(!(kT in args) && !(typeof type[kT] == "object" && type[kT].optional)){
 			return {valid: false, error: "Your request is missing the field \"" + kT + "\" and can't be processed."};
 		}

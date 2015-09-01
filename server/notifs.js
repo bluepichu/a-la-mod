@@ -1,3 +1,5 @@
+"use strict";
+
 var https = require("https");
 var db = require("./db");
 var logger = require("./logger");

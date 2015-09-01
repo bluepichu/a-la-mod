@@ -1,3 +1,5 @@
+"use strict";
+
 var pushManager;
 window.pushInst = null;
 (function(window) {

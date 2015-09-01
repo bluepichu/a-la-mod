@@ -1,3 +1,5 @@
+"use strict";
+
 $.fn.redraw = function(){
 	$(this).each(function(){
 		var redraw = this.offsetHeight;

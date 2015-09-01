@@ -1,3 +1,5 @@
+"use strict";
+
 ala.chats = {};
 ala.spark = new Spark(Handlebars);
 ala.messageCounter = [0, 0];
@@ -181,7 +183,7 @@ $(document).ready(function(){
 		$("#notification").click(notifFunc);
 	}
 
-	notifFunc = function(){
+	var notifFunc = function(){
 		if(!ala.spark.get("available")){
 			return;
 		}

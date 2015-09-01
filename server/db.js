@@ -1,3 +1,5 @@
+"use strict";
+
 var mongo = require("mongod");
 var dbPath = "mongodb://localhost:27017/a-la-mod";
 var db = mongo.connect(dbPath, ["users", "chats", "mods", "developers", "push"]);
