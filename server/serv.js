@@ -12,6 +12,7 @@ var fs = require("fs");
 var crypto = require("crypto");
 var db = require("./db");
 var pushObj = require("./notifs");
+var logger = require("./logger");
 var push = new pushObj(db.db);
 var ObjectId = db.ObjectId;
 var moment = require("moment");
@@ -58,13 +59,13 @@ readFile(__dirname + "/templates/notif-stubs.template", "utf8")
 	stub = data;
 })
 	.catch(function(err){
-	console.log(err);
+	logger.error(err);
 });
 
 if(nconf.get("SGPASS")){
 	sendgrid = sendgridlogin("a-la-mod", nconf.get("SGPASS"));
 } else {
-	console.log("Missing SGPASS environment variable. Will not be able to verify email addresses.");
+	logger.warn("Missing SGPASS environment variable. Will not be able to verify email addresses.");
 }
 
 
@@ -84,7 +85,7 @@ db.clear("mods")
 	});
 })
 	.catch(function(err){
-	console.log(err.stack);
+	logger.error(err.stack);
 });
 
 app.get("/push/:email/:title/:body", function(req, res) {
@@ -99,7 +100,7 @@ app.get("/push/get/:subId", function(req, res) {
 		res.json(response)
 	})
 		.catch(function(err){
-		console.error(err);
+		logger.error(err.stack);
 		res.send(500);
 	});
 })
@@ -253,7 +254,7 @@ app.get("/user/reset/:resetID", function(req, res) {
 		res.status(200);
 		res.send(renderTemplate("Your password has been reset to: " + password + ". Please remember to change your password the next time you log in."));
 		if (!sendgrid) {
-			console.log("Error, cannot send reset email");
+			logger.error("Can't send reset email");
 		}
 		email.sendEmail(
 			sendgrid,
@@ -385,7 +386,7 @@ app.post("/user/new", function(req, res){
 	})
 		.catch(function(err){
 		res.status(500);
-		console.log(err.stack);
+		logger.error(err.stack);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
 		})
@@ -586,7 +587,7 @@ app.post("/user/update", function(req, res){
 		res.send("Ok.");
 	})
 		.catch(function(err){
-		console.error(err.stack);
+		logger.error(err.stack);
 		res.status(500);
 		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
@@ -625,7 +626,7 @@ app.post("/user/reset-password", function(req, res){
 			result: "An email has been sent to your email containg a link to reset your password."
 		})
 		if (!sendgrid) {
-			console.log("Error, cannot send reset email");
+			logger.error("Error, can't send reset email");
 			return
 		}
 		email.sendEmail(
@@ -751,7 +752,6 @@ app.get("/chats", function(req, res){
  * Returns a list of previous messages for a given chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.get("/chat/:chatId/history/:page?", function(req, res){
-	console.log(req.params);
 	params = {
 		email: req.cookies.email,
 		authToken: req.cookies.authToken,
@@ -984,7 +984,7 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 app.use(express.static("public"));
 
 http.listen(PORT, function(){
-	console.log("Listening on *:" + PORT);
+	logger.info("Listening on *:" + PORT);
 });
 
 
@@ -1210,13 +1210,13 @@ var sendNotifs = function(data) {
 		for(var i = 0; i < data.length; i++){
 			//First case - do not send notification to sender
 			if(data[i].email == p.socket.email){
-				console.log("Not sending to owner");
+				logger.log("Not sending to owner");
 				continue;
 			}
 			//Second case - if they have no open browsers, send them a notification
 			if(!(data[i].email in socketList)){
 				castNotif(data[i].email, title, body);	
-				console.log("Attempting to send to closed client");
+				logger.log("Attempting to send to closed client");
 				continue;
 			}
 			//Third case - if all their clients are hidden, send them a notification
@@ -1230,11 +1230,11 @@ var sendNotifs = function(data) {
 			}
 			if(shouldContinue){
 				castNotif(data[i].email, title, body);
-				console.log("Attempting to send to hidden client");
+				logger.log("Attempting to send to hidden client");
 				continue;
 			}
 			//Default case - the clients are opened and being viewed, so no notification is necessary
-			console.log("Client open, not sending");
+			logger.log("Client open, not sending");
 		}
 	})
 }
@@ -1246,7 +1246,7 @@ var castNotif = function(email, title, body) {
 		body: body,
 		icon: "https://a-la-mod.com/images/app-icon-72.png",
 	}, function(err) {
-		console.log("Error in sending notif: "+err)
+		logger.error("Error in sending notif: "+err)
 	})
 }
 
@@ -1303,7 +1303,7 @@ var renderTemplate = function(text){
 
 var sendVerEmail = function(verID, emailaddr, username){
 	if(!sendgrid){
-		console.log("Can't send verification email");
+		logger.error("Can't send verification email");
 		return;
 	}
 	email.sendEmail(sendgrid, emailaddr, {

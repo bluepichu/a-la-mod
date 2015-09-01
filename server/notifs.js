@@ -1,5 +1,6 @@
 var https = require("https");
 var db = require("./db");
+var logger = require("./logger");
 
 module.exports = function(){
 	db.createCollection("push");
@@ -46,8 +47,8 @@ function sendMessage(email, message){
 		};
 
 		var req = https.request(options, function(res){
-			console.log("statusCode: ", res.statusCode);
-			console.log("headers: ", res.headers);
+			logger.log("statusCode: ", res.statusCode);
+			logger.log("headers: ", res.headers);
 
 			res.on('data', function(d){
 				process.stdout.write(d);
@@ -58,7 +59,7 @@ function sendMessage(email, message){
 		req.end();
 
 		req.on('error', function(e) {
-			console.error(e);
+			logger.error(e);
 		});
 	});
 }

@@ -101,9 +101,8 @@ ala.mods.decode = function(message, mods, cb){
   */
 
 ala.mods.initialize = function(mod, options){
-	console.log(mod)
 	if(!mod){
-		console.log("Mod initializeation failed")
+		console.warn("[Mods] Mod initializeation failed for", mod)
 		return;
 	}
 	if(!options){

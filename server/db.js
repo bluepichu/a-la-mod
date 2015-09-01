@@ -3,8 +3,9 @@ var dbPath = "mongodb://localhost:27017/a-la-mod";
 var db = mongo.connect(dbPath, ["users", "chats", "mods", "developers", "push"]);
 var ObjectId = mongo.ObjectId;
 var Promise = require("promise");
+var logger = require("./logger");
 
-console.log("DB connected @ " + dbPath);
+logger.info("DB connected @ " + dbPath);
 
 /**
  * Returns the passed data; used to buffer promise results.

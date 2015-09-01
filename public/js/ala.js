@@ -134,7 +134,7 @@ $(document).ready(function(){
 	$("ala-notif-container").append(Handlebars.templates.bell())
 	ala.pushInst = new pushManager();
 	ala.pushInst.onLoad = function(err, sub){
-		console.log("Load>>",arguments);
+		console.info("[Notifs] Load >> ", arguments);
 		if(ala.pushInst.available){
 			ala.spark.set("available", true);
 		} else {
@@ -150,7 +150,7 @@ $(document).ready(function(){
 	}
 
 	ala.pushInst.onSubscribe = function(err, sub){
-		console.log("Sub>>",arguments, ala.pushInst);
+		console.info("[Notifs] Sub >> ", arguments, ala.pushInst);
 		ala.spark.set("enabled", ala.pushInst.enabled);
 		ala.fetch({
 			method: "POST",
@@ -166,8 +166,7 @@ $(document).ready(function(){
 	}
 
 	ala.pushInst.onUnsubscribe = function(){
-		console.log("Unsub>>",arguments,ala.pushInst);
-		console.log(ala.pushInst);
+		console.info("[Notifs] Unsub >> ", arguments, ala.pushInst);
 		ala.spark.set("enabled", ala.pushInst.enabled);
 		ala.fetch({
 			method: "POST",
@@ -183,7 +182,6 @@ $(document).ready(function(){
 	}
 
 	notifFunc = function(){
-		console.log("boo");
 		if(!ala.spark.get("available")){
 			return;
 		}
@@ -236,7 +234,7 @@ $(document).ready(function(){
 	ala.socket = io()
 
 	ala.socket.on("connect", function(){
-		console.log("Socket connected");
+		console.info("[Socket] Socket connected.");
 		ala.socket.emit("hidden", false);
 		$(document).on("visibilitychange", function(){
 			ala.socket.emit("hidden",document.hidden);
@@ -483,7 +481,7 @@ $(document).ready(function(){
 			ala.nextPage++;
 		})
 			.catch(function(err){
-			console.log(err.errorText);
+			ala.snack(err.errorText);
 		});
 		ala.loadingPage = true;
 	}
