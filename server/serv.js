@@ -666,12 +666,11 @@ app.get("/chats", function(req, res){
 	}
 
 	var userChatsPrm = db.query("users", {
-		email: req.body.email,
-		authTokens: {$in: [req.body.authToken]}
+		email: req.cookies.email,
+		authTokens: {$in: [req.cookies.authToken]}
 	})
 	.then(function(data){
 		if(data.length != 1){
-			console.log(data);
 			res.status(400);
 			res.json({
 				error: "You're not authorized to take that action.  Make sure you're logged in."
@@ -752,11 +751,14 @@ app.get("/chats", function(req, res){
  * Returns a list of previous messages for a given chat.  Parameters are provided in the POST request as a JSON object.
  */
 app.get("/chat/:chatId/history/:page?", function(req, res){
+	console.log(req.params);
 	params = {
 		email: req.cookies.email,
-		authTokne: req.cookies.authToken,
-		chatId: req.params.chatId,
-		page: req.params.page
+		authToken: req.cookies.authToken,
+		chatId: req.params.chatId
+	}
+	if(req.params.page){
+		params.page = req.params.page;
 	}
 	var chk = argCheck(params, {
 		chatId: "string",

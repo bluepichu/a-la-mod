@@ -338,12 +338,7 @@ $(document).ready(function(){
 		ala.lockOpenChat = true;
 		ala.fetch({
 			method: "GET",
-			url: "/chat/history",
-			body: {
-				email: $.cookie("email"),
-				authToken: $.cookie("authToken"),
-				chatId: chatId
-			}
+			url: "/chat/" + chatId + "/history"
 		})
 			.then(function(data){
 			$("ala-messages-list").empty();
@@ -459,19 +454,13 @@ $(document).ready(function(){
 		}("b" + ala.messageCounter[1], data.sender));
 	}
 
-	ala.loadPreviousPage = function(){
+	ala.loadPreviousPage = function(){ // why isn't this called anywhere?
 		if(ala.loadingPage || !ala.loadMorePages){
 			return;
 		}
 		ala.fetch({
 			method: "GET",
-			url: "/chat/history",
-			body: {
-				email: $.cookie("email"),
-				authToken: $.cookie("authToken"),
-				chatId: ala.currentChat,
-				page: ala.nextPage
-			}
+			url: "/chat/" + chatId + "/history/" + ala.nextPage
 		})
 			.then(function(data){
 			var messages = data.messages;
@@ -502,11 +491,7 @@ $(document).ready(function(){
 	ala.loadChats = function(){
 		ala.fetch({
 			method: "GET",
-			url: "/chats",
-			body: {
-				email: $.cookie("email"),
-				authToken: $.cookie("authToken")
-			}
+			url: "/chats"
 		})
 			.then(function(chats){
 			chats.sort(function(a, b){
