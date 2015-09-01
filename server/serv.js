@@ -96,7 +96,7 @@ app.get("/push/get/:subId", function(req, res) {
 	push.getMessage(req.params.subId)
 		.then(function(data){
 		res.type("application/json")
-		res.send(JSON.stringify(response))
+		res.json(response)
 	})
 		.catch(function(err){
 		console.error(err);
@@ -181,23 +181,23 @@ app.get("/user/:email", function(req, res){
 		.then(function(data){
 		if(data.length != 1){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "That user doesn't exist."
-			}));
+			})
 			return;
 		}
 		data = data[0];
-		res.send(JSON.stringify({
+		res.json({
 			email: data.email,
 			_id: data._id,
 			screenName: data.screenName
-		}));
+		})
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 		return;
 	});
 });
@@ -223,9 +223,9 @@ app.get("/user/verify/:verID", function(req, res){
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	});
 });
 
@@ -267,9 +267,9 @@ app.get("/user/reset/:resetID", function(req, res) {
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	});
 });
 
@@ -277,9 +277,9 @@ app.post("/user/notifs/register", function(req, res) {
 	var chk = argCheck(req.body, {email: "string", auth: "string", subscriptionId: "string", shouldAdd: "boolean"})
 	if(!chk.valid){
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: chk.error
-		}));
+		})
 		return;
 	}
 	db.query("users", {
@@ -290,17 +290,17 @@ app.post("/user/notifs/register", function(req, res) {
 		.then(function(data){
 		if(data.length != 1){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "You're not authorized to take that action.  Make sure you're logged in."
-			}));
+			})
 			return;
 		}
 
 		if(!data[0].verified){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "You need to verify your email before you can do that."
-			}));
+			})
 			return;
 		}
 
@@ -312,9 +312,9 @@ app.post("/user/notifs/register", function(req, res) {
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	});
 });
 
@@ -325,17 +325,17 @@ app.post("/user/new", function(req, res){
 	var chk = argCheck(req.body, {email: "string", password: "string"});
 	if(!chk.valid){
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: chk.error
-		}));
+		})
 		return;
 	}
 
 	if(!emailValidator.validate(req.body.email)){
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: "That's not a valid email."
-		}));
+		})
 		return;
 	}
 
@@ -343,9 +343,9 @@ app.post("/user/new", function(req, res){
 		.then(function(data){
 		if(data.length > 0){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "That email is already associated with another account.  Please choose a different email."
-			}));
+			})
 			return;
 		}
 
@@ -376,9 +376,9 @@ app.post("/user/new", function(req, res){
 		var user = data[1][2];
 
 		res.status(200);
-		res.send(JSON.stringify({
+		res.json({
 			result: "ok"
-		}));
+		})
 		if(!local){
 			sendVerEmail(verId, email, user);
 		}
@@ -386,9 +386,9 @@ app.post("/user/new", function(req, res){
 		.catch(function(err){
 		res.status(500);
 		console.log(err.stack);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	});
 });
 
@@ -399,9 +399,9 @@ app.post("/user/auth", function(req, res){
 	var chk = argCheck(req.body, {email: "string", password: "string"});
 	if (!chk.valid) {
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: chk.error
-		}));
+		})
 		return;
 	}
 
@@ -409,25 +409,25 @@ app.post("/user/auth", function(req, res){
 		.then(function(data){
 		if(data.length != 1){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "That user doesn't exist.  Double check your email."
-			}));
+			})
 			return;
 		}
 		if(passwordHash(req.body.password, data[0].salt) != data[0].password){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "That password is incorrect.  Double check your password."
-			}));
+			})
 			return;
 		}
 
 		// issue auth token
 		var token = crypto.randomBytes(256).toString("base64");
 		res.status(200);
-		res.send(JSON.stringify({
+		res.json({
 			token: token
-		}));
+		})
 
 		db.update("users", {
 			email: data[0].email
@@ -437,9 +437,9 @@ app.post("/user/auth", function(req, res){
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 		return;
 	});
 });
@@ -451,9 +451,9 @@ app.post("/chat/new", function(req, res){
 	var chk = argCheck(req.body, {email: "string", authToken: "string", title: "string", users: "object"});
 	if(!chk.valid) {
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: chk.error
-		}));
+		})
 		return;
 	}
 
@@ -466,16 +466,16 @@ app.post("/chat/new", function(req, res){
 	.then(function(data){
 		if(data.length != 1){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "You're not authorized to take that action.  Make sure you're logged in."
-			}));
+			})
 			return;
 		}
 		if(!data[0].verified){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "You need to verify your email before you can do that."
-			}));
+			})
 			return;
 		}
 		return fetchUserList(req.body.users, "email");
@@ -520,15 +520,15 @@ app.post("/chat/new", function(req, res){
 		});
 
 		res.status(200);
-		res.send(JSON.stringify({
+		res.json({
 			result: "ok"
-		}));
+		})
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	})
 });
 
@@ -539,9 +539,9 @@ app.post("/user/update", function(req, res){
 	var chk = argCheck(req.body, {email: "string", password: "string", updates: "object"});
 	if(!chk.valid) {
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: chk.error
-		}));
+		})
 		return;
 	}
 
@@ -562,9 +562,9 @@ app.post("/user/update", function(req, res){
 		.then(function(data){
 		if(data.length != 1){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "That user doesn't exist."
-			}));
+			})
 			return;
 		}
 		return db.update("users", {
@@ -577,9 +577,9 @@ app.post("/user/update", function(req, res){
 		.then(function(data){
 		if(data.n == 0){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "That password is incorrect.  Double check your password."
-			}));
+			})
 			return;
 		}
 		res.status(200);
@@ -588,9 +588,9 @@ app.post("/user/update", function(req, res){
 		.catch(function(err){
 		console.error(err.stack);
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	});
 });
 
@@ -601,9 +601,9 @@ app.post("/user/reset-password", function(req, res){
 	var chk = argCheck(req.body, {email: "string"});
 	if(!chk.valid) {
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: chk.error
-		}));
+		})
 		return;
 	}
 
@@ -611,9 +611,9 @@ app.post("/user/reset-password", function(req, res){
 		.then(function(data){
 		if(data.length != 1){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "That user doesn't exist.  Double check your email."
-			}));
+			})
 			return;
 		}
 
@@ -621,9 +621,9 @@ app.post("/user/reset-password", function(req, res){
 	})
 		.then(function(data){
 		res.status(200);
-		res.send(JSON.stringify({
+		res.json({
 			result: "An email has been sent to your email containg a link to reset your password."
-		}));
+		})
 		if (!sendgrid) {
 			console.log("Error, cannot send reset email");
 			return
@@ -640,9 +640,9 @@ app.post("/user/reset-password", function(req, res){
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 		return;
 	});
 });
@@ -654,9 +654,9 @@ app.post("/chats", function(req, res){
 	var chk = argCheck(req.body, {email: "string", authToken: "string"});
 	if(!chk.valid){
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: chk.error
-		}));
+		})
 		return;
 	}
 
@@ -667,9 +667,9 @@ app.post("/chats", function(req, res){
 	.then(function(data){
 		if(data.length != 1){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "You're not authorized to take that action.  Make sure you're logged in."
-			}));
+			})
 			return;
 		}
 		data = data[0];
@@ -736,9 +736,9 @@ app.post("/chats", function(req, res){
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	});
 });
 
@@ -749,9 +749,9 @@ app.post("/chat/history", function(req, res){
 	var chk = argCheck(req.body, {chatId: "string", email: "string", authToken: "string", page: {type: "number", optional: true}});
 	if(!chk.valid){
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: chk.error
-		}));
+		})
 		return;
 	}
 
@@ -767,9 +767,9 @@ app.post("/chat/history", function(req, res){
 	.then(function(data){
 		if(data.length != 1){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "You're not authorized to take that action.  Make sure you're logged in."
-			}));
+			})
 			return;
 		}
 
@@ -785,9 +785,9 @@ app.post("/chat/history", function(req, res){
 		.then(function(data){
 			if(data.length != 1){
 				res.status(400);
-				res.send(JSON.stringify({
+				res.json({
 					error: "That chat doesn't exist."
-				}));
+				})
 				return;
 			}
 
@@ -840,9 +840,9 @@ app.post("/chat/history", function(req, res){
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	});
 });
 
@@ -886,9 +886,9 @@ app.get("/mods/:dev/:name/*", function(req, res){
 	})
 	.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	});
 
 	if(file == "inline"){
@@ -910,9 +910,9 @@ app.get("/mods/:dev/:name/*", function(req, res){
 		})
 			.catch(function(err){
 			res.status(500);
-			res.send(JSON.stringify({
+			res.json({
 				error: "The server failed to process your request.  Try again in a minute."
-			}));
+			})
 		});
 	}
 });
@@ -921,9 +921,9 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 	var chk = argCheck(req.body, {type: "string", developer: "string", name: "string", content: "string"});
 	if(!(chk.valid && /^[A-Za-z\-0-9]*$/.test(req.body.developer) && /^[A-Za-z\-0-9]*$/.test(req.body.name) && (req.body.type == "enc" || req.body.type == "dec"))){
 		res.status(400);
-		res.send(JSON.stringify({
+		res.json({
 			error: chk.error
-		}));
+		})
 		return;
 	}
 	db.query("mods", {
@@ -934,9 +934,9 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 		.then(function(data){
 		if(data.length > 0){
 			res.status(400);
-			res.send(JSON.stringify({
+			res.json({
 				error: "That mod doesn't exist."
-			}));
+			})
 			return;
 		}
 
@@ -947,15 +947,15 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 	})
 		.then(function(){
 		res.status(200);
-		res.send(JSON.stringify({
+		res.json({
 			result: "ok"
-		}));
+		})
 	})
 		.catch(function(err){
 		res.status(500);
-		res.send(JSON.stringify({
+		res.json({
 			error: "The server failed to process your request.  Try again in a minute."
-		}));
+		})
 	});
 });
 

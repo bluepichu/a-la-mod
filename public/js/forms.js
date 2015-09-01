@@ -75,58 +75,55 @@ $(document).ready(function(){
 	});
 
 	$("form#form-login").submit(function(e){
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/user/auth", true);
-
-		xhr.onload = function(){
-			if(this.status == 200){
-				$.cookie("email", $("#form-login #email").val(), {expires: 30, path: "/"});
-				$.cookie("authToken", JSON.parse(this.responseText).token, {expires: 30, path: "/"});
-				ala.lightbox();
-				setTimeout(function(){
-					ala.onLogin();
-				}, 800);
-			} else {
-				$("#form-login #login-submit").removeClass("hidden");
-				ala.snack(JSON.parse(this.responseText).error);
-			}
-			ala.setLoading(false);
-		}
-
-		xhr.setRequestHeader("Content-Type", "application/json");
-
-		xhr.send(JSON.stringify({
-			email: $("#form-login #email").val(),
-			password: $("#form-login #password").val()
-		}));
-
 		ala.setLoading(true);
+
+		ala.fetch({
+			method: "POST",
+			url: "/user/auth",
+			body: {
+				email: $("#form-login #email").val(),
+				password: $("#form-login #password").val()
+			}
+		})
+			.then(function(data){
+			$.cookie("email", $("#form-login #email").val(), {expires: 30, path: "/"});
+			$.cookie("authToken", data.token, {expires: 30, path: "/"});
+			ala.lightbox();
+			setTimeout(function(){
+				ala.onLogin();
+			}, 800);
+			ala.setLoading(false);
+		})
+			.catch(function(err){
+			$("#form-login #login-submit").removeClass("hidden");
+			ala.snack(err.errorText);
+			ala.setLoading(false);
+		});
 
 		e.stopPropagation();
 		e.preventDefault();
 	});
 
 	$("form#form-forgot-password").submit(function(e){
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/user/reset-password", true);
-
-		xhr.onload = function(){
-			if(this.status == 200){
-				ala.lightbox();
-				ala.snack("An email has been sent containing a temporary password.");
-			} else {
-				ala.snack(JSON.parse(this.responseText).error);
-			}
-			ala.setLoading(false);
-		}
-
-		xhr.setRequestHeader("Content-Type", "application/json");
-
-		xhr.send(JSON.stringify({
-			email: $("#form-forgot-password #email").val()
-		}));
-
 		ala.setLoading(true);
+
+		ala.fetch({
+			method: "POST",
+			url: "/user/reset-password",
+			body: {
+				email: $("#form-forgot-password #email").val()
+			}
+		})
+			.then(function(data){
+			ala.lightbox();
+			ala.snack("An email has been sent containing a temporary password.");
+			ala.setLoading(false);
+		})
+			.catch(function(err){
+			ala.snack(err.errorText);
+			ala.setLoading(false);
+		});
+
 		e.stopPropagation();
 		e.preventDefault();
 	});
@@ -140,51 +137,49 @@ $(document).ready(function(){
 			return;
 		}
 		$("#form-register #register-submit").addClass("hidden");
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/user/new", true);
-		xhr.onload = function(){
-			if(this.status == 200){
-				var xhr = new XMLHttpRequest();
-				xhr.open("POST", "/user/auth", true);
-				xhr.onload = function(){
-					if(this.status == 200){
-						$.cookie("email", $("#form-register #email").val(), {expires: 30, path: "/"});
-						$.cookie("authToken", JSON.parse(this.responseText).token, {expires: 30, path: "/"});
-						ala.lightbox();
-						setTimeout(function(){
-							ala.onLogin();
-							setTimeout(function(){
-								ala.lightbox("form-welcome");
-							}, 800);
-						}, 800);
-					} else {
-						$("#form-register #register-submit").removeClass("hidden");
-						ala.snack(JSON.parse(this.responseText).error);
-					}
-					ala.setLoading(false);
-				}
-				xhr.setRequestHeader("Content-Type", "application/json");
-				xhr.send(JSON.stringify({
+		ala.setLoading(true);
+
+		ala.fetch({
+			method: "POST",
+			url: "/user/new",
+			body: {
+				email: $("#form-register #email").val(),
+				password: $("#form-register #password").val()
+			}
+		})
+			.then(function(data){
+			return ala.fetch({
+				method: "POST",
+				url: "/user/auth",
+				body: {
 					email: $("#form-register #email").val(),
 					password: $("#form-register #password").val()
-				}));
-			} else {
-				$("#form-register #register-submit").removeClass("hidden");
-				ala.snack(JSON.parse(this.responseText).error);
-				ala.setLoading(false);
-			}
-		}
-		xhr.setRequestHeader("Content-Type", "application/json");
-		xhr.send(JSON.stringify({
-			email: $("#form-register #email").val(),
-			password: $("#form-register #password").val()
-		}));
-		ala.setLoading(true);
+				}
+			});
+		})
+			.then(function(data){
+			$.cookie("email", $("#form-register #email").val(), {expires: 30, path: "/"});
+			$.cookie("authToken", data.token, {expires: 30, path: "/"});
+			ala.lightbox();
+			setTimeout(function(){
+				ala.onLogin();
+				setTimeout(function(){
+					ala.lightbox("form-welcome");
+				}, 800);
+			}, 800);
+			ala.setLoading(false);
+		})
+			.catch(function(err){
+			$("#form-register #register-submit").removeClass("hidden");
+			ala.snack(err.errorText);
+			ala.setLoading(false);
+		});
+
 		e.stopPropagation();
 		e.preventDefault();
 		return false;
 	});
-	
+
 	$("form#form-welcome").submit(function(e){
 		ala.lightbox();
 		e.preventDefault();
@@ -194,7 +189,7 @@ $(document).ready(function(){
 
 	$("form#form-mods").submit(function(e){	
 		var delimiter = /[,;\s]+/g;
-		
+
 		var enc = $("#mods-enc").val().split(delimiter);
 		ala.recipes.all[ala.selected].encoders = [];
 		for (var m in enc) {
@@ -203,7 +198,7 @@ $(document).ready(function(){
 			}
 			ala.recipes.all[ala.selected].encoders.push(enc[m]);
 		}
-		
+
 		var dec = $("#mods-dec").val().split(delimiter);
 		ala.recipes.all[ala.selected].decoders = [];
 		for (var m in dec) {
@@ -212,7 +207,7 @@ $(document).ready(function(){
 			}
 			ala.recipes.all[ala.selected].decoders.push(dec[m]);
 		}
-		
+
 		var ui = $("#mods-ui").val().split(delimiter);
 		ala.recipes.all[ala.selected].uis = [];
 		for (var m in ui) {
@@ -221,7 +216,7 @@ $(document).ready(function(){
 			}
 			ala.recipes.all[ala.selected].uis.push(ui[m]);
 		}
-		
+
 		localStorage.recipes = JSON.stringify(ala.recipes);
 		ala.lightbox();
 		e.stopPropagation();
@@ -236,35 +231,41 @@ $(document).ready(function(){
 			e.stopPropagation();
 			return false;
 		}
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/user/update", true);
-		xhr.onload = function(){
-			if(this.status == 200){
-				ala.snack("Account updated succesfully.  Refreshing...");
-				setTimeout(function(){
-					location.reload();
-				}, 2000);
-			} else {
-				ala.snack(JSON.parse(this.responseText).error);
-				ala.setLoading(false);
-			}
-		}
-		xhr.setRequestHeader("Content-Type", "application/json");
+
+		ala.setLoading(true);
+
 		var updates = {
 			screenName: $("#screen-name").val()
 		};
+
 		if($("#new-password").val() != ""){
 			updates.password = $("#new-password").val();
 		}
+
 		if($("ala-color-swatch.active").size() == 1){
 			updates.color = $("ala-color-swatch.active").attr("color");
 		}
-		xhr.send(JSON.stringify({
-			email: $.cookie("email"),
-			password: $("#current-password").val(),
-			updates: updates
-		}));
-		ala.setLoading(true);
+
+		ala.fetch({
+			method: "POST",
+			url: "/user/update",
+			body: {
+				email: $.cookie("email"),
+				password: $("#current-password").val(),
+				updates: updates
+			}
+		})
+			.then(function(data){
+			ala.snack("Account updated succesfully.  Refreshing...");
+			setTimeout(function(){
+				location.reload();
+			}, 2000);
+		})
+			.catch(function(err){
+			ala.snack(err.errorText);
+			ala.setLoading(false);
+		});
+
 		e.stopPropagation();
 		e.preventDefault();
 		return false;
@@ -278,30 +279,35 @@ $(document).ready(function(){
 			e.preventDefault();
 			return false;
 		}
+
 		pushEmailEntry();
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/chat/new", true);
-		xhr.onload = function(){
-			if(this.status == 200){
-				ala.snack("Chat created.");
-				ala.lightbox("");
-			} else {
-				ala.snack(JSON.parse(this.responseText).error);
-			}
-			ala.setLoading(false);
-		}
-		xhr.setRequestHeader("Content-Type", "application/json");
+		ala.setLoading(true);
+
 		var users = [];
 		$("#form-new-chat ala-user-list ala-user").each(function(ind, el){
 			users.push($(el).attr("user-email"));
 		});
-		xhr.send(JSON.stringify({
-			email: $.cookie("email"),
-			authToken: $.cookie("authToken"),
-			title: $("#form-new-chat #title").val(),
-			users: users
-		}));
-		ala.setLoading(true);
+
+		ala.fetch({
+			method: "POST",
+			url: "/chat/new",
+			body: {
+				email: $.cookie("email"),
+				authToken: $.cookie("authToken"),
+				title: $("#form-new-chat #title").val(),
+				users: users
+			}
+		})
+			.then(function(){
+			ala.snack("Chat created.");
+			ala.lightbox("");
+			ala.setLoading(false);
+		})
+			.catch(function(err){
+			ala.snack(err.errorText);
+			ala.setLoading(false);
+		});
+
 		e.stopPropagation();
 		e.preventDefault();
 		return false;
@@ -338,20 +344,22 @@ $(document).ready(function(){
 			e.preventDefault();
 			return false;
 		}
-		var xhr = new XMLHttpRequest();
-		xhr.open("GET", "/user/" + encodeURI($("#form-new-chat #email-entry").val().trim()), true);
-		xhr.onload = function(){
+
+		ala.fetch({
+			method: "GET",
+			url: "/user/" + encodeURI($("#form-new-chat #email-entry").val().trim())
+		})
+			.then(function(data){
 			$("#form-new-chat #email-entry").prop("disabled", false);
-			if(this.status == 200){
-				var data = JSON.parse(this.responseText);
-				data.removable = true;
-				$("#form-new-chat ala-user-list").append(Handlebars.templates["user-chip"](data));
-				$("#form-new-chat #email-entry").val("").focus();
-			} else {
-				ala.snack(JSON.parse(this.responseText).error);
-			}
-		};
-		xhr.send();
+			data.removable = true;
+			$("#form-new-chat ala-user-list").append(Handlebars.templates["user-chip"](data));
+			$("#form-new-chat #email-entry").val("").focus();
+		})
+			.catch(function(err){
+			$("#form-new-chat #email-entry").prop("disabled", false);
+			ala.snack(err.errorText);
+		});
+		
 		$("#form-new-chat #email-entry").prop("disabled", true);
 	}
 

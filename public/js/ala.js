@@ -2,6 +2,62 @@ ala.chats = {};
 ala.spark = new Spark(Handlebars);
 ala.messageCounter = [0, 0];
 
+ala.fetch = function(options){ // TODO: type checking?
+	return new Promise(function(resolve, reject){
+		var xhr = new XMLHttpRequest();
+		xhr.open(options.method, options.url);
+
+		xhr.onload = function(){
+			if(this.status >= 200 && this.status < 300){
+				switch(this.getResponseHeader("Content-Type").split(";")[0]){
+					case "application/json":
+						resolve(JSON.parse(this.responseText));
+						break;
+					default:
+						resolve(this.responseText);
+						break;
+				}
+			} else {
+				if(this.response.error){
+					reject({
+						status: this.status,
+						errorText: this.response.error
+					});
+				} else {
+					reject({
+						status: this.status,
+						errorText: this.statusText
+					});
+				}
+			}
+		}
+
+		xhr.onerror = function(){
+			reject({
+				status: this.status,
+				errorText: this.statusText
+			});
+		}
+
+		if(options.headers){
+			for(key in options.headers){
+				xhr.setRequestHeader(key, options.headers[key]);
+			}
+		}
+
+		if(options.body){
+			if(typeof(options.body) == "object"){
+				xhr.setRequestHeader("Content-Type", "application/json");
+				xhr.send(JSON.stringify(options.body));
+			} else {
+				xhr.send(options.body);
+			}
+		} else {
+			xhr.send();
+		}
+	});
+}
+
 if(!("recipes" in localStorage)){
 	localStorage.recipes = JSON.stringify(
 		{
@@ -46,18 +102,6 @@ moment.locale("en", {
 	}
 });
 
-var sendToServer = function(subId, add) {
-	var xhr = new XMLHttpRequest()
-	xhr.open("POST","/user/notifs/register")
-	xhr.setRequestHeader("Content-Type","application/json")
-	xhr.send(JSON.stringify({
-		subscriptionId: subId,
-		email: ala.user.email,
-		auth: $.cookie("authToken"),
-		shouldAdd: add
-	}))
-}
-
 $(document).ready(function(){
 	for(var i = 0; i < ala.recipes.all[ala.selected].encoders.length; i++){
 		ala.mods.initialize(ala.recipes.all[ala.selected].encoders[i]);
@@ -88,61 +132,84 @@ $(document).ready(function(){
 			}, 5000);
 		}, 10);
 	}
+
 	$("ala-notif-container").append(Handlebars.templates.bell())
-	ala.pushInst = new pushManager()
-	ala.pushInst.onLoad = function(err, sub) {
-		console.log("Load>>",arguments)
-		if (ala.pushInst.available) {
-			ala.spark.set("available",true)
+	ala.pushInst = new pushManager();
+	ala.pushInst.onLoad = function(err, sub){
+		console.log("Load>>",arguments);
+		if(ala.pushInst.available){
+			ala.spark.set("available", true);
 		} else {
-			ala.spark.set("available",false)
+			ala.spark.set("available", false);
 			return
 		}
-		if (ala.pushInst.enabled) {
-			ala.spark.set("enabled",true)
+		if(ala.pushInst.enabled){
+			ala.spark.set("enabled", true);
 		} else {
-			ala.spark.set("enabled",false)
+			ala.spark.set("enabled", false);
 		}
-		$("#notification").click(notifFunc)
+		$("#notification").click(notifFunc);
 	}
-	ala.pushInst.onSubscribe = function(err, sub) {
-		console.log("Sub>>",arguments, ala.pushInst)
-		ala.spark.set("enabled", ala.pushInst.enabled)
-		sendToServer(ala.pushInst.subscriptionId, true)
-		$("#notification").click(notifFunc)
+
+	ala.pushInst.onSubscribe = function(err, sub){
+		console.log("Sub>>",arguments, ala.pushInst);
+		ala.spark.set("enabled", ala.pushInst.enabled);
+		ala.fetch({
+			method: "POST",
+			url: "/user/notifs/register",
+			body: {
+				subscriptionId: ala.pushInst.subscriptionId,
+				email: ala.user.email,
+				auth: $.cookie("authToken"),
+				shouldAdd: true
+			}
+		});
+		$("#notification").click(notifFunc);
 	}
-	ala.pushInst.onUnsubscribe = function() {
-		console.log("Unsub>>",arguments,ala.pushInst)
-		console.log(ala.pushInst)
-		ala.spark.set("enabled", ala.pushInst.enabled)
-		sendToServer(ala.pushInst.subscriptionId, false)
-		$("#notification").click(notifFunc)
+
+	ala.pushInst.onUnsubscribe = function(){
+		console.log("Unsub>>",arguments,ala.pushInst);
+		console.log(ala.pushInst);
+		ala.spark.set("enabled", ala.pushInst.enabled);
+		ala.fetch({
+			method: "POST",
+			url: "/user/notifs/register",
+			body: {
+				subscriptionId: ala.pushInst.subscriptionId,
+				email: ala.user.email,
+				auth: $.cookie("authToken"),
+				shouldAdd: false
+			}
+		});
+		$("#notification").click(notifFunc);
 	}
-	notifFunc = function() {
-		console.log("boo")
-		if (!ala.spark.get("available")) {
-			return
+
+	notifFunc = function(){
+		console.log("boo");
+		if(!ala.spark.get("available")){
+			return;
 		}
-		if (ala.spark.get("enabled")) {
-			ala.pushInst.unsubscribe()
+		if(ala.spark.get("enabled")){
+			ala.pushInst.unsubscribe();
 		} else {
-			ala.pushInst.subscribe()
+			ala.pushInst.subscribe();
 		}
 	}
-	$("#notification").click(notifFunc)
+
+	$("#notification").click(notifFunc);
 
 	var cont = $("ala-mod-list");
-	ala.iframes = []
+	ala.iframes = [];
 	for(var i = 0; i < ala.recipes.all[ala.selected].uis.length; i++){
 		var insert = $(Handlebars.templates["mod-card"]({
 			title: ala.recipes.all[ala.selected].uis[i],
 			mod: ala.recipes.all[ala.selected].uis[i]
 		}))
-		cont.append(insert)
-		ala.iframes.push(insert)
-		insert.ready((function(m){return function() {
-			ala.mods.registerUI(m, insert.find("iframe")[0].contentWindow)
-		}})(ala.recipes.all[ala.selected].uis[i]))
+		cont.append(insert);
+		ala.iframes.push(insert);
+		insert.ready((function(m){return function(){
+			ala.mods.registerUI(m, insert.find("iframe")[0].contentWindow);
+		}})(ala.recipes.all[ala.selected].uis[i]));
 	}
 
 	autosize($("ala-input-card textarea"));
@@ -170,11 +237,11 @@ $(document).ready(function(){
 
 	ala.socket = io()
 
-	ala.socket.on("connect", function() {
-		console.log("Socket connected")
+	ala.socket.on("connect", function(){
+		console.log("Socket connected");
 		ala.socket.emit("hidden", false);
-		$(document).on("visibilitychange", function() {
-			ala.socket.emit("hidden",document.hidden)
+		$(document).on("visibilitychange", function(){
+			ala.socket.emit("hidden",document.hidden);
 		})
 
 		if($.cookie("email") && $.cookie("authToken")){
@@ -270,30 +337,30 @@ $(document).ready(function(){
 			}, 400);
 			return;
 		}
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/chat/history", true);
 		ala.lockOpenChat = true;
-		xhr.onload = function(){
-			if(this.status == 200){
-				var data = JSON.parse(this.responseText);
-				$("ala-messages-list").empty();
-				ala.chats[chatId].unread = 0;
-				ala.nextPage = 1;
-				ala.loadMorePages = true;
-
-				for(var i = 0; i < data.messages.length; i++){
-					ala.appendMessage(data.messages[i]);
-				}
-			} else {
-				ala.snack(this.responseText);
+		ala.fetch({
+			method: "POST",
+			url: "/chat/history",
+			body: {
+				email: $.cookie("email"),
+				authToken: $.cookie("authToken"),
+				chatId: chatId
 			}
-		}
-		xhr.setRequestHeader("Content-Type", "application/json");
-		xhr.send(JSON.stringify({
-			email: $.cookie("email"),
-			authToken: $.cookie("authToken"),
-			chatId: chatId
-		}));
+		})
+			.then(function(data){
+			$("ala-messages-list").empty();
+			ala.chats[chatId].unread = 0;
+			ala.nextPage = 1;
+			ala.loadMorePages = true;
+
+			for(var i = 0; i < data.messages.length; i++){
+				ala.appendMessage(data.messages[i]);
+			}
+		})
+			.catch(function(err){
+			ala.snack(err.errorText);
+		});
+
 		ala.currentChat = chatId;
 		ala.chatGroupCounter = [0, 0];
 		ala.spark.reset();
@@ -398,49 +465,52 @@ $(document).ready(function(){
 		if(ala.loadingPage || !ala.loadMorePages){
 			return;
 		}
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/chat/history", true);
-		xhr.onload = function(){
-			if(this.status == 200){
-				var data = JSON.parse(this.responseText);
-				var messages = data.messages;
-
-				var lastMessage = $("ala-message-list").children("ala-message-group").first().children("ala-chat-message").first();
-
-				for(var i = messages.length-1; i >= 0; i--){
-					ala.prependMessage(messages[i]);
-				}
-
-				if(lastMessage.position()){
-					$("ala-message-list-viewport").scrollTop(lastMessage.position().top);
-				}
-
-				if(messages.length == 0){
-					ala.loadMorePages = false;
-					$("ala-message-list").addClass("no-load");
-				}
-
-				ala.nextPage++;
-			} else {
-				ala.snack(this.responseText);
+		ala.fetch({
+			method: "POST",
+			url: "/chat/history",
+			body: {
+				email: $.cookie("email"),
+				authToken: $.cookie("authToken"),
+				chatId: ala.currentChat,
+				page: ala.nextPage
 			}
-		}
-		xhr.setRequestHeader("Content-Type", "application/json");
+		})
+			.then(function(data){
+			var messages = data.messages;
+
+			var lastMessage = $("ala-message-list").children("ala-message-group").first().children("ala-chat-message").first();
+
+			for(var i = messages.length-1; i >= 0; i--){
+				ala.prependMessage(messages[i]);
+			}
+
+			if(lastMessage.position()){
+				$("ala-message-list-viewport").scrollTop(lastMessage.position().top);
+			}
+
+			if(messages.length == 0){
+				ala.loadMorePages = false;
+				$("ala-message-list").addClass("no-load");
+			}
+
+			ala.nextPage++;
+		})
+			.catch(function(err){
+			console.log(err.errorText);
+		});
 		ala.loadingPage = true;
-		xhr.send(JSON.stringify({
-			email: $.cookie("email"),
-			authToken: $.cookie("authToken"),
-			chatId: ala.currentChat,
-			page: ala.nextPage
-		}));
 	}
 
 	ala.loadChats = function(){
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/chats", true);
-		xhr.onload = function(){
-			var chats = JSON.parse(this.responseText);
-
+		ala.fetch({
+			method: "POST",
+			url: "/chats",
+			body: {
+				email: $.cookie("email"),
+				authToken: $.cookie("authToken")
+			}
+		})
+			.then(function(chats){
 			chats.sort(function(a, b){
 				return (b.messages[0] ? b.messages[0].timestamp : b.creationTime) - (a.messages[0] ? a.messages[0].timestamp : b.creationTime);
 			});
@@ -473,12 +543,10 @@ $(document).ready(function(){
 				$("ala-chat-list").append(ala.chats[chats[i]._id].listing);
 				ala.chatCount++;
 			}
-		};
-		xhr.setRequestHeader("Content-Type", "application/json");
-		xhr.send(JSON.stringify({
-			email: $.cookie("email"),
-			authToken: $.cookie("authToken")
-		}));
+		})
+			.catch(function(err){
+			ala.snack(err.errorText);
+		});
 	}
 
 	ala.lightbox = function(formId, doNotClear){
