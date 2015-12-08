@@ -55,6 +55,16 @@ var local = false;
 
 var email = require("./email");
 
+var RESPONSE_MESSAGES = {
+	INVALID_CREDENTIALS: "Invalid credentials.",
+	SERVER_ERROR: "The server failed to process your request.  Try again in a minute.",
+	NOT_AUTHORIZED: "You're not authorized to perform that action.  Make sure you're logged in.",
+	NOT_VERIFIED: "You need to verify your email before you perform that action.",
+	NOT_AN_EMAIL: "The specified email is not valid.",
+	EMAIL_IN_USE: "That email is already in use.", // I feel like this is problematic
+	PASSWORD_RESET: "Your password has been reset.  Check your email for the new password."
+}
+
 var stub;
 readFile(__dirname + "/templates/notif-stubs.template", "utf8")
 	.then(function(data){
@@ -185,7 +195,7 @@ app.get("/user/:email", function(req, res){
 		if(data.length != 1){
 			res.status(400);
 			res.json({
-				error: "That user doesn't exist."
+				error: RESPONSE_MESSAGES.INVALID_CREDENTIALS
 			})
 			return;
 		}
@@ -200,7 +210,7 @@ app.get("/user/:email", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 		return;
 	});
@@ -211,7 +221,7 @@ app.get("/user/verify/:verID", function(req, res){
 		.then(function(data){
 		if(data.length != 1){
 			res.status(400);
-			res.send(renderTemplate("No user with this verification ID found")); //TODO: make prettier
+			res.send(renderTemplate("No user with this verification ID found.")); //TODO: make prettier
 			return;
 		}
 		if(data[0].verified){
@@ -229,7 +239,7 @@ app.get("/user/verify/:verID", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	});
 });
@@ -274,7 +284,7 @@ app.get("/user/reset/:resetID", function(req, res) {
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	});
 });
@@ -297,7 +307,7 @@ app.post("/user/notifs/register", function(req, res) {
 		if(data.length != 1){
 			res.status(400);
 			res.json({
-				error: "You're not authorized to take that action.  Make sure you're logged in."
+				error: RESPONSE_MESSAGES.NOT_AUTHORIZED
 			})
 			return;
 		}
@@ -305,7 +315,7 @@ app.post("/user/notifs/register", function(req, res) {
 		if(!data[0].verified){
 			res.status(400);
 			res.json({
-				error: "You need to verify your email before you can do that."
+				error: RESPONSE_MESSAGES.NOT_VERIFIED
 			})
 			return;
 		}
@@ -320,7 +330,7 @@ app.post("/user/notifs/register", function(req, res) {
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	});
 });
@@ -341,7 +351,7 @@ app.post("/user/new", function(req, res){
 	if(!emailValidator.validate(req.body.email)){
 		res.status(400);
 		res.json({
-			error: "That's not a valid email."
+			error: RESPONSE_MESSAGES.NOT_AN_EMAIL
 		})
 		return;
 	}
@@ -351,7 +361,7 @@ app.post("/user/new", function(req, res){
 		if(data.length > 0){
 			res.status(400);
 			res.json({
-				error: "That email is already associated with another account.  Please choose a different email."
+				error: RESPONSE_MESSAGES.EMAIL_IN_USE
 			})
 			return;
 		}
@@ -394,7 +404,7 @@ app.post("/user/new", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	});
 });
@@ -417,14 +427,14 @@ app.post("/user/auth", function(req, res){
 		if(data.length != 1){
 			res.status(400);
 			res.json({
-				error: "That user doesn't exist.  Double check your email."
+				error: RESPONSE_MESSAGES.INVALID_CREDENTIALS
 			})
 			return;
 		}
 		if(passwordHash(req.body.password, data[0].salt) != data[0].password){
 			res.status(400);
 			res.json({
-				error: "That password is incorrect.  Double check your password."
+				error: RESPONSE_MESSAGES.INVALID_CREDENTIALS
 			})
 			return;
 		}
@@ -446,7 +456,7 @@ app.post("/user/auth", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 		return;
 	});
@@ -475,14 +485,17 @@ app.post("/chat/new", function(req, res){
 		if(data.length != 1){
 			res.status(400);
 			res.json({
-				error: "You're not authorized to take that action.  Make sure you're logged in."
+				error: RESPONSE_MESSAGES.NOT_AUTHORIZED
 			})
 			return;
 		}
+		
+		logger.log(JSON.stringify(data[0]));
+		
 		if(!data[0].verified){
 			res.status(400);
 			res.json({
-				error: "You need to verify your email before you can do that."
+				error: RESPONSE_MESSAGES.NOT_VERIFIED
 			})
 			return;
 		}
@@ -536,7 +549,7 @@ app.post("/chat/new", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	})
 });
@@ -572,7 +585,7 @@ app.post("/user/update", function(req, res){
 		if(data.length != 1){
 			res.status(400);
 			res.json({
-				error: "That user doesn't exist."
+				error: RESPONSE_MESSAGES.INVALID_CREDENTIALS
 			})
 			return;
 		}
@@ -587,7 +600,7 @@ app.post("/user/update", function(req, res){
 		if(data.n == 0){
 			res.status(400);
 			res.json({
-				error: "That password is incorrect.  Double check your password."
+				error: RESPONSE_MESSAGES.INVALID_CREDENTIALS
 			})
 			return;
 		}
@@ -598,7 +611,7 @@ app.post("/user/update", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	});
 });
@@ -621,7 +634,7 @@ app.post("/user/reset-password", function(req, res){
 		if(data.length != 1){
 			res.status(400);
 			res.json({
-				error: "That user doesn't exist.  Double check your email."
+				error: RESPONSE_MESSAGES.INVALID_CREDENTIALS
 			})
 			return;
 		}
@@ -631,7 +644,7 @@ app.post("/user/reset-password", function(req, res){
 		.then(function(data){
 		res.status(200);
 		res.json({
-			result: "An email has been sent to your email containg a link to reset your password."
+			result: RESPONSE_MESSAGES.PASSWORD_RESET
 		})
 		if (!sendgrid) {
 			logger.error("Error, can't send reset email");
@@ -650,7 +663,7 @@ app.post("/user/reset-password", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 		return;
 	});
@@ -683,7 +696,7 @@ app.get("/chats", function(req, res){
 		if(data.length != 1){
 			res.status(400);
 			res.json({
-				error: "You're not authorized to take that action.  Make sure you're logged in."
+				error: RESPONSE_MESSAGES.NOT_AUTHORIZED
 			})
 			return;
 		}
@@ -753,7 +766,7 @@ app.get("/chats", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	});
 });
@@ -797,7 +810,7 @@ app.get("/chat/:chatId/history/:page?", function(req, res){
 		if(data.length != 1){
 			res.status(400);
 			res.json({
-				error: "You're not authorized to take that action.  Make sure you're logged in."
+				error: RESPONSE_MESSAGES.NOT_AUTHORIZED
 			})
 			return;
 		}
@@ -815,7 +828,7 @@ app.get("/chat/:chatId/history/:page?", function(req, res){
 			if(data.length != 1){
 				res.status(400);
 				res.json({
-					error: "That chat doesn't exist."
+					error: RESPONSE_MESSAGES.INVALID_CHAT_ID
 				})
 				return;
 			}
@@ -871,7 +884,7 @@ app.get("/chat/:chatId/history/:page?", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	});
 });
@@ -918,7 +931,7 @@ app.get("/mods/:dev/:name/*", function(req, res){
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	});
 
@@ -943,7 +956,7 @@ app.get("/mods/:dev/:name/*", function(req, res){
 			logger.error(err.stack);
 			res.status(500);
 			res.json({
-				error: "The server failed to process your request.  Try again in a minute."
+				error: RESPONSE_MESSAGES.SERVER_ERROR
 			})
 		});
 	}
@@ -967,7 +980,7 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 		if(data.length > 0){
 			res.status(400);
 			res.json({
-				error: "That mod doesn't exist."
+				error: RESPONSE_MESSAGES.INVALID_MOD_ID
 			})
 			return;
 		}
@@ -987,7 +1000,7 @@ app.post("/mods/new", function(req, res){ // TODO: any type of security, input v
 		logger.error(err.stack);
 		res.status(500);
 		res.json({
-			error: "The server failed to process your request.  Try again in a minute."
+			error: RESPONSE_MESSAGES.SERVER_ERROR
 		})
 	});
 });
@@ -1044,7 +1057,7 @@ io.on("connection", function(socket){
      */
 	socket.on("login", function(user, auth){
 		if(socket.userId){
-			io.to(socket.id).emit("login error", {description: "Login failed: you're alerady logged in!"});
+			io.to(socket.id).emit("login error", {description: RESPONSE_MESSAGES.ALREADY_LOGGED_IN});
 			return;
 		}
 
@@ -1056,7 +1069,7 @@ io.on("connection", function(socket){
 		})
 			.then(function(data){
 			if(data.length != 1){
-				io.to(socket.id).emit("login", "Login failed: authorization error.");
+				io.to(socket.id).emit("login", RESPONSE_MESSAGES.INVALID_CREDENTIALS);
 				return;
 			}
 			io.to(socket.id).emit("login", null, {_id: data[0]._id, contacts: data[0].contacts, email: data[0].email, screenName: data[0].screenName, color: data[0].color});
@@ -1076,7 +1089,7 @@ io.on("connection", function(socket){
 		})
 			.catch(function(err){
 			logger.error(err.stack);
-			io.to(socket.id).emit("login", "Login failed: server error.");
+			io.to(socket.id).emit("login", RESPONSE_MESSAGES.SERVER_ERROR);
 		});
 	});
 
@@ -1103,7 +1116,7 @@ io.on("connection", function(socket){
      */
 	socket.on("message", function(chatId, msg){
 		if(socket.userId === undefined){
-			io.to(socket.id).emit("error", {description: "Request failed: you're not logged in."});
+			io.to(socket.id).emit("error", {description: RESPONSE_MESSAGES.NOT_AUTHORIZED});
 		}
 		var chatPrm = db.query("chats", {
 			_id: ObjectId(chatId),
@@ -1157,7 +1170,7 @@ io.on("connection", function(socket){
 		})
 			.catch(function(err){
 			logger.log(err.stack);
-			io.to(socket.id).emit("error", {description: "Request failed: server error."});
+			io.to(socket.id).emit("error", {description: RESPONSE_MESSAGES.SERVER_ERROR});
 		});
 	});
 
