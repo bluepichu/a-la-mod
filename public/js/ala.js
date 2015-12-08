@@ -233,7 +233,7 @@ $(document).ready(function(){
 		}
 	});
 
-	ala.socket = io()
+	ala.socket = io();
 
 	ala.socket.on("connect", function(){
 		console.info("[Socket] Socket connected.");
@@ -431,11 +431,11 @@ $(document).ready(function(){
 		var newMessage = $(Handlebars.templates["chat-message"]({
 			sender: data.sender
 		}));
-		$("ala-message-list").children().first().prepend(newMessage);
+		$("ala-messages-list").children().first().prepend(newMessage);
 		newMessage.attr("message-id", "b" + ala.messageCounter[1]);
 		ala.spark.set("date-b" + ala.chatGroupCounter[1], data.timestamp);
 
-		ala.mods.decode(data.message, decodeOrder, function(id, sender){
+		ala.mods.decode(data.message, ala.recipes.all[ala.selected].decoders, function(id, sender){
 			return function(data){
 				for(var i = 0; i < data.length; i++){
 					if(data[i].fallback !== undefined){
@@ -454,25 +454,25 @@ $(document).ready(function(){
 		}("b" + ala.messageCounter[1], data.sender));
 	}
 
-	ala.loadPreviousPage = function(){ // why isn't this called anywhere?
-		if(ala.loadingPage || !ala.loadMorePages){
+	ala.loadPreviousPage = function(){
+		if(!ala.loadMorePages){
 			return;
 		}
 		ala.fetch({
 			method: "GET",
-			url: "/chat/" + chatId + "/history/" + ala.nextPage
+			url: "/chat/" + ala.currentChat + "/history/" + ala.nextPage
 		})
 			.then(function(data){
 			var messages = data.messages;
 
-			var lastMessage = $("ala-message-list").children("ala-message-group").first().children("ala-chat-message").first();
+			var lastMessage = $("ala-messages-list").children("ala-message-group").first().children("ala-chat-message").first();
 
 			for(var i = messages.length-1; i >= 0; i--){
 				ala.prependMessage(messages[i]);
 			}
 
 			if(lastMessage.position()){
-				$("ala-message-list-viewport").scrollTop(lastMessage.position().top);
+				$("ala-messages-list").scrollTop(lastMessage.position().top);
 			}
 
 			if(messages.length == 0){
@@ -485,7 +485,6 @@ $(document).ready(function(){
 			.catch(function(err){
 			ala.snack(err.errorText);
 		});
-		ala.loadingPage = true;
 	}
 
 	ala.loadChats = function(){
@@ -595,6 +594,12 @@ $(document).ready(function(){
 
 	$("ala-chat-list").on("click", "ala-chat-card", function(e){
 		ala.openChat($(this).attr("chat-id"));
+	});
+	
+	$("ala-messages-list").on("scroll", function(e){
+		if($(this).scrollTop() < 40){
+			ala.loadPreviousPage();
+		}
 	});
 
 	$("#back").click(function(){

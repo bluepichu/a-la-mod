@@ -781,7 +781,7 @@ app.get("/chat/:chatId/history/:page?", function(req, res){
 		chatId: req.params.chatId
 	}
 	if(req.params.page){
-		params.page = req.params.page;
+		params.page = parseInt(req.params.page);
 	}
 	var chk = argCheck(params, {
 		chatId: "string",
