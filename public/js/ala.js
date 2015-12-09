@@ -453,16 +453,22 @@ $(document).ready(function(){
 			}
 		}("b" + ala.messageCounter[1], data.sender));
 	}
+	
+	ala.loadingPage = false;
 
 	ala.loadPreviousPage = function(){
-		if(!ala.loadMorePages){
+		if(!ala.loadMorePages || ala.loadingPage){
 			return;
 		}
+		
+		ala.loadingPage = true;
+		
 		ala.fetch({
 			method: "GET",
 			url: "/chat/" + ala.currentChat + "/history/" + ala.nextPage
 		})
 			.then(function(data){
+			ala.loadingPage = false;
 			var messages = data.messages;
 
 			var lastMessage = $("ala-messages-list").children("ala-message-group").first().children("ala-chat-message").first();
@@ -479,12 +485,12 @@ $(document).ready(function(){
 				ala.loadMorePages = false;
 				$("ala-message-list").addClass("no-load");
 			}
-
-			ala.nextPage++;
 		})
 			.catch(function(err){
 			ala.snack(err.errorText);
 		});
+		
+		ala.nextPage++;
 	}
 
 	ala.loadChats = function(){
