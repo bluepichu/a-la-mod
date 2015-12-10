@@ -1,8 +1,11 @@
-/node_modules
-/site
+node_modules
+site
 *.swp
 *.swo
-/site
+site
 .brackets.json
 *.css.map
-/data
+data
+build
+build-dev
+.DS_Store

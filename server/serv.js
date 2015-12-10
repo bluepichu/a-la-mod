@@ -46,7 +46,10 @@ var PAGE_SIZE = 40;  // Number of chat results to return in a single request.
 var SOCKETS = {}; // Stores currently authorized sockets, as {<user id>: [<list of connected sockets authorized with user id>]}
 
 var PORT = nconf.get("port") || 1337; // Sets the socket to whatever the evironment specifies, or 1337 if a port is not specified
-var MODE = nconf.get("mode") || "normal"; // Sets run mode - should be either "normal" (normal operation) or "local" (to use local copies of fonts and APIs)
+var DEBUG = nconf.get("debug"); // Sets the server in debug mode, serving unminified HTML/CSS/JS
+var ROOT = DEBUG ? "../build-dev" : "../build"; // The root directory for serving public files
+
+logger.info("Starting with root", ROOT);
 
 var sendgridlogin = require("sendgrid");
 var sendgrid = undefined;
@@ -63,7 +66,7 @@ var RESPONSE_MESSAGES = {
 	NOT_AN_EMAIL: "The specified email is not valid.",
 	EMAIL_IN_USE: "That email is already in use.", // I feel like this is problematic
 	PASSWORD_RESET: "Your password has been reset.  Check your email for the new password."
-}
+};
 
 var stub;
 readFile(__dirname + "/templates/notif-stubs.template", "utf8")
@@ -121,69 +124,59 @@ app.get("/push/get/:subId", function(req, res) {
  * Serves the À la Mod page.
  */
 app.get("/", function(req, res){
-	switch(MODE){
-		case "normal":
-			res.sendFile("/index.html", {root: path.join(__dirname, "../public")});
-			break;
-		case "local":
-			res.sendFile("/local.html", {root: path.join(__dirname, "../public")});
-			break;
-		default:
-			res.status(404).send();
-			break;
-	}
+	res.sendFile("/index.html", {root: path.join(__dirname, ROOT)});
 });
 
 /**
  * Serves the requested CSS file.
  */
 app.get("/css/:file", function(req, res){
-	res.sendFile("/css/" + req.params.file, {root: path.join(__dirname, "../public")});
+	res.sendFile("/css/" + req.params.file, {root: path.join(__dirname, ROOT)});
 });
 
 /**
  * Serves the requested font file.
  */
 app.get("/fonts/:file", function(req, res){
-	res.sendFile("/fonts/" + req.params.file, {root: path.join(__dirname, "../public")});
+	res.sendFile("/fonts/" + req.params.file, {root: path.join(__dirname, ROOT)});
 });
 
 /**
  * Serves the requested JS file.
  */
 app.get("/js/*", function(req, res){
-	res.sendFile("/js/" + req.params[0], {root: path.join(__dirname, "../public")});
+	res.sendFile("/js/" + req.params[0], {root: path.join(__dirname, ROOT)});
 });
 
 app.get("/service-worker.js", function(req, res) {
-	res.sendFile("/service-worker.js", {root: path.join(__dirname, "../public")})
+	res.sendFile("/service-worker.js", {root: path.join(__dirname, ROOT)})
 })
 /**
  * Serves the requested JS mod enconder file.
  */
 app.get("/js/mods/enc/:file", function(req, res){
-	res.sendFile("/js/mods/enc/" + req.params.file, {root: path.join(__dirname, "../public")});
+	res.sendFile("/js/mods/enc/" + req.params.file, {root: path.join(__dirname, ROOT)});
 });
 
 /**
  * Serves the requested JS mod decoder file.
  */
 app.get("/js/mods/dec/:file", function(req, res){
-	res.sendFile("/js/mods/dec/" + req.params.file, {root: path.join(__dirname, "../public")});
+	res.sendFile("/js/mods/dec/" + req.params.file, {root: path.join(__dirname, ROOT)});
 });
 
 /**
  * Serves the requested image file.
  */
 app.get("/images/:file", function(req, res){
-	res.sendFile("/images/" + req.params.file, {root: path.join(__dirname, "../public")});
+	res.sendFile("/images/" + req.params.file, {root: path.join(__dirname, ROOT)});
 });
 
 /**
  * Serves the requested static file.
  */
 app.get("/static/:file", function(req, res){
-	res.sendFile("/static/" + req.params.file, {root: path.join(__dirname, "../public")});
+	res.sendFile("/static/" + req.params.file, {root: path.join(__dirname, ROOT)});
 });
 
 /**
@@ -489,9 +482,9 @@ app.post("/chat/new", function(req, res){
 			})
 			return;
 		}
-		
+
 		logger.log(JSON.stringify(data[0]));
-		
+
 		if(!data[0].verified){
 			res.status(400);
 			res.json({
